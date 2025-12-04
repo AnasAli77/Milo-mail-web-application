@@ -1,0 +1,23 @@
+/* Container for the Auth screens (Login/Signup) */
+.auth-container {
+  min-height: 100vh;
+  background-color: #f9fafb; /* Matches previous bg-gray-50 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  font-family: var(--font-family, sans-serif);
+  color: #1f2937; /* text-gray-800 */
+}
+
+/* Wrapper for the card inside auth container */
+.auth-card-wrapper {
+  background-color: white;
+  border-radius: 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
