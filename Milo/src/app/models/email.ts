@@ -1,16 +1,15 @@
 export interface Email {
   id: number;
+  folder: string;
   sender: string;
   senderEmail: string;
+  receiverEmail: string[];
   time: string;
   subject: string;
-  preview: string;
-  body: string; // Added body for reading pane
+  body: string;
   read: boolean;
   active: boolean;
   starred: boolean;
   hasAttachment: boolean;
   label?: string;
-  avatarColor: string;
-  avatarInitials: string;
 }

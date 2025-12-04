@@ -1,6 +1,6 @@
 <div class="app-container">
-  <app-header 
-    [collapsed]="isSidebarCollapsed()" 
+  <app-header
+    [collapsed]="isSidebarCollapsed()"
     (onToggleSidebar)="toggleSidebar()"
     (onSignOut)="onSignOut.emit()">
   </app-header>
@@ -8,10 +8,7 @@
   <div class="content-area">
     <app-sidebar [collapsed]="isSidebarCollapsed()"></app-sidebar>
 
-    <!-- Email List emits selection -->
-    <app-email-list (onEmailSelected)="handleEmailSelection($event)"></app-email-list>
-
-    <!-- View Component receives selection -->
-    <app-email-view [email]="selectedEmail()"></app-email-view>
+    <!-- Router loads EmailListComponent based on URL -->
+    <router-outlet></router-outlet>
   </div>
 </div>

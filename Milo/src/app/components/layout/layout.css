@@ -1,6 +1,6 @@
 .app-container {
-  font-family: var(--font-family);
-  color: var(--color-text-main);
+  font-family: var(--font-family, sans-serif);
+  color: #334155;
   height: 100vh;
   width: 100%;
   display: flex;
@@ -14,4 +14,20 @@
   flex: 1;
   overflow: hidden;
   width: 100%;
+  position: relative;
+}
+
+/* Ensure Sidebar stays fixed */
+app-sidebar {
+  flex-shrink: 0;
+  height: 100%;
+}
+
+/* CRITICAL: Ensure the Router Outlet component (Email List) fills the remaining space */
+.content-area > :not(app-sidebar) {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: block; /* Ensure it's not inline */
+  overflow: hidden;
 }

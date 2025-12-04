@@ -1,0 +1,76 @@
+<div class="compose-container">
+  <div class="compose-header">
+    <h2>New Message</h2>
+    <!-- (x) button calls close(), which now SAVES to drafts -->
+    <button type="button" (click)="close()" class="close-btn" title="Save & Close">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="compose-body">
+
+    <!-- Receiver List Section -->
+    <div class="receivers-section">
+      <label class="section-label">Receivers</label>
+
+      <div class="receivers-list">
+        <div *ngFor="let receiverItem of receivers; let i = index; trackBy: trackByIndex" class="receiver-row">
+
+          <input
+            type="email"
+            placeholder="user@domain.com"
+            class="compose-input"
+            [(ngModel)]="receiverItem.email"
+            name="email-{{i}}"
+            required
+            pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$">
+
+          <button
+            type="button"
+            *ngIf="receivers.length > 1"
+            (click)="removeReceiver(i)"
+            class="remove-btn"
+            title="Remove">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" (click)="addReceiver()" class="add-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add Receiver
+      </button>
+    </div>
+
+    <!-- Subject -->
+    <div class="input-group">
+      <input
+        type="text"
+        placeholder="Subject"
+        class="compose-input"
+        [(ngModel)]="subject"
+        name="subject">
+    </div>
+
+    <!-- Message Body -->
+    <textarea
+      placeholder="Write your message..."
+      class="compose-textarea"
+      [(ngModel)]="message"
+      name="message"
+      required>
+    </textarea>
+  </div>
+
+  <div class="compose-footer">
+    <button type="button" class="send-btn" (click)="send()" [disabled]="!isFormValid">Send</button>
+    <!-- Updated: Discard button now calls discard() to exit WITHOUT saving -->
+    <button type="button" class="discard-btn" (click)="discard()">Discard</button>
+  </div>
+</div>

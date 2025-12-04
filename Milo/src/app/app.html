@@ -3,16 +3,16 @@
   <div class="auth-card-wrapper">
      -->
     <!-- Login Component -->
-    <!-- <app-login 
-      *ngIf="currentView() === 'login'" 
-      (onLogin)="switchView('main')" 
+    <!-- <app-login
+      *ngIf="currentView() === 'login'"
+      (onLogin)="switchView('main')"
       (onRegisterClick)="switchView('signup')">
     </app-login> -->
 
     <!-- Signup Component -->
-    <!-- <app-signup 
-      *ngIf="currentView() === 'signup'" 
-      (onCreate)="switchView('main')" 
+    <!-- <app-signup
+      *ngIf="currentView() === 'signup'"
+      (onCreate)="switchView('main')"
       (onLoginClick)="switchView('login')">
     </app-signup>
 
@@ -20,6 +20,6 @@
 </div> -->
 
 <!-- MAIN LAYOUT (Visible only when logged in) -->
-<app-main-layout></app-main-layout>
-<!-- *ngIf="currentView() === 'main'" 
+<router-outlet></router-outlet>
+<!-- *ngIf="currentView() === 'main'"
 (onSignOut)="switchView('login')"> -->

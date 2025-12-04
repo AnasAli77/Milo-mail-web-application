@@ -1,0 +1,245 @@
+:host {
+  display: flex;
+  justify-content: center;
+  /* Change alignment to center so it floats nicely in the middle */
+  align-items: center;
+  padding: 20px;
+  background-color: #f3f4f6;
+  min-height: 100vh;
+  box-sizing: border-box; /* Ensures padding doesn't affect width calc */
+}
+
+.compose-container {
+  background: white;
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.compose-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  /* Ensure header doesn't shrink */
+  flex-shrink: 0;
+}
+
+.compose-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.compose-body {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* 2. Make the body scrollable! */
+  overflow-y: auto;
+}
+
+.section-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.receivers-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.receivers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* You can remove max-height here now that the whole body scrolls,
+     but keeping it is fine too if you want just the list to scroll first. */
+  /* max-height: 200px;  <-- Optional: Remove this to let the list grow fully inside the scrolling body */
+}
+
+.receiver-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.input-group {
+  width: 100%;
+}
+
+.compose-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  color: #1f2937;
+}
+
+.compose-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.remove-btn:hover {
+  background-color: #fef2f2;
+}
+
+.remove-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.add-btn {
+  background-color: #f9fafb;
+  border: 1px dashed #d1d5db;
+  color: #6b7280;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.add-btn:hover {
+  border-color: #9ca3af;
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+.add-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.compose-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: #1f2937;
+}
+
+.compose-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.compose-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f9fafb;
+  /* Ensure footer doesn't shrink */
+  flex-shrink: 0;
+}
+
+.send-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.send-btn:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.send-btn:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.discard-btn {
+  background-color: white;
+  color: #374151;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.discard-btn:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
