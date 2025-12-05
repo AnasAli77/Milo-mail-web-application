@@ -160,12 +160,15 @@ h2 {
 
 /* Disabled state: no hover, no transform, dimmed look */
 .btn:disabled {
-  background: #777;         /* or keep #333 */
+  background: #777;
+  /* or keep #333 */
   color: #eaeaea;
   cursor: not-allowed;
   opacity: 0.6;
-  pointer-events: none;      /* prevents hover/click */
-  transform: none;           /* ensure no movement */
+  pointer-events: none;
+  /* prevents hover/click */
+  transform: none;
+  /* ensure no movement */
 }
 
 .switch-text {

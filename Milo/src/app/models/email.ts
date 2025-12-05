@@ -7,6 +7,7 @@ export interface Email {
   time: string;
   subject: string;
   body: string;
+  attachments?: File[];
   read: boolean;
   active: boolean;
   starred: boolean;

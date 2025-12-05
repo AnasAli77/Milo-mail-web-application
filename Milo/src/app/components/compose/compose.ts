@@ -1,9 +1,9 @@
-import {ChangeDetectorRef, Component, inject} from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
-import {EmailService} from '../../Services/email-service';
+import { EmailService } from '../../Services/email-service';
 
 interface ReceiverInput {
   email: string;
@@ -23,12 +23,15 @@ export class Compose {
   subject: string = '';
   message: string = '';
 
+  // Array to store attached files
+  attachments: File[] = [];
+
   private emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$/;
 
   constructor(
     private location: Location,
     private emailService: EmailService
-  ) {}
+  ) { }
 
   // Load draft data if we are editing one
   ngOnInit() {
@@ -40,8 +43,36 @@ export class Compose {
       }
       this.subject = draft.subject;
       this.message = draft.body;
+      this.attachments = draft.attachments || [];
     }
   }
+
+  onFilesSelected(event: any) {
+    const files: FileList = event.target.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        // Prevent duplicates if needed, or just push
+        this.attachments.push(files[i]);
+      }
+    }
+    // Reset input so the same file can be selected again if needed
+    event.target.value = '';
+  }
+
+  // Remove a specific attachment
+  removeAttachment(index: number) {
+    this.attachments.splice(index, 1);
+  }
+  // Format file size (e.g., 1.2 MB)
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  // ------------------------
 
   addReceiver() {
     this.receivers = [...this.receivers, { email: '' }];
@@ -69,7 +100,7 @@ export class Compose {
   // GO TO DRAFTS
   close() {
     // Only save if there is content to save
-    const hasContent = this.subject || this.message || this.receivers.some(r => r.email);
+    const hasContent = this.subject || this.message || this.receivers.some(r => r.email) || this.attachments.length > 0;;
 
     if (hasContent) {
       const emailList = this.receivers.map(r => r.email).filter(e => !!e);
@@ -77,7 +108,8 @@ export class Compose {
         to: emailList.join(', '),
         email: emailList,
         subject: this.subject,
-        body: this.message
+        body: this.message,
+        attachments: this.attachments
       };
 
       this.emailService.saveDraft(emailData);
@@ -104,7 +136,8 @@ export class Compose {
         to: emailList.join(', '),
         email: emailList,
         subject: this.subject,
-        body: this.message
+        body: this.message,
+        attachments: this.attachments
       };
 
       this.emailService.sendEmail(emailData);

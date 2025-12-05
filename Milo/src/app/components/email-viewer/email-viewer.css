@@ -5,54 +5,8 @@
   box-sizing: border-box;
 }
 
-/* Navigation Controls */
-.navigation-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.nav-btn {
-  background: none;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s;
-}
-
-.nav-btn:hover:not(:disabled) {
-  background-color: #f1f5f9;
-  color: #0f172a;
-}
-
-.nav-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.back-btn {
-  border: none;
-  padding-left: 0;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.back-btn:hover {
-  background: none;
-  color: #3b82f6;
-}
-
 /* Email Header */
-.view-header {
-  margin-bottom: 32px;
-}
+.view-header { margin-bottom: 32px; }
 
 .subject-row {
   display: flex;
@@ -75,20 +29,6 @@
   gap: 16px;
 }
 
-.avatar-large {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: white;
-  font-size: 1.125rem;
-  flex-shrink: 0;
-}
-
-/* Avatar Colors */
 .bg-blue-500 { background-color: #3b82f6; }
 .bg-green-500 { background-color: #22c55e; }
 .bg-purple-500 { background-color: #a855f7; }
@@ -96,14 +36,11 @@
 .bg-red-500 { background-color: #ef4444; }
 .bg-gray-500 { background-color: #64748b; }
 
-.meta {
-  flex: 1; /* Allows the meta container to fill the remaining width */
-}
+.meta { flex: 1; }
 
-/* FIX: Align Date to the Right */
 .meta-top {
   display: flex;
-  justify-content: space-between; /* Pushes items to opposite edges */
+  justify-content: space-between;
   align-items: baseline;
   margin-bottom: 4px;
 }
@@ -126,24 +63,111 @@
   font-size: 0.875rem;
 }
 
-/* Move To Dropdown */
-.move-select {
-  padding: 6px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  color: #475569;
-  background-color: white;
-  cursor: pointer;
-}
-
 /* Body Content */
 .email-body-text {
   font-size: 1rem;
   line-height: 1.7;
   color: #334155;
-  white-space: pre-wrap; /* Preserves newlines from the email body */
+  white-space: pre-wrap;
+  margin-bottom: 40px;
 }
+
+/* Attachments Section */
+.attachments-section {
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.attachments-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #475569;
+  margin: 0 0 16px 0;
+  font-weight: 600;
+}
+
+.attachments-title svg {
+  width: 18px; height: 18px;
+}
+
+.attachments-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-width: 200px;
+  max-width: 300px;
+  transition: box-shadow 0.2s;
+}
+
+.attachment-item:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+.file-icon {
+  background-color: #f1f5f9;
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.file-icon svg { width: 20px; height: 20px; }
+
+.file-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  color: #1e293b;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.download-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.download-btn:hover {
+  background-color: #f1f5f9;
+  color: #0ea5e9;
+}
+
+.download-btn svg { width: 18px; height: 18px; }
 
 /* Empty State */
 .empty-state {
@@ -157,8 +181,7 @@
 }
 
 .empty-icon-circle {
-  width: 80px;
-  height: 80px;
+  width: 80px; height: 80px;
   background-color: #f1f5f9;
   border-radius: 50%;
   display: flex;
@@ -167,8 +190,4 @@
   margin-bottom: 24px;
 }
 
-.empty-icon-circle svg {
-  width: 40px;
-  height: 40px;
-  color: #cbd5e1;
-}
+.empty-icon-circle svg { width: 40px; height: 40px; color: #cbd5e1; }

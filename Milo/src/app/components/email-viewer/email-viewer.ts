@@ -16,6 +16,7 @@ export class EmailViewComponent implements OnInit {
 
   // 2. Services needed ONLY if loading via URL
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private emailService = inject(EmailService);
 
   currentFolder = 'inbox';
@@ -48,5 +49,22 @@ export class EmailViewComponent implements OnInit {
       // Mark as active/read in service
       this.emailService.setSelectedEmail(found);
     }
+  }
+
+    // --- Download Logic (Restored) ---
+  downloadFile(file: File) {
+    // Create a temporary URL for the file
+    const url = window.URL.createObjectURL(file);
+    
+    // Create a temporary anchor tag to trigger the download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name; // This forces the browser to download
+    document.body.appendChild(a);
+    a.click();
+    
+    // Cleanup
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   }
 }

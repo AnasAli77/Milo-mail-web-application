@@ -1,12 +1,16 @@
-import {inject, Injectable, signal} from '@angular/core';
-import {Email} from '../models/email'
-import {Router} from '@angular/router';
+import { inject, Injectable, signal } from '@angular/core';
+import { Email } from '../models/email'
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmailService {
-  folders = signal<string[]>(['inbox', 'starred', 'sent', 'drafts', 'trash']);
+
+  readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
+  // All folders signal
+  folders = signal<string[]>([...this.systemFolders]);
+
   selectedEmail = signal<Email | null>(null);
   private router = inject(Router);
 
@@ -21,6 +25,7 @@ export class EmailService {
       time: '7:24 PM',
       subject: 'Q4 Project Updates',
       body: 'Hi team,\n\nI wanted to share some updates on our Q4 progress and what to expect in the coming weeks. We have hit all our milestones for October and are on track for a successful year-end close.\n\nPlease review the attached slide deck for the detailed breakdown.\n\nBest,\nSarah',
+      attachments: [new File(["Mock file content"], "Q4_Report.pdf", { type: "application/pdf" })],
       read: false, active: false, starred: false, hasAttachment: true, folder: 'inbox'
     },
     {
@@ -31,7 +36,8 @@ export class EmailService {
       time: '5:58 PM',
       subject: 'Newsletter: January Edition',
       body: 'Hello!\n\nCheck out our latest newsletter featuring:\n- New product launch dates\n- Employee of the month\n- Upcoming holiday schedule\n\nClick here to read more.',
-      read: false, active: false, starred: true, hasAttachment: false,folder: 'inbox'
+      attachments: [],
+      read: false, active: false, starred: true, hasAttachment: false, folder: 'inbox'
     },
     {
       id: 3,
@@ -41,6 +47,7 @@ export class EmailService {
       time: '2:58 PM',
       subject: 'Meeting Request: Design Review',
       body: 'Hi,\n\nCould we schedule a design review meeting for next week? I have some mockups ready for the new landing page.\n\nLet me know your availability.\n\nThanks,\nMichael',
+      attachments: [],
       read: true, active: false, starred: false, hasAttachment: true, folder: 'inbox'
     },
     {
@@ -51,6 +58,7 @@ export class EmailService {
       time: 'Yesterday',
       subject: 'Final Assets for Campaign',
       body: 'Hey,\n\nAttached are the final exported assets for the social media campaign. Let me know if you need any other formats.\n\nCheers,\nEmma',
+      attachments: [],
       read: true, active: false, starred: true, hasAttachment: true, folder: 'inbox'
     },
     {
@@ -61,6 +69,7 @@ export class EmailService {
       time: '10:00 AM',
       subject: 'Project Proposal v2',
       body: 'Hi Client,\n\nPlease find attached the revised proposal based on our discussion yesterday. I have updated the budget section.\n\nBest,\nTofy',
+      attachments: [],
       read: true, active: false, starred: false, hasAttachment: true, folder: 'sent'
     }
   ]);
@@ -71,6 +80,37 @@ export class EmailService {
     if (!this.folders().includes(normalize)) {
       this.folders.update(list => [...list, normalize]);
     }
+  }
+
+  // NEW: Rename a custom folder
+  renameFolder(oldName: string, newName: string) {
+    const normalizedNew = newName.toLowerCase().trim();
+
+    // Validation: prevent empty names, duplicates, or renaming system folders
+    if (!normalizedNew || this.folders().includes(normalizedNew) || this.systemFolders.includes(oldName)) {
+      return;
+    }
+
+    // 1. Update folder list
+    this.folders.update(list => list.map(f => f === oldName ? normalizedNew : f));
+
+    // 2. Update emails in that folder
+    this.emailsSignal.update(emails => emails.map(e =>
+      e.folder === oldName ? { ...e, folder: normalizedNew } : e
+    ));
+  }
+
+  // NEW: Delete a custom folder
+  deleteFolder(folderName: string) {
+    if (this.systemFolders.includes(folderName)) return;
+
+    // 1. Remove from folder list
+    this.folders.update(list => list.filter(f => f !== folderName));
+
+    // 2. Move emails from deleted folder to 'trash'
+    this.emailsSignal.update(emails => emails.map(e =>
+      e.folder === folderName ? { ...e, folder: 'trash' } : e
+    ));
   }
 
   // WHEN I PReSS TO ANY FOLDER THIS DISPLAY ONLY EMAILS OF THIS FOLDER
@@ -84,7 +124,7 @@ export class EmailService {
   setSelectedEmail(email: Email) {
     this.selectedEmail.set(email);
     this.emailsSignal.update(all =>
-      all.map(e => e.id === email.id ? {...e, read: true, active: true} : {...e, active: false})
+      all.map(e => e.id === email.id ? { ...e, read: true, active: true } : { ...e, active: false })
     );
   }
 
@@ -108,13 +148,13 @@ export class EmailService {
 
   setStarredEmail(email: Email) {
     this.emailsSignal.update(emails =>
-      emails.map(e => e.id === email.id ? {...e, starred: !e.starred} : e)
+      emails.map(e => e.id === email.id ? { ...e, starred: !e.starred } : e)
     );
   }
 
   moveEmails(emailIds: number[], targetFolder: string) {
     this.emailsSignal.update(emails =>
-      emails.map(e => emailIds.includes(e.id) ? {...e, folder: targetFolder, active: false} : e)
+      emails.map(e => emailIds.includes(e.id) ? { ...e, folder: targetFolder, active: false } : e)
     );
 
     if (this.selectedEmail() && emailIds.includes(this.selectedEmail()!.id)) {
@@ -133,7 +173,7 @@ export class EmailService {
   }
 
 
-  saveDraft(data: { to: string; email: string[]; subject: string; body: string }) {
+  saveDraft(data: { to: string; email: string[]; subject: string; body: string; attachments?: File[] }) {
     const currentDraft = this.draftToEdit();
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -145,10 +185,11 @@ export class EmailService {
       time: timestamp,
       subject: data.subject || '(Draft)',
       body: data.body,
+      attachments: data.attachments || [],
       read: true,
       active: false,
       starred: false,
-      hasAttachment: false,
+      hasAttachment: !!data.attachments?.length,
       folder: 'drafts'
     };
     this.emailsSignal.update(emails => [draftToSave, ...emails.filter(e => e.id !== draftToSave.id)]);
@@ -156,7 +197,7 @@ export class EmailService {
     this.draftToEdit.set(null);
   }
 
-  sendEmail(data: { to: string; email :string[] ; subject: string; body: string }) {
+  sendEmail(data: { to: string; email: string[]; subject: string; body: string; attachments?: File[] }) {
 
     this.draftToEdit.set(null);
 
@@ -168,10 +209,11 @@ export class EmailService {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       subject: data.subject || '(No Subject)',
       body: data.body,
+      attachments: data.attachments || [],
       read: true,
       active: false,
       starred: false,
-      hasAttachment: false,
+      hasAttachment: !!data.attachments?.length,
       folder: 'sent'
     };
 

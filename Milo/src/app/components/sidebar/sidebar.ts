@@ -23,6 +23,10 @@ export class Sidebar {
 
   currentFolder = 'inbox';
 
+  // Rename Logic
+  editingFolder: string | null = null;
+  editNameBuffer = '';
+
   constructor() {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -48,6 +52,35 @@ export class Sidebar {
       this.emailService.addFolder(this.newFolderName);
       this.newFolderName = '';
       this.isAddingFolder = false;
+    }
+  }
+
+  // --- Rename Logic ---
+  startRename(folder: string, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.editingFolder = folder;
+    this.editNameBuffer = folder;
+  }
+
+  saveRename(oldName: string) {
+    if (this.editNameBuffer.trim() && this.editNameBuffer !== oldName) {
+      this.emailService.renameFolder(oldName, this.editNameBuffer);
+    }
+    this.editingFolder = null;
+  }
+
+  cancelRename() {
+    this.editingFolder = null;
+  }
+
+  // --- Delete Logic ---
+  deleteFolder(folder: string, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (confirm(`Delete folder "${folder}"? Emails will be moved to Trash.`)) {
+      this.emailService.deleteFolder(folder);
     }
   }
 }

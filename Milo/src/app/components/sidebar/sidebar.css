@@ -189,3 +189,59 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* --- NEW: Action Buttons (Rename/Delete) --- */
+.folder-actions {
+  display: none; /* Hidden by default */
+  align-items: center;
+  gap: 4px;
+}
+
+/* Show actions on hover */
+.nav-item:hover .folder-actions {
+  display: flex;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover { background-color: white; color: var(--color-primary); }
+.action-btn.delete:hover { color: #ef4444; }
+.action-btn svg { width: 14px; height: 14px; }
+
+/* Rename Input */
+.rename-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* Contacts/Folders Section */
+.contacts-section {
+  margin-top: 2rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+  width: 100%;
+}
+
+.section-title {
+  padding: 0 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin: 0;
+}
