@@ -46,7 +46,6 @@ export class EmailList implements OnInit {
 
   selectEmail(email: Email) {
     this.emailService.setSelectedEmail(email);
-    // Navigate relative to current folder
     this.router.navigate(['email', email.id], {relativeTo: this.route});
   }
 

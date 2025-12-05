@@ -129,7 +129,7 @@ export class EmailService {
     this.emailsSignal.update(emails => emails.filter(e => e.id !== email.id));
 
     // Automatically navigate to compose page
-    this.router.navigate(['/drafts/compose']);
+    this.router.navigate(['/layout/drafts/compose']);
   }
 
 
