@@ -25,7 +25,7 @@
 
       <!-- Email -->
       <div class="input-box">
-        <input type="text" formControlName="email" placeholder="            example@milo.com" required>
+        <input type="text" formControlName="email" required>
         <span>Email</span>
         <!-- Error Message -->
         @if (authSignUpForm.get('email')?.touched && authSignUpForm.get('email')?.errors?.['required']) {
@@ -65,13 +65,13 @@
       </p>
 
       
-      <pre>
+      <!-- <pre>
         Status: {{ authSignUpForm.status }}
         Form errors: {{ authSignUpForm.errors | json }}
         Email errors: {{ authSignUpForm.get('email')?.errors | json }}
         Password errors: {{ authSignUpForm.get('password')?.errors | json }}
         Confirm errors: {{ authSignUpForm.get('confirmPassword')?.errors | json }}
-      </pre>
+      </pre> -->
 
 
     </form>

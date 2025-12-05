@@ -1,7 +1,7 @@
 import { CommonModule, JsonPipe } from '@angular/common';
 import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 
 @Component({
@@ -22,7 +22,7 @@ export class loginComponent {
   //     }
   //   )
   // }
-
+  route = inject(Router);
   isLoginMode = true;
   authLoginForm: FormGroup;
   private fb = inject(FormBuilder);
@@ -38,8 +38,11 @@ export class loginComponent {
   onSubmit() {
     if (this.authLoginForm.valid) {
       console.log(this.isLoginMode ? 'Logging in...' : 'Signing up...', this.authLoginForm.value);
-      localStorage.setItem('token', 'aaaaaaa15522s22saa61');
-      localStorage.setItem('tkn', 'aaaaa22saa61');
+      localStorage.setItem('token', 'aaaaaa61');
+      localStorage.setItem('tkn', 'saa61');
+      this.route.navigateByUrl('/layout');
+
+      // localStorage.clear();
       // Add your Firebase/Backend logic here
     } else {
       this.authLoginForm.markAllAsTouched();

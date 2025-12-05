@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -11,10 +12,13 @@ export class Header {
 
   @Input() collapsed = false;
   @Output() onToggleSidebar = new EventEmitter<void>();
-  @Output() onSignOut = new EventEmitter<void>();
 
+  route = inject(Router);
   isProfileOpen = signal(false);
-
+  signOut(){
+    localStorage.clear();
+    this.route.navigateByUrl("");
+  }
   toggleProfile() {
     this.isProfileOpen.update(v => !v);
   }
