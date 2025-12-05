@@ -1,25 +1,80 @@
-<div class="signup-wrapper">
-  <div class="signup-card">
-    <h1 class="signup-title">Sign up</h1>
-    
-    <div class="form-group">
-      <div class="input-container">
-        <input type="text" placeholder="Full name" class="form-input">
-      </div>
+<div class="main-container">
 
-      <div class="input-container">
-        <input type="text" placeholder="Email" class="form-input">
-      </div>
-
-      <div class="input-container">
-        <input type="password" placeholder="Password" class="form-input">
-      </div>
-    </div>
-
-    <div class="footer-text">
-       <p>Already have an account? <button class="link-btn">Login</button></p>
-    </div>
-
-    <button class="primary-btn">Create</button>
+  <!-- Background Elements (Milo Design) -->
+  <div class="hero-text">Milo</div>
+  <div class="description-text">
+    Modern email client that helps you stay organized, focused, and productive.
   </div>
+
+  <!-- Auth Card (Centered) -->
+  <div class="box">
+
+    <!-- Toggle Title -->
+    <h2>Sign up</h2>
+
+    <form [formGroup]="authSignUpForm" (ngSubmit)="onSubmit()">
+
+      <!-- Full Name -->
+      <div class="input-box">
+        <input type="text" formControlName="fullName" required>
+        <span>Full name</span>
+        @if (authSignUpForm.get('fullName')?.touched && authSignUpForm.get('fullName')?.errors?.['required']) {
+        <div class="error-text">Name is required</div>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="input-box">
+        <input type="text" formControlName="email" placeholder="            example@milo.com" required>
+        <span>Email</span>
+        <!-- Error Message -->
+        @if (authSignUpForm.get('email')?.touched && authSignUpForm.get('email')?.errors?.['required']) {
+        <div class="error-text">Email is required</div>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="input-box">
+        <input type="password" formControlName="password" required>
+        <span>Password</span>
+        <!-- Error Message -->
+        @if (authSignUpForm.get('password')?.touched && authSignUpForm.get('password')?.errors?.['required']) {
+        <div class="error-text">Password is required</div>
+        }
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="input-box">
+        <input type="password" formControlName="confirmPassword" required>
+        <span>Confirm Password</span>
+        <!-- Error Message -->
+        @if
+        (authSignUpForm.errors?.['passwordMismatch'] &&
+        (authSignUpForm.get('password')?.touched || authSignUpForm.get('confirmPassword')?.touched))
+        {
+        <div class="error-text">Oops! Your passwords don't match</div>
+        }
+      </div>
+
+      <!-- Action Button -->
+      <button type="submit" class="btn" [disabled]="authSignUpForm.invalid">Create</button>
+
+      <!-- Toggle Link -->
+      <p class="switch-text">Already have an account?
+        <a routerLink="/Login"> Login</a>
+      </p>
+
+      
+      <pre>
+        Status: {{ authSignUpForm.status }}
+        Form errors: {{ authSignUpForm.errors | json }}
+        Email errors: {{ authSignUpForm.get('email')?.errors | json }}
+        Password errors: {{ authSignUpForm.get('password')?.errors | json }}
+        Confirm errors: {{ authSignUpForm.get('confirmPassword')?.errors | json }}
+      </pre>
+
+
+    </form>
+  </div>
+
 </div>

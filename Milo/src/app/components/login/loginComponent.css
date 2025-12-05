@@ -1,99 +1,182 @@
-.login-wrapper {
-  min-height: 100vh;
-  background-color: #f9fafb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+/* --- IMPORTS & RESETS --- */
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800,900');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+:host {
+  display: block;
+  font-family: "Poppins", sans-serif;
 }
 
-.login-card {
-  background: white;
-  border-radius: 2rem;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.05);
-  width: 100%;
-  max-width: 420px;
-  padding: 2.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.login-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 3rem;
-  color: var(--color-text-dark);
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.input-container {
+/* --- LAYOUT CONTAINER --- */
+.main-container {
   position: relative;
-}
-
-.form-input {
   width: 100%;
-  border: none;
-  border-bottom: 1px solid #d1d5db;
-  padding: 0.75rem 0;
-  font-size: 1rem;
-  color: var(--color-text-main);
-  background: transparent;
-  outline: none;
-  transition: border-color 0.2s;
+  height: 100vh;
+  background: linear-gradient(136deg, #848484 0%, #1E1E1E 99%);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.form-input:focus {
-  border-bottom-color: var(--color-text-dark);
+/* --- BACKGROUND ELEMENTS (Milo) --- */
+.hero-text {
+  position: absolute;
+  top: 280px;
+  left: 550px;
+  transform: translate(-50%, -50%);
+  color: #C4C4C4;
+  font-family: 'Inter', sans-serif;
+  font-size: 35vw;
+  /* Huge responsive text */
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.description-text {
+  position: absolute;
+  bottom: 5%;
+  left: 5%;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Inter', sans-serif;
+  font-style: italic;
+  font-size: 1rem;
+  max-width: 400px;
+  z-index: 1;
+}
+
+/* --- AUTH CARD (White Box) --- */
+.box {
+  position: relative;
+  z-index: 10;
+  width: 350px;
+  padding: 40px 30px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  /* Stronger shadow for depth */
+  display: flex;
+  flex-direction: column;
+  animation: floatIn 0.5s ease-out;
+}
+
+@keyframes floatIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+h2 {
+  margin-bottom: 30px;
+  font-weight: 600;
+  text-align: center;
+  color: #333;
+}
+
+/* --- INPUT STYLES (From your design) --- */
+.input-box {
+  position: relative;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.input-box input {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 2px solid #999;
+  outline: none;
+  font-size: 16px;
+  background: none;
+  transition: border-color 0.3s;
+}
+
+.input-box input:focus,
+.input-box input:valid {
+  border-bottom-color: #333;
+}
+
+.input-box span {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  font-size: 16px;
+  color: #999;
+  pointer-events: none;
+  transition: 0.3s ease;
+}
+
+/* Floating Label Animation */
+.input-box input:focus~span,
+.input-box input:valid~span {
+  top: -12px;
+  font-size: 12px;
+  color: #333;
+  font-weight: 500;
 }
 
 .error-text {
-  color: #ef4444;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  font-weight: 500;
+  font-size: 12px;
+  color: #e74c3c;
+  margin-top: 5px;
+  position: absolute;
+  bottom: -18px;
 }
 
-.footer-text {
-  margin-top: 2rem;
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.link-btn {
-  background: none;
-  border: none;
-  font-weight: 700;
-  color: var(--color-text-dark);
-  cursor: pointer;
-  padding: 0;
-}
-
-.link-btn:hover {
-  text-decoration: underline;
-}
-
-.primary-btn {
-  margin-top: 2rem;
+/* --- BUTTONS & LINKS --- */
+.btn {
   width: 100%;
-  background-color: var(--color-primary);
-  color: white;
+  padding: 12px;
+  background: #333;
+  color: #fff;
   border: none;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  font-size: 1.125rem;
-  font-weight: 500;
+  border-radius: 8px;
+  font-size: 16px;
   cursor: pointer;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.2s;
+  transition: background 0.3s, transform 0.2s;
+  margin-top: 10px;
 }
 
-.primary-btn:hover {
-  background-color: var(--color-primary-hover);
+/* Hover applies only when the button is enabled */
+.btn:not(:disabled):hover {
+  background: #111;
+  transform: translateY(-2px);
+}
+
+/* Disabled state: no hover, no transform, dimmed look */
+.btn:disabled {
+  background: #777;         /* or keep #333 */
+  color: #eaeaea;
+  cursor: not-allowed;
+  opacity: 0.6;
+  pointer-events: none;      /* prevents hover/click */
+  transform: none;           /* ensure no movement */
+}
+
+.switch-text {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.switch-text a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 5px;
+}
+
+.switch-text a:hover {
+  text-decoration: underline;
 }
