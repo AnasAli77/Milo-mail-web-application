@@ -66,6 +66,7 @@ export class Compose {
     );
   }
 
+  // GO TO DRAFTS
   close() {
     // Only save if there is content to save
     const hasContent = this.subject || this.message || this.receivers.some(r => r.email);
@@ -107,7 +108,7 @@ export class Compose {
       };
 
       this.emailService.sendEmail(emailData);
-      this.discard(); // Note: close() might try to save draft again if not careful, but sendEmail clears the draft ref, so it's safe.
+      this.discard(); // NOT CLOSE BECAUSE CLOSE REDIRECT EMAIL TO DRAFTS
     }
   }
 }

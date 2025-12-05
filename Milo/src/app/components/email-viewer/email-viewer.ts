@@ -1,6 +1,8 @@
-import { Component, Input } from '@angular/core';
+import {Component, inject, Input, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Email } from '../../models/email';
+import {ActivatedRoute, Router} from '@angular/router';
+import {EmailService} from '../../Services/email-service';
 
 @Component({
   selector: 'app-email-view',
@@ -9,6 +11,42 @@ import { Email } from '../../models/email';
   templateUrl: './email-viewer.html',
   styleUrl: './email-viewer.css',
 })
-export class EmailViewComponent {
+export class EmailViewComponent implements OnInit {
   @Input() email: Email | null = null;
+
+  // 2. Services needed ONLY if loading via URL
+  private route = inject(ActivatedRoute);
+  private emailService = inject(EmailService);
+
+  currentFolder = 'inbox';
+
+  ngOnInit() {
+    // Check if we are inside the Router (no Input provided)
+    if (!this.email) {
+
+      // Get folder context (optional, for "move to" logic)
+      this.route.parent?.params.subscribe(params => {
+        this.currentFolder = params['folderId'] || 'inbox';
+      });
+
+      // Get ID from URL
+      this.route.params.subscribe(params => {
+        const id = +params['id'];
+        if (id) {
+          this.loadEmailFromService(id);
+        }
+      });
+    }
+  }
+
+  // Helper to fetch data if we are using Routing
+  private loadEmailFromService(id: number) {
+    // Note: We search in 'all' folders or specifically the current one
+    const found = this.emailService.filterEmails(this.currentFolder).find(e => e.id === id);
+    if (found) {
+      this.email = found;
+      // Mark as active/read in service
+      this.emailService.setSelectedEmail(found);
+    }
+  }
 }

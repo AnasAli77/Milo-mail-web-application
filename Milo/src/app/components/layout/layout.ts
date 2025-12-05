@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Header } from '../header/header';
 import { Sidebar } from '../sidebar/sidebar';
 import { EmailList } from '../email-list/email-list';
-import { EmailViewComponent } from '../email-viewer/email-viewer';
+import {EmailViewComponent} from '../email-viewer/email-viewer';
 import {RouterOutlet} from '@angular/router';
 import {EmailService} from '../../Services/email-service';
 

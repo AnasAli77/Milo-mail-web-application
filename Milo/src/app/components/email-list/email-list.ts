@@ -23,7 +23,9 @@ export class EmailList implements OnInit {
   currentFolder = signal<string>('inbox');
   sortBy = signal('Date');
   checkedEmailIds = signal<Set<number>>(new Set());
-  isRouterActive = false; // Tracks if 'compose' is open
+
+  // Tracks if a child route (Compose or Email Viewer) is active
+  isRouterActive = false;
 
   filteredEmails = computed(() => {
     const folder = this.currentFolder();
@@ -43,11 +45,44 @@ export class EmailList implements OnInit {
   }
 
   selectEmail(email: Email) {
-    if (this.isRouterActive) {
-      this.router.navigate(['../'], { relativeTo: this.route });
-    }
     this.emailService.setSelectedEmail(email);
+    // Navigate relative to current folder
+    this.router.navigate(['email', email.id], {relativeTo: this.route});
   }
+
+  navigateEmail(direction: 'next' | 'prev') {
+    const selected = this.emailService.selectedEmail();
+    if (!selected) return;
+
+    const list = this.filteredEmails();
+    const currentIndex = list.findIndex(e => e.id === selected.id);
+
+    if (currentIndex === -1) return;
+
+    const targetIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+
+    if (targetIndex >= 0 && targetIndex < list.length) {
+      this.selectEmail(list[targetIndex]);
+    }
+  }
+
+  // FOR DISABLED
+  get hasNext() {
+    const selected = this.emailService.selectedEmail();
+    if (!selected) return false;
+    const list = this.filteredEmails();
+    const idx = list.findIndex(e => e.id === selected.id);
+    return idx >= 0 && idx < list.length - 1;
+  }
+
+  get hasPrev() {
+    const selected = this.emailService.selectedEmail();
+    if (!selected) return false;
+    const list = this.filteredEmails();
+    const idx = list.findIndex(e => e.id === selected.id);
+    return idx > 0;
+  }
+
 
   staremail(email: Email) {
     this.emailService.setStarredEmail(email);
@@ -73,7 +108,9 @@ export class EmailList implements OnInit {
     this.checkedEmailIds.set(current);
   }
 
-  isChecked(emailId: number) { return this.checkedEmailIds().has(emailId); }
+  isChecked(emailId: number) {
+    return this.checkedEmailIds().has(emailId);
+  }
 
   onBulkMove(event: Event) {
     const select = event.target as HTMLSelectElement;
@@ -84,7 +121,7 @@ export class EmailList implements OnInit {
     }
   }
 
-  get selectionCount() { return this.checkedEmailIds().size; }
-
-
+  get selectionCount() {
+    return this.checkedEmailIds().size;
+  }
 }

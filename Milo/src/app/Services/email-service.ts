@@ -12,7 +12,7 @@ export class EmailService {
 
   draftToEdit = signal<Email | null>(null);
 
-  private emailsSignal = signal<Email[]>([
+  emailsSignal = signal<Email[]>([
     {
       id: 1,
       sender: 'Sarah Johnson',
@@ -73,17 +73,37 @@ export class EmailService {
     }
   }
 
+  // WHEN I PReSS TO ANY FOLDER THIS DISPLAY ONLY EMAILS OF THIS FOLDER
   filterEmails(folder: string) {
     const all = this.emailsSignal();
     if (folder === 'starred') return all.filter(e => e.starred);
     return all.filter(e => e.folder === folder);
   }
 
+
   setSelectedEmail(email: Email) {
     this.selectedEmail.set(email);
     this.emailsSignal.update(all =>
       all.map(e => e.id === email.id ? {...e, read: true, active: true} : {...e, active: false})
     );
+  }
+
+  getAdjacentEmailId(currentId: number, folder: string, direction: 'next' | 'prev'): number | null {
+    const emailsInFolder = this.filterEmails(folder);
+    const currentIndex = emailsInFolder.findIndex(e => e.id === currentId);
+
+    // If current email isn't in the list, we can't determine next/prev
+    if (currentIndex === -1) return null;
+
+    // Next = Down the list (Index + 1)
+    // Prev = Up the list (Index - 1)
+    const adjacentIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+
+    if (adjacentIndex >= 0 && adjacentIndex < emailsInFolder.length) {
+      return emailsInFolder[adjacentIndex].id;
+    }
+
+    return null;
   }
 
   setStarredEmail(email: Email) {
