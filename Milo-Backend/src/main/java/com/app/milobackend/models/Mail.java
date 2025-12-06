@@ -1,14 +1,12 @@
 package com.app.milobackend.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter @Setter
@@ -20,12 +18,12 @@ public class Mail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
 
-    private User sender;
-    private ArrayList<User> receiver;
+    private String sender;
+    private String receiver;
     private String subject;
     private String body;
     private Instant sentAt =  Instant.now();
-    private String priority;
+    private int priority; //from 1to 4 (map it in frontEnd)
     private ArrayList<Attachment> attachments;
     private String folderId;
 
