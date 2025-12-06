@@ -30,12 +30,12 @@ public class Folder {
     public void addMail(Mail m) {
         if (m == null) return;
         mails.add(m);
-        m.setFolder(this);
+
     }
 
     public void removeMail(Mail m) {
         if (m == null) return;
         mails.remove(m);
-        m.setFolder(null);
+
     }
 }

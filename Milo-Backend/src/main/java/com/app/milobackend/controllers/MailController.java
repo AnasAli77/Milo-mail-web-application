@@ -1,14 +1,21 @@
 package com.app.milobackend.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.app.milobackend.services.MailService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/mail")
+@RequiredArgsConstructor
 public class MailController {
-    @GetMapping("/hello")
-    public String hello() {
-        return "Hello from mail";
+    private final MailService mailService;
+
+    @DeleteMapping("/delete/{id}")
+    public void deleteMail (@PathVariable String id){
+        mailService.delete(id);
     }
+
+
 }
