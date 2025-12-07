@@ -11,6 +11,8 @@ export interface Email {
   read: boolean;
   active: boolean;
   starred: boolean;
+  priority?: number;
+  // ......
   hasAttachment: boolean;
   label?: string;
 }

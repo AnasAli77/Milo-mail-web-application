@@ -44,6 +44,19 @@ export class EmailList implements OnInit {
     });
   }
 
+  // Helper for Priority Color
+  getPriorityColor(priority?: number): string {
+    const p = priority || 3; 
+    switch (p) {
+      case 5: return '#ef4444'; // Extreme (Red)
+      case 4: return '#f97316'; // High (Orange)
+      case 3: return '#3b82f6'; // Normal (Blue)
+      case 2: return '#84cc16'; // Low (Green)
+      case 1: return '#22c55e'; // Very Low (Dark Green)
+      default: return '#3b82f6';
+    }
+  }
+
   selectEmail(email: Email) {
     this.emailService.setSelectedEmail(email);
     this.router.navigate(['email', email.id], {relativeTo: this.route});

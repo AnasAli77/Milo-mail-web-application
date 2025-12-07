@@ -8,6 +8,7 @@ import {Layout} from './components/layout/layout';
 import {EmailList} from './components/email-list/email-list';
 import {Compose} from './components/compose/compose';
 import {EmailViewComponent} from './components/email-viewer/email-viewer';
+import { Contacts } from './components/contacts/contacts';
 
 
 export const routes: Routes = [
@@ -21,6 +22,7 @@ export const routes: Routes = [
     runGuardsAndResolvers: 'always',
     children: [
       {path: '', redirectTo: 'inbox', pathMatch: 'full'},
+      { path: 'contacts', component: Contacts},
       {
         path: ':folderId',
         component: EmailList,

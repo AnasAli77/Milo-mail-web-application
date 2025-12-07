@@ -21,7 +21,8 @@ interface ReceiverInput {
 export class Compose {
   receivers: ReceiverInput[] = [{ email: '' }];
   subject: string = '';
-  message: string = '';
+  message: string = ''; 
+  priority: number = 3;
 
   // Array to store attached files
   attachments: File[] = [];
@@ -44,6 +45,19 @@ export class Compose {
       this.subject = draft.subject;
       this.message = draft.body;
       this.attachments = draft.attachments || [];
+      this.priority = draft.priority || 3;
+    }
+  }
+
+// Helper to get text label for UI
+  getPriorityLabel(): string {
+    switch (Number(this.priority)) {
+      case 1: return 'Very Low';
+      case 2: return 'Low';
+      case 3: return 'Normal';
+      case 4: return 'High';
+      case 5: return 'Extreme';
+      default: return 'Normal';
     }
   }
 
@@ -109,7 +123,8 @@ export class Compose {
         email: emailList,
         subject: this.subject,
         body: this.message,
-        attachments: this.attachments
+        attachments: this.attachments,
+        priority: this.priority
       };
 
       this.emailService.saveDraft(emailData);
@@ -137,7 +152,8 @@ export class Compose {
         email: emailList,
         subject: this.subject,
         body: this.message,
-        attachments: this.attachments
+        attachments: this.attachments,
+        priority: this.priority
       };
 
       this.emailService.sendEmail(emailData);

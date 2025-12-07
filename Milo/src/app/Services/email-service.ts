@@ -26,7 +26,8 @@ export class EmailService {
       subject: 'Q4 Project Updates',
       body: 'Hi team,\n\nI wanted to share some updates on our Q4 progress and what to expect in the coming weeks. We have hit all our milestones for October and are on track for a successful year-end close.\n\nPlease review the attached slide deck for the detailed breakdown.\n\nBest,\nSarah',
       attachments: [new File(["Mock file content"], "Q4_Report.pdf", { type: "application/pdf" })],
-      read: false, active: false, starred: false, hasAttachment: true, folder: 'inbox'
+      read: false, active: false, starred: false, hasAttachment: true, folder: 'inbox',
+      priority: 5 // EXTREME (Red)
     },
     {
       id: 2,
@@ -37,7 +38,8 @@ export class EmailService {
       subject: 'Newsletter: January Edition',
       body: 'Hello!\n\nCheck out our latest newsletter featuring:\n- New product launch dates\n- Employee of the month\n- Upcoming holiday schedule\n\nClick here to read more.',
       attachments: [],
-      read: false, active: false, starred: true, hasAttachment: false, folder: 'inbox'
+      read: false, active: false, starred: true, hasAttachment: false, folder: 'inbox',
+      priority: 1 // VERY LOW (Green)
     },
     {
       id: 3,
@@ -48,7 +50,8 @@ export class EmailService {
       subject: 'Meeting Request: Design Review',
       body: 'Hi,\n\nCould we schedule a design review meeting for next week? I have some mockups ready for the new landing page.\n\nLet me know your availability.\n\nThanks,\nMichael',
       attachments: [],
-      read: true, active: false, starred: false, hasAttachment: true, folder: 'inbox'
+      read: true, active: false, starred: false, hasAttachment: true, folder: 'inbox',
+      priority: 4 // HIGH (Orange)
     },
     {
       id: 4,
@@ -59,7 +62,9 @@ export class EmailService {
       subject: 'Final Assets for Campaign',
       body: 'Hey,\n\nAttached are the final exported assets for the social media campaign. Let me know if you need any other formats.\n\nCheers,\nEmma',
       attachments: [],
-      read: true, active: false, starred: true, hasAttachment: true, folder: 'inbox'
+      read: true, active: false, starred: true, hasAttachment: true, folder: 'inbox',
+      // Priority missing (will default to 3 - Blue)
+      priority: 3
     },
     {
       id: 7,
@@ -70,8 +75,10 @@ export class EmailService {
       subject: 'Project Proposal v2',
       body: 'Hi Client,\n\nPlease find attached the revised proposal based on our discussion yesterday. I have updated the budget section.\n\nBest,\nTofy',
       attachments: [],
-      read: true, active: false, starred: false, hasAttachment: true, folder: 'sent'
+      read: true, active: false, starred: false, hasAttachment: true, folder: 'sent',
+      priority: 2
     }
+    
   ]);
 
 
@@ -173,7 +180,7 @@ export class EmailService {
   }
 
 
-  saveDraft(data: { to: string; email: string[]; subject: string; body: string; attachments?: File[] }) {
+  saveDraft(data: { to: string; email: string[]; subject: string; body: string; attachments?: File[]; priority: number }) {
     const currentDraft = this.draftToEdit();
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -190,14 +197,15 @@ export class EmailService {
       active: false,
       starred: false,
       hasAttachment: !!data.attachments?.length,
-      folder: 'drafts'
+      folder: 'drafts',
+      priority: data.priority,
     };
     this.emailsSignal.update(emails => [draftToSave, ...emails.filter(e => e.id !== draftToSave.id)]);
 
     this.draftToEdit.set(null);
   }
 
-  sendEmail(data: { to: string; email: string[]; subject: string; body: string; attachments?: File[] }) {
+  sendEmail(data: { to: string; email: string[]; subject: string; body: string; attachments?: File[]; priority: number }) {
 
     this.draftToEdit.set(null);
 
@@ -214,7 +222,9 @@ export class EmailService {
       active: false,
       starred: false,
       hasAttachment: !!data.attachments?.length,
-      folder: 'sent'
+      folder: 'sent',
+      // Ensure priority is passed, default to 3 if somehow null
+      priority: data.priority
     };
 
     this.emailsSignal.update(emails => [newEmail, ...emails]);

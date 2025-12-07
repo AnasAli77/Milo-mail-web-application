@@ -41,6 +41,21 @@
       <input type="text" placeholder="Subject" class="compose-input" [(ngModel)]="subject" name="subject">
     </div>
 
+    <div class="priority-container">
+      <div class="priority-label-row">
+        <label>Priority:</label>
+        <span class="priority-value" [ngClass]="'p-' + priority">{{ getPriorityLabel() }}</span>
+      </div>
+      <div class="slider-wrapper">
+        <span class="slider-icon low">−</span>
+        <input type="range" min="1" max="5" step="1" [(ngModel)]="priority" name="priority" class="priority-slider">
+        <span class="slider-icon high">+</span>
+      </div>
+      <div class="slider-ticks">
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+      </div>
+    </div>
+    
     <!-- Message Body -->
     <textarea placeholder="Write your message..." class="compose-textarea" [(ngModel)]="message" name="message"
       required>

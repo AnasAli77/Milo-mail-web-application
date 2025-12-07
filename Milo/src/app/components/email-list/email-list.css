@@ -1,4 +1,4 @@
-/* 1. Force the host component itself to fill the router-outlet space */
+/* ... existing host and layout styles ... */
 :host {
   display: block;
   height: 100%;
@@ -6,7 +6,6 @@
   overflow: hidden;
 }
 
-/* Container for the whole split view (List + Right Pane) */
 .split-layout {
   display: flex;
   height: 100%;
@@ -14,7 +13,6 @@
   overflow: hidden;
 }
 
-/* Left Side: List */
 .email-list-pane {
   width: 320px;
   min-width: 320px;
@@ -24,9 +22,8 @@
   border-right: 1px solid #e2e8f0;
 }
 
-/* Right Side: Wrapper for View/Compose */
 .right-pane-wrapper {
-  flex: 1; /* Grow to fill remaining width */
+  flex: 1;
   min-width: 0;
   height: 100%;
   position: relative;
@@ -35,26 +32,24 @@
   flex-direction: column;
 }
 
-/* 2. CRITICAL FIX: Ensure whatever is loaded in the right pane fills it */
-.right-pane-wrapper > app-email-view,
-.right-pane-wrapper > app-compose {
+.right-pane-wrapper>app-email-view,
+.right-pane-wrapper>app-compose {
   flex: 1;
   height: 100%;
   width: 100%;
-  display: flex; /* Ensures internal flex layouts work */
+  display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* Also target the element inserted by router-outlet if it's not using the tag name directly */
-.right-pane-wrapper > :not(router-outlet) {
+.right-pane-wrapper> :not(router-outlet) {
   flex: 1;
   height: 100%;
   width: 100%;
   overflow: hidden;
 }
 
-/* --- Toolbar & List Styles (Preserved) --- */
+/* Toolbar Styles */
 .toolbar {
   height: 60px;
   padding: 0 1.25rem;
@@ -79,10 +74,21 @@
   height: 100%;
 }
 
-.sort-label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-.selected-count { font-size: 0.875rem; font-weight: 700; color: #2d2d2d; }
+.sort-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
 
-.sort-select, .move-select {
+.selected-count {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #2d2d2d;
+}
+
+.sort-select,
+.move-select {
   font-size: 0.75rem;
   font-weight: 600;
   color: #334155;
@@ -102,7 +108,10 @@
   background-size: 0.875rem;
 }
 
-.list-scroll-area { flex: 1; overflow-y: auto; }
+.list-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+}
 
 .email-item {
   display: flex;
@@ -112,27 +121,128 @@
   border-left: 4px solid transparent;
 }
 
-.email-item:hover { background-color: #f8fafc; }
-.email-item.active { background-color: #f9fafb; border-left-color: #0f172a; }
-.email-item.checked { background-color: #eff6ff; }
+.email-item:hover {
+  background-color: #f8fafc;
+}
 
-.checkbox-wrapper { padding: 0.125rem 0.75rem 0 0.5rem; }
-.custom-checkbox { width: 1.125rem; height: 1.125rem; cursor: pointer; accent-color: #2d2d2d; }
+.email-item.active {
+  background-color: #f9fafb;
+  border-left-color: #0f172a;
+}
 
-.email-content-col { flex: 1; min-width: 0; }
-.email-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem; }
-.sender-name { font-size: 0.875rem; color: #334155; margin: 0; }
-.email-item.unread .sender-name { font-weight: 700; color: #0f172a; }
-.time { font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
+.email-item.checked {
+  background-color: #eff6ff;
+}
 
-.email-body { display: flex; align-items: flex-start; gap: 0.75rem; }
-.content-wrapper { flex: 1; min-width: 0; }
-.subject { font-size: 0.875rem; color: #334155; margin: 0 0 0.125rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.email-item.unread .subject { font-weight: 700; color: #0f172a; }
-.preview { font-size: 0.875rem; color: #94a3b8; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checkbox-wrapper {
+  padding: 0.125rem 0.75rem 0 0.5rem;
+}
 
-.star-btn { background: none; border: none; cursor: pointer; color: #cbd5e1; padding: 0; }
-.star-btn svg { width: 20px; height: 20px; }
-.star-btn svg.starred { color: #fbbf24; }
+.custom-checkbox {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  accent-color: #2d2d2d;
+}
 
-.empty-folder { padding: 2rem; text-align: center; color: #94a3b8; }
+.email-content-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.email-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.sender-name {
+  font-size: 0.875rem;
+  color: #334155;
+  margin: 0;
+}
+
+.email-item.unread .sender-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* NEW: Wrapper for Dot and Time */
+.meta-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Space between dot and time */
+}
+
+/* NEW: Priority Dot Style */
+.priority-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.email-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.content-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.subject {
+  font-size: 0.875rem;
+  color: #334155;
+  margin: 0 0 0.125rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.email-item.unread .subject {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.preview {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #cbd5e1;
+  padding: 0;
+}
+
+.star-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.star-btn svg.starred {
+  color: #fbbf24;
+}
+
+.empty-folder {
+  padding: 2rem;
+  text-align: center;
+  color: #94a3b8;
+}
