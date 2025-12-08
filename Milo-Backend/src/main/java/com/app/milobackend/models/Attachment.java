@@ -3,6 +3,8 @@ package com.app.milobackend.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "attachments")
 @Data
@@ -14,7 +16,6 @@ public class Attachment {
     private String name;
     private String type;
 
-    @Lob
     @Column(name = "data", columnDefinition="BYTEA")
     private byte[] data;
 

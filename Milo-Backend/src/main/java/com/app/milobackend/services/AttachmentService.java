@@ -8,12 +8,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 public class AttachmentService {
 
-    private final AttachmentRepository attachmentrepo;
 
+    private final AttachmentRepository attachmentrepo;
+    @Autowired
     public AttachmentService(AttachmentRepository attachmentrepo) {
         this.attachmentrepo = attachmentrepo;
     }
@@ -32,6 +34,6 @@ public class AttachmentService {
 
     public Attachment getFile(Long fileId) {
         return attachmentrepo.findById(fileId)
-                .orElseThrow(() -> new RuntimeException("File not found with id " + fileId));
+                .orElseThrow(() -> new RuntimeException("File not found with id: " + fileId));
     }
 }

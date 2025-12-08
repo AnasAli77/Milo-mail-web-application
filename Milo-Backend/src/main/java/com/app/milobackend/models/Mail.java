@@ -16,15 +16,24 @@ import java.util.UUID;
 public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private UUID id;
+    private Long id;
 
     private String sender;
     private String receiver;
     private String subject;
+
+    @Column(columnDefinition = "TEXT")
     private String body;
     private Instant sentAt =  Instant.now();
     private int priority; //from 1to 4 (map it in frontEnd)
-    private ArrayList<Attachment> attachments;
-    private String folderId;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Attachment> attachments = new ArrayList<>();
+//    private String folderId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folderId")
+    @JsonBackReference
+    private Folder folder;
 
 }
