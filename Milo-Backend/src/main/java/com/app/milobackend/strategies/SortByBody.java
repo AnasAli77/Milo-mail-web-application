@@ -14,7 +14,7 @@ public class SortByBody implements MailSortingStrategy {
         copy.sort(new Comparator<Mail>() {
             @Override
             public int compare(Mail o1, Mail o2) {
-                return o1.getBody().compareTo(o2.getBody());
+                return o1.getBody().compareToIgnoreCase(o2.getBody());
             }
         });
         return copy;
