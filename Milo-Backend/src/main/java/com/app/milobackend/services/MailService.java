@@ -1,18 +1,16 @@
 package com.app.milobackend.services;
 
-import com.app.milobackend.DTO.FilterDTO;
+import com.app.milobackend.dtos.FilterDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.MailRepo;
 import com.app.milobackend.strategies.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class MailService {

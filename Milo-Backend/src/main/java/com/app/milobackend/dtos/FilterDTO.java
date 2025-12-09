@@ -1,6 +1,4 @@
-package com.app.milobackend.DTO;
-
-import com.app.milobackend.models.Mail;
+package com.app.milobackend.dtos;
 
 import java.util.List;
 
