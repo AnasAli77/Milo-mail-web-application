@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { ClientUser } from '../../models/ClientUser';
+import { UserService } from '../../Services/user-service';
+import { ApiAuthService } from '../../Services/api-auth-service';
 
 @Component({
   selector: 'app-signup',
@@ -10,13 +13,14 @@ import { RouterModule } from '@angular/router';
   styleUrl: './sign-up-component.css',
 })
 export class SignUpComponent {
-  // @Output() onCreate = new EventEmitter<void>();
-  // @Output() onLoginClick = new EventEmitter<void>();
 
-  isLoginMode = true;
+  route = inject(Router);
+  userService = inject(UserService);
+  
   authSignUpForm: FormGroup;
   private fb = inject(FormBuilder);
-  constructor() {
+
+  constructor(private _ApiAuthService: ApiAuthService) {
     this.authSignUpForm = this.fb.group({
       fullName: [''],
       email: ['', [Validators.required, Validators.email]],
@@ -41,11 +45,33 @@ export class SignUpComponent {
 
 
   onSubmit() {
-    if (this.authSignUpForm.valid) {
-      console.log(this.isLoginMode ? 'Logging in...' : 'Signing up...', this.authSignUpForm.value);
-      // Add your Firebase/Backend logic here
-    } else {
-      this.authSignUpForm.markAllAsTouched();
-    }
+    const registerData: ClientUser = {
+      name: this.authSignUpForm.get('name')?.value,
+      email: this.authSignUpForm.get('email')?.value,
+      password: this.authSignUpForm.get('password')?.value,
+    };
+    this._ApiAuthService.register(registerData).subscribe({
+      next: (response) => {
+
+        if (response.status === 200 && response.body) {
+          console.log('Register successful', response);
+          const responseBody = response.body;
+          if (responseBody.token) {
+            sessionStorage.setItem('auth_token', responseBody.token);
+          }
+          if (responseBody.email && responseBody.name) {
+            this.userService.currentUser = {
+              name: responseBody.name,
+              email: responseBody.email,
+            };
+          }
+          this.route.navigateByUrl('/layout');
+        }
+        else {
+          alert("5555555555555555555555");
+        }
+      },
+      error: (err) => console.error('Register failed', err)
+    });
   }
 }

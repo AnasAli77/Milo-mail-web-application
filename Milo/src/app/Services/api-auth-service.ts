@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ClientUser } from '../models/ClientUser';
 import { environment } from '../../environments/environment.development';
@@ -11,10 +11,10 @@ export class ApiAuthService {
   constructor(private httpClient: HttpClient) {
   }
 
-  login(user: ClientUser) :Observable<ClientUser> {
-    return this.httpClient.post<ClientUser>(`${environment.baseUrl}/login`, user);
+  login(user: ClientUser): Observable<HttpResponse<ClientUser>> {
+    return this.httpClient.post<HttpResponse<ClientUser>>(`${environment.baseUrl}/auth/login`, user);
   }
-  register(user: ClientUser) :Observable<ClientUser> {
-    return this.httpClient.post<ClientUser>(`${environment.baseUrl}/register`, user);
+  register(user: ClientUser): Observable<HttpResponse<ClientUser>> {
+    return this.httpClient.post<HttpResponse<ClientUser>>(`${environment.baseUrl}/auth/register`, user);
   }
 }

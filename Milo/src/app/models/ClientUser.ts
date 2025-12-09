@@ -1,5 +1,6 @@
 export interface ClientUser{
-    fullName?: string,
+    name?: string,
     email: string,
-    passowrd: string,
+    password?: string,
+    token?: string,
 }
