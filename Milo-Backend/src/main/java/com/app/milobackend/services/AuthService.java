@@ -1,5 +1,6 @@
 package com.app.milobackend.services;
 
+import com.app.milobackend.dtos.UserDTO;
 import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.repositories.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +29,13 @@ public class AuthService {
         return userRepo.save(user);
     }
 
-    public String verify(ClientUser user) {
+    public UserDTO verify(ClientUser user) {
         Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPasswordHash()));
 
         if (authentication.isAuthenticated()) {
-            return  jwtService.generateToken(user.getEmail());
+            String token = jwtService.generateToken(user.getEmail());
+            user = userRepo.findByEmail(user.getEmail());
+            return new UserDTO(user.getName(), user.getEmail(), "", token);
         }
         return null;
     }

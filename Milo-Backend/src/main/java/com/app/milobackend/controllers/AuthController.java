@@ -34,15 +34,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserDTO user) {
+    public ResponseEntity<UserDTO> login(@RequestBody UserDTO user) {
 
         ClientUser incomingUser = new ClientUser();
         incomingUser.setEmail(user.getEmail());
         incomingUser.setPasswordHash(user.getPassword());
 
-        String token = authService.verify(incomingUser);
-        if (token != null) {
-            return ResponseEntity.ok(token);
+        UserDTO returnedUser = authService.verify(incomingUser);
+        if (returnedUser != null) {
+            return ResponseEntity.ok(returnedUser);
         }
         else
             return ResponseEntity.badRequest().build();
