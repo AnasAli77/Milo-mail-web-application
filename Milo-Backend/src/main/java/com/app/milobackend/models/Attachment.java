@@ -1,5 +1,7 @@
 package com.app.milobackend.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +20,12 @@ public class Attachment {
 
     @Column(name = "data", columnDefinition="BYTEA")
     private byte[] data;
+
+    // Many Attachments belong to one Mail.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mail_id")
+    @JsonBackReference // When serializing Attachment, the full Mail object will be omitted (breaking the loop)
+    private Mail mail;
 
     public Attachment() {}
 

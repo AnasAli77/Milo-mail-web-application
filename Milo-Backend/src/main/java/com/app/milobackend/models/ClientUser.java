@@ -7,13 +7,13 @@ import lombok.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter
-public class User {
+@Table(name="users")
+public class ClientUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

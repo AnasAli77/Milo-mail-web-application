@@ -12,4 +12,6 @@ public class UserController {
     public String hello() {
         return "Hello from user";
     }
+
+
 }

@@ -1,5 +1,6 @@
 package com.app.milobackend.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,9 +23,10 @@ public class Folder {
 
     private String name;
 
-    @JsonManagedReference
-    @OneToMany(cascade = CascadeType.ALL)
-    List<Mail> mails = new ArrayList<>();
+    // One Folder can have many Mails.
+    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference  // Mails within this folder WILL be serialized
+    private List<Mail> mails = new ArrayList<>();
 
     public void addMail(Mail m) {
         if (m == null) return;
