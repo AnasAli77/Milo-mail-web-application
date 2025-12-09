@@ -1,5 +1,6 @@
 package com.app.milobackend.controllers;
 
+import com.app.milobackend.DTO.FilterDTO;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.services.MailService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,10 @@ public class MailController {
     @GetMapping("/sort")
     public List<Mail> getSortedMails(@RequestParam String  sortBy){
         return mailService.getSortedMails(sortBy);
+    }
+    @PostMapping("/filter")
+    public List<Mail> getFilteredMails(@RequestParam FilterDTO filterDTO){
+        return mailService.Filter(filterDTO);
     }
 
 

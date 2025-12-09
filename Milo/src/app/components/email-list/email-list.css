@@ -246,3 +246,68 @@
   text-align: center;
   color: #94a3b8;
 }
+
+.email-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.content-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ... existing subject/preview styles ... */
+
+/* FIX: Style the Draft Edit Button */
+.continue-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #64748b; /* Slate 500 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-right: -4px; /* Pull slightly closer to star if needed */
+}
+
+.continue-btn:hover {
+  background-color: #f1f5f9; /* Slate 100 */
+  color: #2563eb; /* Blue 600 */
+}
+
+.continue-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Ensure Star Button aligns nicely */
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #cbd5e1;
+  padding: 4px; /* Match padding of edit button */
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.star-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.star-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.star-btn svg.starred {
+  color: #fbbf24;
+}

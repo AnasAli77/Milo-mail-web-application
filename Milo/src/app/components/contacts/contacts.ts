@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +19,9 @@ export class Contacts implements OnInit {
   // Search & Sort State
   searchTerm = '';
   sortBy = 'name'; // 'name' or 'email'
+
+  // Selection State
+  selectedContact = signal<Contact | null>(null);
 
   // Modal State
   isModalOpen = false;
@@ -48,6 +51,10 @@ export class Contacts implements OnInit {
 
   onSortChange() {
     this.contactService.refreshContacts(this.searchTerm, this.sortBy);
+  }
+
+  selectContact(contact: Contact) {
+    this.selectedContact.set(contact);
   }
 
   // --- Modal & Form Actions ---

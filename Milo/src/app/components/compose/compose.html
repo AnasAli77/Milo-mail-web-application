@@ -1,107 +1,92 @@
-<div class="compose-container">
-  <div class="compose-header">
-    <h2>New Message</h2>
-    <button type="button" (click)="close()" class="close-btn" title="Save & Close">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-  </div>
+<div class="compose-overlay" (click)="close()">
 
-  <div class="compose-body">
+  <div class="compose-modal" (click)="$event.stopPropagation()">
+    <div class="compose-header">
+      <h2>New Message</h2>
+      <button type="button" (click)="close()" class="close-btn" title="Save & Close">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
 
-    <!-- Receiver List Section -->
-    <div class="receivers-section">
-      <div class="receivers-list">
-        <div *ngFor="let receiverItem of receivers; let i = index; trackBy: trackByIndex" class="receiver-row">
-          <input type="email" placeholder="user@domain.com" class="compose-input" [(ngModel)]="receiverItem.email"
-            name="email-{{i}}" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$">
+    <div class="compose-body">
+      <div class="receivers-section">
+        <div class="receivers-list">
+          <div *ngFor="let receiverItem of receivers; let i = index; trackBy: trackByIndex" class="receiver-row">
+            <input type="email" placeholder="user@domain.com" class="compose-input" [(ngModel)]="receiverItem.email"
+              name="email-{{i}}">
+            <button type="button" *ngIf="receivers.length > 1" (click)="removeReceiver(i)" class="remove-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="button" (click)="addReceiver()" class="add-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Add Receiver
+        </button>
+      </div>
 
-          <button type="button" *ngIf="receivers.length > 1" (click)="removeReceiver(i)" class="remove-btn"
-            title="Remove">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+      <div class="input-group">
+        <input type="text" placeholder="Subject" class="compose-input" [(ngModel)]="subject" name="subject">
+      </div>
+
+      <div class="priority-container">
+        <div class="priority-label-row">
+          <label>Priority:</label>
+          <span class="priority-value" [ngClass]="'p-' + priority">{{ getPriorityLabel() }}</span>
+        </div>
+        <div class="slider-wrapper">
+          <span class="slider-icon low">−</span>
+          <input type="range" min="1" max="5" step="1" [(ngModel)]="priority" name="priority" class="priority-slider">
+          <span class="slider-icon high">+</span>
+        </div>
+        <div class="slider-ticks">
+          <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
         </div>
       </div>
 
-      <button type="button" (click)="addReceiver()" class="add-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Add Receiver
-      </button>
-    </div>
+      <textarea placeholder="Write your message..." class="compose-textarea" [(ngModel)]="message"
+        name="message"></textarea>
 
-    <!-- Subject -->
-    <div class="input-group">
-      <input type="text" placeholder="Subject" class="compose-input" [(ngModel)]="subject" name="subject">
-    </div>
-
-    <div class="priority-container">
-      <div class="priority-label-row">
-        <label>Priority:</label>
-        <span class="priority-value" [ngClass]="'p-' + priority">{{ getPriorityLabel() }}</span>
-      </div>
-      <div class="slider-wrapper">
-        <span class="slider-icon low">−</span>
-        <input type="range" min="1" max="5" step="1" [(ngModel)]="priority" name="priority" class="priority-slider">
-        <span class="slider-icon high">+</span>
-      </div>
-      <div class="slider-ticks">
-        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+      <div *ngIf="attachments.length > 0" class="attachments-area">
+        <div *ngFor="let file of attachments; let i = index" class="attachment-chip">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor" class="chip-icon">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+          </svg>
+          <span class="file-name">{{file.name}}</span>
+          <span class="file-size">({{formatFileSize(file.size)}})</span>
+          <button type="button" (click)="removeAttachment(i)" class="remove-attachment-btn"><svg
+              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg></button>
+        </div>
       </div>
     </div>
-    
-    <!-- Message Body -->
-    <textarea placeholder="Write your message..." class="compose-textarea" [(ngModel)]="message" name="message"
-      required>
-    </textarea>
 
-    <!-- Attachment List Area -->
-    <div *ngIf="attachments.length > 0" class="attachments-area">
-      <div *ngFor="let file of attachments; let i = index" class="attachment-chip">
-        <!-- Paperclip Icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="chip-icon">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
-        </svg>
-
-        <span class="file-name">{{file.name}}</span>
-        <span class="file-size">({{formatFileSize(file.size)}})</span>
-
-        <!-- Remove File Button -->
-        <button type="button" (click)="removeAttachment(i)" class="remove-attachment-btn">
+    <input type="file" #fileInput multiple style="display: none;" (change)="onFilesSelected($event)">
+    <div class="compose-footer">
+      <div class="left-actions">
+        <button type="button" class="send-btn" (click)="send()" [disabled]="!isFormValid">Send</button>
+        <button type="button" class="attach-btn" (click)="fileInput.click()" title="Attach files">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
             stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
           </svg>
         </button>
       </div>
+      <button type="button" class="discard-btn" (click)="discard()">Discard</button>
     </div>
-  </div>
-
-  <!-- Hidden File Input -->
-  <input type="file" #fileInput multiple style="display: none;" (change)="onFilesSelected($event)">
-
-  <div class="compose-footer">
-    <div class="left-actions">
-      <button type="button" class="send-btn" (click)="send()" [disabled]="!isFormValid">Send</button>
-
-      <!-- Attach Button -->
-      <button type="button" class="attach-btn" (click)="fileInput.click()" title="Attach files">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
-        </svg>
-      </button>
-    </div>
-
-    <button type="button" class="discard-btn" (click)="discard()">Discard</button>
   </div>
 </div>

@@ -1,5 +1,8 @@
 package com.app.milobackend.services;
 
+import com.app.milobackend.DTO.FilterDTO;
+import com.app.milobackend.filter.Criteria;
+import com.app.milobackend.filter.CriteriaFactory;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.MailRepo;
 import com.app.milobackend.strategies.*;
@@ -7,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,15 +21,15 @@ public class MailService {
 
 
     public void delete(String id) {
-        UUID uuid = UUID.fromString(id);
-        mailRepo.deleteById(uuid);
+        //long uuid = UUID.fromString(id);
+        //mailRepo.deleteById(uuid);
 
     }
     public List<Mail> GetAllMails()
     {
         return mailRepo.findAll();
     }
-    public Mail GetMailById(UUID id) {
+    public Mail GetMailById(long id) {
         return mailRepo.findById(id).get();
     }
     public Mail AddMail(Mail mail) {
@@ -34,7 +38,7 @@ public class MailService {
     public Mail UpdateMail(Mail mail) {
         return mailRepo.save(mail);
     }
-    public Mail DeleteMail(UUID id) {
+    public Mail DeleteMail(long id) {
         Mail mail = mailRepo.findById(id).get();
         mailRepo.delete(mail);
         return mail;
@@ -68,6 +72,22 @@ public class MailService {
         }
         return sortworker.sort(mails);
 
+    }
+    public List<Mail> Filter(FilterDTO request){
+        List<Mail> mails = GetAllMails();
+        String word = request.getWord();
+        List<String> selectedCriteria = request.getCriteria();
+        if(selectedCriteria==null ||selectedCriteria.isEmpty()){
+            selectedCriteria = CriteriaFactory.allCriteriaNames();
+        }
+        List<Mail> filteredMails = new ArrayList<>();
+        for(String name : selectedCriteria){
+            Criteria criteria=CriteriaFactory.create(name,word);
+            if(criteria!=null){
+                filteredMails.addAll(criteria.filter(mails));
+            }
+        }
+        return filteredMails.stream().distinct().toList();
     }
 
 }

@@ -38,8 +38,8 @@ export class loginComponent {
   onSubmit() {
     if (this.authLoginForm.valid) {
       console.log(this.isLoginMode ? 'Logging in...' : 'Signing up...', this.authLoginForm.value);
-      localStorage.setItem('token', 'aaaaaa61');
-      localStorage.setItem('tkn', 'saa61');
+      sessionStorage.setItem('token', 'aaaaaa61');
+      // sessionStorage.setItem('tkn', 'saa61');
       this.route.navigateByUrl('/layout');
 
       // localStorage.clear();
