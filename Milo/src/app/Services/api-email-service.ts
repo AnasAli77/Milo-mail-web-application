@@ -5,6 +5,16 @@ import { SearchCriteria } from '../models/searchCriteria';
 import { environment } from '../../environments/environment.development';
 import { Observable } from 'rxjs';
 
+export interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number; // Current page index
+  size: number;
+  first: boolean;
+  last: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -12,13 +22,18 @@ export class ApiEmailService {
 
   constructor(private httpClient: HttpClient) {
   }
+
   sendEmail(email: Email): Observable<Email> {
     return this.httpClient.post<Email>(`${environment.baseUrl}/mail`, email);
   }
 
   // Fetch emails by folder (e.g., /mail/folder/inbox)
-  getEmails(folderName: string): Observable<Email[]> {
-    return this.httpClient.get<Email[]>(`${environment.baseUrl}/mail/folder/${folderName}`);
+  getEmails(folderName: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/${folderName}`, {params});
   }
 
   getAllMails(): Observable<Email[]> {
