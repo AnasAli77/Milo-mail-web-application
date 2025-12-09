@@ -18,8 +18,7 @@ public class CriteriaYear implements Criteria {
     public List<Mail> filter(List<Mail> mails) {
         List<Mail> mailsFiltered = new ArrayList<>();
         for(Mail mail:mails){
-            LocalDateTime dt = LocalDateTime.ofInstant(mail.getSentAt(), ZoneOffset.UTC);
-            if(dt.getYear()==this.year){
+            if(mail.getSentAt().getYear()==this.year){
                 mailsFiltered.add(mail);
             }
         }

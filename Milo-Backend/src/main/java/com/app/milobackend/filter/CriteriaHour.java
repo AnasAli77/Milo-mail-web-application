@@ -17,8 +17,7 @@ public class CriteriaHour implements Criteria{
     public List<Mail> filter(List<Mail> mails) {
         List<Mail> mailsFiltered = new ArrayList<>();
         for(Mail mail:mails){
-            LocalDateTime dt = LocalDateTime.ofInstant(mail.getSentAt(), ZoneOffset.UTC);
-            if(dt.getHour()==this.hour){
+            if(mail.getSentAt().getHour()==this.hour){
                 mailsFiltered.add(mail);
             }
         }

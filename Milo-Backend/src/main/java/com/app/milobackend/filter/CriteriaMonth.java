@@ -16,8 +16,7 @@ public class CriteriaMonth implements Criteria{
     public List<Mail> filter(List<Mail> mails) {
         List<Mail> mailsFiltered = new ArrayList<>();
         for(Mail mail:mails){
-            LocalDateTime dt = LocalDateTime.ofInstant(mail.getSentAt(), ZoneOffset.UTC);
-            if(dt.getMonthValue()==this.month){
+            if(mail.getSentAt().getMonthValue()==this.month){
                 mailsFiltered.add(mail);
             }
         }

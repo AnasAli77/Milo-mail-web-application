@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+
 
 @Entity
 @NoArgsConstructor
@@ -23,9 +25,23 @@ public class ClientUser {
 
     @Column(columnDefinition = "TEXT")
     private String passwordHash;
-    private Instant createdAt =  Instant.now();
+
+    @Column(columnDefinition = "TIMESTAMP")
+    private LocalDateTime createdAt =  LocalDateTime.now(ZoneId.of("Africa/Cairo"));
 
     @OneToMany(cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Mail> mails = new ArrayList<>();
+
+    public void addMail(Mail m) {
+        if (m == null) return;
+        mails.add(m);
+
+    }
+
+    public void removeMail(Mail m) {
+        if (m == null) return;
+        mails.remove(m);
+
+    }
 }

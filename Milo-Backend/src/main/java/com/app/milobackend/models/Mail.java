@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -25,7 +25,7 @@ public class Mail {
 
     @Column(columnDefinition = "TEXT")
     private String body;
-    private Instant sentAt =  Instant.now();
+    private LocalDateTime sentAt =  LocalDateTime.now(ZoneId.of("Africa/Cairo"));
     private int priority; //from 1to 4 (map it in frontEnd)
 
     // Many Mails can belong to one Folder.
