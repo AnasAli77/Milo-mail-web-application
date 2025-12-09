@@ -21,7 +21,7 @@ public class MyUserDetailsService implements UserDetailsService {
         ClientUser user = userRepo.findByEmail(email);
 
         if (user == null) {
-            System.out.println("User not found");
+            System.out.println("User not found (printed from inside MyUserDetailsService)");
             throw new UsernameNotFoundException(email);
         }
         return new UserPrincipal(user);

@@ -32,8 +32,7 @@ public class AuthService {
         Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPasswordHash()));
 
         if (authentication.isAuthenticated()) {
-            user = userRepo.findByEmail(user.getEmail());
-            return  jwtService.generateToken(user.getName());
+            return  jwtService.generateToken(user.getEmail());
         }
         return null;
     }
