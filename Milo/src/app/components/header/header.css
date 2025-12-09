@@ -1,12 +1,14 @@
 .app-header {
-  height: 72px; /* h-18 approx */
+  height: 72px;
+  /* Restored original height */
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
   border-bottom: 1px solid var(--color-border);
   background-color: white;
-  z-index: 20;
+  z-index: 50;
+  /* Increased z-index to ensure dropdowns sit on top */
   position: relative;
 }
 
@@ -14,7 +16,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: 256px; /* w-64 */
+  width: 256px;
   transition: width 0.3s ease;
 }
 
@@ -73,22 +75,30 @@
   flex: 1;
   max-width: 42rem;
   padding: 0 2rem;
+  position: relative;
+  /* Needed for dropdown positioning */
 }
 
+/* --- Search Bar (Original Structure preserved, added flex for filter btn) --- */
 .search-bar {
   position: relative;
   width: 100%;
+  display: flex;
+  align-items: center;
 }
 
+/* Updated Input to make room for filter icon on right */
 .search-bar input {
   width: 100%;
   background-color: var(--color-bg-sidebar);
   border: 1px solid var(--color-border);
   border-radius: 1rem;
-  padding: 0.75rem 1rem 0.75rem 3rem;
+  padding: 0.75rem 2.5rem 0.75rem 3rem;
+  /* Added right padding for filter btn */
   font-size: 0.875rem;
   outline: none;
   transition: all 0.2s;
+  color: var(--color-text-main);
 }
 
 .search-bar input:focus {
@@ -97,25 +107,64 @@
   box-shadow: 0 0 0 4px rgba(226, 232, 240, 0.5);
 }
 
-.search-icon {
+/* Search Icon (Left) */
+.search-btn-left {
   position: absolute;
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+}
+
+.search-icon {
   width: 20px;
   height: 20px;
   color: var(--color-text-muted);
   pointer-events: none;
 }
 
+/* NEW: Filter Toggle Button (Inside search bar on the right) */
+.filter-toggle-btn {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.filter-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--color-text-dark);
+}
+
+.filter-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   width: 160px;
   justify-content: flex-end;
+  position: relative;
 }
 
+/* Restored Gradient Profile Button */
 .profile-btn {
   width: 36px;
   height: 36px;
@@ -131,34 +180,10 @@
   justify-content: center;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 160px;
-  justify-content: flex-end;
-  position: relative; /* Essential for dropdown positioning */
-}
-
-.profile-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(to bottom right, #374151, #111827);
-  color: white;
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Dropdown Styles */
+/* Dropdown Styles (Profile) */
 .dropdown-menu {
   position: absolute;
-  top: 120%; /* Positions it nicely below the avatar */
+  top: 120%;
   right: 0;
   width: 240px;
   background-color: white;
@@ -173,7 +198,7 @@
 
 .dropdown-header {
   padding: 1.25rem 1rem 1rem;
-  background-color: white; /* Clean white background */
+  background-color: white;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -215,7 +240,7 @@
 
 .dropdown-item:hover {
   background-color: #f8fafc;
-  color: #ef4444; /* Red color for sign out on hover */
+  color: #ef4444;
 }
 
 .dropdown-item svg {
@@ -224,13 +249,155 @@
   opacity: 0.8;
 }
 
+/* --- NEW: Search Filter Dropdown Styles --- */
+.search-filter-dropdown {
+  position: absolute;
+  top: 110%;
+  /* Just below search bar */
+  left: 2rem;
+  /* Align with padding of container */
+  right: 2rem;
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  z-index: 100;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.filter-row label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.filter-row input[type="text"] {
+  width: 100%;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  outline: none;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+  transition: border-color 0.2s;
+}
+
+.filter-row input[type="text"]:focus {
+  border-bottom-color: var(--color-primary); 
+}
+
+/* NEW: Style for Select dropdown to match inputs */
+.filter-row select {
+  width: 100%;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  outline: none;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.filter-row select:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 120px;
+  margin-bottom: 1.5rem;
+}
+
+.checkbox-row label {
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+  cursor: pointer;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.clear-btn {
+  background: white;
+  border: none;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.clear-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.search-btn-primary {
+  background-color: var(--color-primary);
+  /* #2d2d2d */
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s;
+}
+
+.search-btn-primary:hover {
+  background-color: black;
+}
+
+/* Click Overlay */
+.click-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 40;
+  background: transparent;
+}
+
 @keyframes scaleIn {
-  from { 
-    opacity: 0; 
-    transform: scale(0.95) translateY(-10px); 
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
   }
-  to { 
-    opacity: 1; 
-    transform: scale(1) translateY(0); 
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

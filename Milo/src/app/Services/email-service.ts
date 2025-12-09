@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Email } from '../models/email'
 import { Router } from '@angular/router';
+import { SearchCriteria } from '../models/searchCriteria';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +17,9 @@ export class EmailService {
 
   draftToEdit = signal<Email | null>(null);
 
+  // Current Search State
+  searchCriteria = signal<SearchCriteria>({});
+
   emailsSignal = signal<Email[]>([
     {
       id: 1,
@@ -26,7 +30,7 @@ export class EmailService {
       subject: 'Q4 Project Updates',
       body: 'Hi team,\n\nI wanted to share some updates on our Q4 progress and what to expect in the coming weeks. We have hit all our milestones for October and are on track for a successful year-end close.\n\nPlease review the attached slide deck for the detailed breakdown.\n\nBest,\nSarah',
       attachments: [new File(["Mock file content"], "Q4_Report.pdf", { type: "application/pdf" })],
-      read: false, active: false, starred: false, hasAttachment: true, folder: 'inbox',
+      read: false, active: false, starred: false, hasAttachment:true ,folder: 'inbox',
       priority: 5 // EXTREME (Red)
     },
     {
@@ -38,7 +42,7 @@ export class EmailService {
       subject: 'Newsletter: January Edition',
       body: 'Hello!\n\nCheck out our latest newsletter featuring:\n- New product launch dates\n- Employee of the month\n- Upcoming holiday schedule\n\nClick here to read more.',
       attachments: [],
-      read: false, active: false, starred: true, hasAttachment: false, folder: 'inbox',
+      read: false, active: false, starred: true, hasAttachment:false ,folder: 'inbox',
       priority: 1 // VERY LOW (Green)
     },
     {
@@ -50,7 +54,7 @@ export class EmailService {
       subject: 'Meeting Request: Design Review',
       body: 'Hi,\n\nCould we schedule a design review meeting for next week? I have some mockups ready for the new landing page.\n\nLet me know your availability.\n\nThanks,\nMichael',
       attachments: [],
-      read: true, active: false, starred: false, hasAttachment: true, folder: 'inbox',
+      read: true, active: false, starred: false, hasAttachment:false ,folder: 'inbox',
       priority: 4 // HIGH (Orange)
     },
     {
@@ -62,7 +66,7 @@ export class EmailService {
       subject: 'Final Assets for Campaign',
       body: 'Hey,\n\nAttached are the final exported assets for the social media campaign. Let me know if you need any other formats.\n\nCheers,\nEmma',
       attachments: [],
-      read: true, active: false, starred: true, hasAttachment: true, folder: 'inbox',
+      read: true, active: false, starred: true, hasAttachment:false ,folder: 'inbox',
       // Priority missing (will default to 3 - Blue)
       priority: 3
     },
@@ -75,7 +79,7 @@ export class EmailService {
       subject: 'Project Proposal v2',
       body: 'Hi Client,\n\nPlease find attached the revised proposal based on our discussion yesterday. I have updated the budget section.\n\nBest,\nTofy',
       attachments: [],
-      read: true, active: false, starred: false, hasAttachment: true, folder: 'sent',
+      read: true, active: false, starred: false, hasAttachment:false ,folder: 'sent',
       priority: 2
     }
     
@@ -120,9 +124,56 @@ export class EmailService {
     ));
   }
 
-  // WHEN I PReSS TO ANY FOLDER THIS DISPLAY ONLY EMAILS OF THIS FOLDER
+// Updated Filter Logic
   filterEmails(folder: string) {
     const all = this.emailsSignal();
+
+    // 1. Handle Search
+    if (folder === 'search') {
+      const criteria = this.searchCriteria();
+      return all.filter(email => {
+        let matches = true;
+
+        // General Query (checks subject, sender, body)
+        if (criteria.query) {
+          const q = criteria.query.toLowerCase();
+          const inSubject = email.subject.toLowerCase().includes(q);
+          const inSender = email.sender.toLowerCase().includes(q);
+          const inBody = email.body.toLowerCase().includes(q);
+          if (!inSubject && !inSender && !inBody) matches = false;
+        }
+
+        // Specific Fields
+        if (matches && criteria.from) {
+          const f = criteria.from.toLowerCase();
+          if (!email.sender.toLowerCase().includes(f) && !email.senderEmail.toLowerCase().includes(f)) matches = false;
+        }
+
+        if (matches && criteria.to) {
+          const t = criteria.to.toLowerCase();
+          // Check if any receiver matches
+          if (!email.receiverEmail.some(r => r.toLowerCase().includes(t))) matches = false;
+        }
+
+        if (matches && criteria.subject) {
+          if (!email.subject.toLowerCase().includes(criteria.subject.toLowerCase())) matches = false;
+        }
+
+        if (matches && criteria.hasAttachment) {
+          if (!email.hasAttachment) matches = false;
+        }
+
+        if (matches && criteria.priority) {
+          // Default to 3 (Normal) if undefined, to match display logic
+          const p = email.priority || 3; 
+          if (p !== criteria.priority) matches = false;
+        }
+
+        return matches;
+      });
+    }
+
+    // 2. Handle Standard Folders
     if (folder === 'starred') return all.filter(e => e.starred);
     return all.filter(e => e.folder === folder);
   }
@@ -229,4 +280,12 @@ export class EmailService {
 
     this.emailsSignal.update(emails => [newEmail, ...emails]);
   }
+  
+  // --- Search Actions ---
+  executeSearch(criteria: SearchCriteria) {
+    this.searchCriteria.set(criteria);
+    // Navigate to 'search' folder/route
+    this.router.navigate(['/layout/search']);
+  }
+  
 }

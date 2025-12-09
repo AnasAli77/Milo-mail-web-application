@@ -1,48 +1,101 @@
 <header class="app-header">
   <div class="header-left" [class.collapsed]="collapsed">
-    <!-- Menu Icon: Added type="button" and flex-shrink to prevent squashing -->
     <button class="icon-btn" type="button" (click)="onToggleSidebar.emit()" style="flex-shrink: 0">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
       </svg>
     </button>
-    
-    <!-- Logo Section -->
+
     <div class="logo-container">
-       <!-- M Icon (Always Visible) -->
-       <div class="logo-icon">M</div>
-       
-       <!-- Text 'ilo' (Hidden when collapsed) -->
-       <span class="logo-text" *ngIf="!collapsed">ilo</span>
+      <div class="logo-icon">M</div>
+      <span class="logo-text" *ngIf="!collapsed">ilo</span>
     </div>
   </div>
 
   <div class="header-center">
-    <div class="search-bar">
-      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-      </svg>
-      <input type="text" placeholder="Search mail">
+    <div class="search-bar" [class.active]="isSearchFilterOpen()">
+      <button class="search-btn-left" (click)="onQuickSearch()">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+      </button>
+
+      <input type="text" placeholder="Search mail" [(ngModel)]="searchQuery" (keydown.enter)="onQuickSearch()">
+
+      <button class="filter-toggle-btn" (click)="toggleSearchFilter()" title="Show search options">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+        </svg>
+      </button>
     </div>
+
+    <div *ngIf="isSearchFilterOpen()" class="search-filter-dropdown shadow-elevation">
+      <div class="filter-row">
+        <label>From</label>
+        <input type="text" [(ngModel)]="searchFrom" placeholder="Sender">
+      </div>
+      <div class="filter-row">
+        <label>To</label>
+        <input type="text" [(ngModel)]="searchTo" placeholder="Recipient">
+      </div>
+      <div class="filter-row">
+        <label>Subject</label>
+        <input type="text" [(ngModel)]="searchSubject" placeholder="Subject">
+      </div>
+      <div class="filter-row">
+        <label>Includes words</label>
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Words">
+      </div>
+
+      <div class="filter-row">
+        <label>Priority</label>
+        <select [(ngModel)]="searchPriority">
+          <option value="">Any</option>
+          <option value="5">Extreme</option>
+          <option value="4">High</option>
+          <option value="3">Normal</option>
+          <option value="2">Low</option>
+          <option value="1">Very Low</option>
+        </select>
+      </div>
+
+      <div class="filter-row checkbox-row">
+        <input type="checkbox" id="hasAttach" [(ngModel)]="searchHasAttachment">
+        <label for="hasAttach">Has attachment</label>
+      </div>
+
+      <div class="filter-actions">
+        <button class="clear-btn" (click)="clearFilter()">Clear</button>
+        <button class="search-btn-primary" (click)="onAdvancedSearch()">Search</button>
+      </div>
+    </div>
+
+    <div *ngIf="isSearchFilterOpen() || isProfileOpen()" class="click-overlay"
+      (click)="isSearchFilterOpen.set(false); isProfileOpen.set(false)"></div>
   </div>
 
   <div class="header-right">
     <button class="profile-btn" (click)="toggleProfile()">T</button>
-    
-    <!-- Profile Dropdown -->
+
     <div *ngIf="isProfileOpen()" class="dropdown-menu">
-       <div class="dropdown-header">
-         <p class="user-name">tofyfathy12</p>
-         <p class="user-email">tofyfathy12@gmail.com</p>
-       </div>
-       <div class="dropdown-body">
-         <button class="dropdown-item" (click)="signOut()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-            </svg>
-            Sign out
-         </button>
-       </div>
+      <div class="dropdown-header">
+        <p class="user-name">tofyfathy12</p>
+        <p class="user-email">tofyfathy12@gmail.com</p>
+      </div>
+      <div class="dropdown-body">
+        <button class="dropdown-item" (click)="signOut()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          Sign out
+        </button>
+      </div>
     </div>
   </div>
 </header>
