@@ -18,6 +18,9 @@ public class AuthService {
     @Autowired
     AuthenticationManager authManager;
 
+    @Autowired
+    private JWTService jwtService;
+
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(11);
 
     public ClientUser register(ClientUser user) {
@@ -25,11 +28,12 @@ public class AuthService {
         return userRepo.save(user);
     }
 
-    public ClientUser verify(ClientUser user) {
+    public String verify(ClientUser user) {
         Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPasswordHash()));
 
         if (authentication.isAuthenticated()) {
-            return  userRepo.findByEmail(user.getEmail());
+            user = userRepo.findByEmail(user.getEmail());
+            return  jwtService.generateToken(user.getName());
         }
         return null;
     }

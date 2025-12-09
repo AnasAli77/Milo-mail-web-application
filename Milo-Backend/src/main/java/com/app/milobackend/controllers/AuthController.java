@@ -40,9 +40,9 @@ public class AuthController {
         incomingUser.setEmail(user.getEmail());
         incomingUser.setPasswordHash(user.getPassword());
 
-        ClientUser verifiedUser = authService.verify(incomingUser);
-        if (verifiedUser != null) {
-            return ResponseEntity.ok(verifiedUser);
+        String token = authService.verify(incomingUser);
+        if (token != null) {
+            return ResponseEntity.ok(token);
         }
         else
             return ResponseEntity.badRequest().build();
