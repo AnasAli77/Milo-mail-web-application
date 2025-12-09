@@ -37,7 +37,11 @@ export class Contacts implements OnInit {
 
   ngOnInit() {
     // Initial load
-    this.contactService.refreshContacts();
+    this.refresh();
+  }
+
+  refresh() {
+    this.contactService.refreshContacts(this.searchTerm, this.sortBy);
   }
 
   get emailControls() {
@@ -61,18 +65,18 @@ export class Contacts implements OnInit {
   openAddModal() {
     this.editingContactId = null;
     this.contactForm.reset();
-    
+
     // Clear FormArray and add one initial email field
     const emailArray = this.contactForm.get('emails') as FormArray;
     emailArray.clear();
     this.addEmailField();
-    
+
     this.isModalOpen = true;
   }
 
   openEditModal(contact: Contact) {
     this.editingContactId = contact.id;
-    
+
     // Populate FormArray
     const emailArray = this.contactForm.get('emails') as FormArray;
     emailArray.clear();
@@ -110,7 +114,7 @@ export class Contacts implements OnInit {
     }
 
     const formVal = this.contactForm.value;
-    
+
     // Filter out empty emails just in case
     const cleanEmails = formVal.emails.filter((e: string) => !!e);
 
@@ -130,7 +134,7 @@ export class Contacts implements OnInit {
   }
 
   deleteContact(id: number) {
-    if(confirm('Are you sure you want to delete this contact?')) {
+    if (confirm('Are you sure you want to delete this contact?')) {
       this.contactService.deleteContact(id);
     }
   }

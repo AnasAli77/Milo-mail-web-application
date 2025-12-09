@@ -2,188 +2,90 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Email } from '../models/email'
 import { Router } from '@angular/router';
 import { SearchCriteria } from '../models/searchCriteria';
+import { ApiEmailService } from './api-email-service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmailService {
 
+  private api = inject(ApiEmailService);
+  private router = inject(Router);
+
   readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
   // All folders signal
   folders = signal<string[]>([...this.systemFolders]);
 
   selectedEmail = signal<Email | null>(null);
-  private router = inject(Router);
 
   draftToEdit = signal<Email | null>(null);
 
   // Current Search State
   searchCriteria = signal<SearchCriteria>({});
 
-  emailsSignal = signal<Email[]>([
-    {
-      id: 1,
-      sender: 'Sarah Johnson',
-      senderEmail: 'sarah.j@milo.com',
-      receiverEmail: ['tofyfathy12@gmail.com'],
-      time: '7:24 PM',
-      subject: 'Q4 Project Updates',
-      body: 'Hi team,\n\nI wanted to share some updates on our Q4 progress and what to expect in the coming weeks. We have hit all our milestones for October and are on track for a successful year-end close.\n\nPlease review the attached slide deck for the detailed breakdown.\n\nBest,\nSarah',
-      attachments: [new File(["Mock file content"], "Q4_Report.pdf", { type: "application/pdf" })],
-      read: false, active: false, starred: false, hasAttachment:true ,folder: 'inbox',
-      priority: 5 // EXTREME (Red)
-    },
-    {
-      id: 2,
-      sender: 'Marketing Team',
-      senderEmail: 'newsletter@milo.com',
-      receiverEmail: ['tofyfathy12@gmail.com'],
-      time: '5:58 PM',
-      subject: 'Newsletter: January Edition',
-      body: 'Hello!\n\nCheck out our latest newsletter featuring:\n- New product launch dates\n- Employee of the month\n- Upcoming holiday schedule\n\nClick here to read more.',
-      attachments: [],
-      read: false, active: false, starred: true, hasAttachment:false ,folder: 'inbox',
-      priority: 1 // VERY LOW (Green)
-    },
-    {
-      id: 3,
-      sender: 'Michael Chen',
-      senderEmail: 'm.chen@design.com',
-      receiverEmail: ['tofyfathy12@gmail.com'],
-      time: '2:58 PM',
-      subject: 'Meeting Request: Design Review',
-      body: 'Hi,\n\nCould we schedule a design review meeting for next week? I have some mockups ready for the new landing page.\n\nLet me know your availability.\n\nThanks,\nMichael',
-      attachments: [],
-      read: true, active: false, starred: false, hasAttachment:false ,folder: 'inbox',
-      priority: 4 // HIGH (Orange)
-    },
-    {
-      id: 4,
-      sender: 'Emma Wilson',
-      senderEmail: 'emma.w@studio.com',
-      receiverEmail: ['tofyfathy12@gmail.com'],
-      time: 'Yesterday',
-      subject: 'Final Assets for Campaign',
-      body: 'Hey,\n\nAttached are the final exported assets for the social media campaign. Let me know if you need any other formats.\n\nCheers,\nEmma',
-      attachments: [],
-      read: true, active: false, starred: true, hasAttachment:false ,folder: 'inbox',
-      // Priority missing (will default to 3 - Blue)
-      priority: 3
-    },
-    {
-      id: 7,
-      sender: 'Tofy Fathy',
-      senderEmail: 'tofyfathy12@gmail.com',
-      receiverEmail: ['client@company.com'],
-      time: '10:00 AM',
-      subject: 'Project Proposal v2',
-      body: 'Hi Client,\n\nPlease find attached the revised proposal based on our discussion yesterday. I have updated the budget section.\n\nBest,\nTofy',
-      attachments: [],
-      read: true, active: false, starred: false, hasAttachment:false ,folder: 'sent',
-      priority: 2
-    }
-    
-  ]);
+  emailsSignal = signal<Email[]>([]);
 
-
-  addFolder(folderName: string) {
-    const normalize = folderName.toLowerCase();
-    if (!this.folders().includes(normalize)) {
-      this.folders.update(list => [...list, normalize]);
-    }
-  }
-
-  // NEW: Rename a custom folder
-  renameFolder(oldName: string, newName: string) {
-    const normalizedNew = newName.toLowerCase().trim();
-
-    // Validation: prevent empty names, duplicates, or renaming system folders
-    if (!normalizedNew || this.folders().includes(normalizedNew) || this.systemFolders.includes(oldName)) {
-      return;
-    }
-
-    // 1. Update folder list
-    this.folders.update(list => list.map(f => f === oldName ? normalizedNew : f));
-
-    // 2. Update emails in that folder
-    this.emailsSignal.update(emails => emails.map(e =>
-      e.folder === oldName ? { ...e, folder: normalizedNew } : e
-    ));
-  }
-
-  // NEW: Delete a custom folder
-  deleteFolder(folderName: string) {
-    if (this.systemFolders.includes(folderName)) return;
-
-    // 1. Remove from folder list
-    this.folders.update(list => list.filter(f => f !== folderName));
-
-    // 2. Move emails from deleted folder to 'trash'
-    this.emailsSignal.update(emails => emails.map(e =>
-      e.folder === folderName ? { ...e, folder: 'trash' } : e
-    ));
-  }
-
-// Updated Filter Logic
-  filterEmails(folder: string) {
-    const all = this.emailsSignal();
-
-    // 1. Handle Search
+  // LOAD DATA FROM BACKEND
+  loadEmailsForFolder(folder: string) {
     if (folder === 'search') {
-      const criteria = this.searchCriteria();
-      return all.filter(email => {
-        let matches = true;
-
-        // General Query (checks subject, sender, body)
-        if (criteria.query) {
-          const q = criteria.query.toLowerCase();
-          const inSubject = email.subject.toLowerCase().includes(q);
-          const inSender = email.sender.toLowerCase().includes(q);
-          const inBody = email.body.toLowerCase().includes(q);
-          if (!inSubject && !inSender && !inBody) matches = false;
-        }
-
-        // Specific Fields
-        if (matches && criteria.from) {
-          const f = criteria.from.toLowerCase();
-          if (!email.sender.toLowerCase().includes(f) && !email.senderEmail.toLowerCase().includes(f)) matches = false;
-        }
-
-        if (matches && criteria.to) {
-          const t = criteria.to.toLowerCase();
-          // Check if any receiver matches
-          if (!email.receiverEmail.some(r => r.toLowerCase().includes(t))) matches = false;
-        }
-
-        if (matches && criteria.subject) {
-          if (!email.subject.toLowerCase().includes(criteria.subject.toLowerCase())) matches = false;
-        }
-
-        if (matches && criteria.hasAttachment) {
-          if (!email.hasAttachment) matches = false;
-        }
-
-        if (matches && criteria.priority) {
-          // Default to 3 (Normal) if undefined, to match display logic
-          const p = email.priority || 3; 
-          if (p !== criteria.priority) matches = false;
-        }
-
-        return matches;
+      this.api.filterEmails(this.searchCriteria()).subscribe({
+        next: (data) => this.emailsSignal.set(data),
+        error: (err) => console.error('Failed to search', err)
+      });
+    } else {
+      this.api.getAllMails().subscribe({
+        next: (data) => this.emailsSignal.set(data),
+        error: (err) => console.error(`Failed to load ${folder}`, err)
       });
     }
+  }
 
-    // 2. Handle Standard Folders
-    if (folder === 'starred') return all.filter(e => e.starred);
-    return all.filter(e => e.folder === folder);
+  // ACTIONS
+  addFolder(folderName: string) {
+    this.api.addFolder(folderName).subscribe(() => {
+      this.folders.update(list => [...list, folderName.toLowerCase()]);
+    });
+  }
+
+  renameFolder(oldName: string, newName: string) {
+    this.api.renameFolder(oldName, newName).subscribe(() => {
+      this.folders.update(list => list.map(f => f === oldName ? newName.toLowerCase() : f));
+      // Refresh current list if we are in that folder
+      this.loadEmailsForFolder(newName);
+    });
+  }
+
+  deleteFolder(folderName: string) {
+    if (this.systemFolders.includes(folderName)) return;
+    this.api.removeFolder(folderName).subscribe(() => {
+      this.folders.update(list => list.filter(f => f !== folderName));
+    });
+  }
+
+  // --- EMAIL ACTIONS ---
+
+  // Used by EmailList to get data (now just returns signal, triggering is separate)
+  filterEmails(folder: string) {
+    // We assume loadEmailsForFolder(folder) is called by the component when route changes
+    return this.emailsSignal();
   }
 
 
   setSelectedEmail(email: Email) {
     this.selectedEmail.set(email);
-    this.emailsSignal.update(all =>
-      all.map(e => e.id === email.id ? { ...e, read: true, active: true } : { ...e, active: false })
-    );
+
+    // Logic: If unread, mark as read locally AND on backend
+    if (!email.read) {
+      // 1. Optimistic Update (UI updates immediately)
+      this.emailsSignal.update(all =>
+        all.map(e => e.id === email.id ? { ...e, read: true } : e)
+      );
+
+      // 2. API Call
+      this.api.markAsRead(email.id).subscribe({
+        error: (err) => console.error('Failed to mark as read', err)
+      });
+    }
   }
 
   getAdjacentEmailId(currentId: number, folder: string, direction: 'next' | 'prev'): number | null {
@@ -205,87 +107,109 @@ export class EmailService {
   }
 
   setStarredEmail(email: Email) {
+    // 1. Optimistic Update
     this.emailsSignal.update(emails =>
       emails.map(e => e.id === email.id ? { ...e, starred: !e.starred } : e)
     );
+
+    // 2. API Call
+    this.api.toggleStar(email.id).subscribe({
+      error: (err) => {
+        console.error('Failed to toggle star', err);
+        // Revert on error
+        this.emailsSignal.update(emails =>
+          emails.map(e => e.id === email.id ? { ...e, starred: !e.starred } : e)
+        );
+      }
+    });
   }
 
-  moveEmails(emailIds: number[], targetFolder: string) {
-    this.emailsSignal.update(emails =>
-      emails.map(e => emailIds.includes(e.id) ? { ...e, folder: targetFolder, active: false } : e)
-    );
-
-    if (this.selectedEmail() && emailIds.includes(this.selectedEmail()!.id)) {
-      this.selectedEmail.set(null);
-    }
+  moveEmails(emailIds: number[], targetFolder: string) { // Updated ID type to string[]
+    this.api.moveToFolder(targetFolder, emailIds).subscribe(() => {
+      // Optimistic UI update: remove from current view
+      this.emailsSignal.update(emails => emails.filter(e => !emailIds.includes(e.id)));
+      if (this.selectedEmail() && emailIds.includes(this.selectedEmail()!.id)) {
+        this.selectedEmail.set(null);
+      }
+    });
   }
 
+  // --- Helper methods that might need adjustment ---
   editDraft(email: Email) {
     this.draftToEdit.set(email);
-
-    // Remove the email from the list immediately so it is no longer in "Drafts" view while editing
-    this.emailsSignal.update(emails => emails.filter(e => e.id !== email.id));
-
-    // Automatically navigate to compose page
     this.router.navigate(['/layout/drafts/compose']);
   }
 
 
-  saveDraft(data: { to: string; email: string[]; subject: string; body: string; attachments?: File[]; priority: number }) {
+  saveDraft(data: any) {
     const currentDraft = this.draftToEdit();
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    const draftToSave: Email = {
-      id: currentDraft ? currentDraft.id : Date.now(),
-      sender: 'Tofy Fathy',
-      senderEmail: 'tofyfathy12@gmail.com',
-      receiverEmail: data.email,
-      time: timestamp,
-      subject: data.subject || '(Draft)',
-      body: data.body,
-      attachments: data.attachments || [],
-      read: true,
-      active: false,
-      starred: false,
-      hasAttachment: !!data.attachments?.length,
+    const draftEmail: Email = {
+      id: currentDraft ? currentDraft.id : 0,
       folder: 'drafts',
-      priority: data.priority,
-    };
-    this.emailsSignal.update(emails => [draftToSave, ...emails.filter(e => e.id !== draftToSave.id)]);
-
-    this.draftToEdit.set(null);
-  }
-
-  sendEmail(data: { to: string; email: string[]; subject: string; body: string; attachments?: File[]; priority: number }) {
-
-    this.draftToEdit.set(null);
-
-    const newEmail: Email = {
-      id: Date.now(),
-      sender: 'Tofy Fathy',
-      senderEmail: 'tofyfathy12@gmail.com',
-      receiverEmail: data.email,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      sender: 'me', // Current user
+      senderEmail: 'me@milo.com',
+      receiverEmail: data.email, // Ensure array
+      time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',
       body: data.body,
-      attachments: data.attachments || [],
+      attachments: [], // Handle attachments upload separately if needed
       read: true,
       active: false,
       starred: false,
-      hasAttachment: !!data.attachments?.length,
-      folder: 'sent',
-      // Ensure priority is passed, default to 3 if somehow null
-      priority: data.priority
+      hasAttachment: false,
+      priority: data.priority || 3
     };
 
-    this.emailsSignal.update(emails => [newEmail, ...emails]);
+    this.api.sendEmail(draftEmail).subscribe({
+      next: (savedEmail) => {
+        this.draftToEdit.set(null);
+        // If we are currently viewing Drafts, update the list
+        if (this.router.url.includes('/drafts')) {
+          // If it was an edit, update it; if new, add it
+          this.emailsSignal.update(list => {
+            const exists = list.find(e => e.id === savedEmail.id);
+            return exists 
+              ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
+              : [savedEmail, ...list];
+          });
+        }
+      },
+      error: (err) => console.error('Failed to save draft', err)
+    });
   }
-  
-  // --- Search Actions ---
+
+  sendEmail(data: any) {
+    // Map form data to Email model
+    const newEmail: Email = {
+      id: 0, // Backend generates ID
+      folder: 'sent',
+      sender: 'me', // Current user
+      senderEmail: 'me@milo.com',
+      receiverEmail: data.email, // Ensure array
+      time: new Date().toISOString(),
+      subject: data.subject || '(No Subject)',
+      body: data.body,
+      attachments: [], // Handle attachments upload separately if needed
+      read: true,
+      active: false,
+      starred: false,
+      hasAttachment: false,
+      priority: data.priority || 3
+    };
+
+    this.api.sendEmail(newEmail).subscribe(savedEmail => {
+      this.draftToEdit.set(null);
+      // If we are in 'sent' folder, add to list, otherwise just navigate
+      if (this.router.url.includes('/sent')) {
+        this.emailsSignal.update(list => [savedEmail, ...list]);
+      }
+    });
+  }
+
   executeSearch(criteria: SearchCriteria) {
     this.searchCriteria.set(criteria);
-    // Navigate to 'search' folder/route
     this.router.navigate(['/layout/search']);
+    // The component will trigger loadEmailsForFolder('search')
   }
-  
+
 }

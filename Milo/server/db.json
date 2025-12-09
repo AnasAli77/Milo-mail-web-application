@@ -1,0 +1,141 @@
+{
+  "mail": [
+    {
+      "id": 101,
+      "folder": "inbox",
+      "sender": "Sarah Johnson",
+      "senderEmail": "sarah.j@milo.com",
+      "receiverEmail": [
+        "me@milo.com"
+      ],
+      "time": "2023-12-01T09:30:00Z",
+      "subject": "Q4 Project Updates",
+      "body": "Hi team, we are on track for Q4...",
+      "read": false,
+      "starred": true,
+      "priority": 5,
+      "hasAttachment": true,
+      "attachments": []
+    },
+    {
+      "id": 102,
+      "folder": "inbox",
+      "sender": "Marketing Team",
+      "senderEmail": "newsletter@milo.com",
+      "receiverEmail": [
+        "me@milo.com"
+      ],
+      "time": "2023-12-02T14:15:00Z",
+      "subject": "Weekly Newsletter",
+      "body": "Check out our latest updates!",
+      "read": true,
+      "starred": false,
+      "priority": 2,
+      "hasAttachment": false,
+      "attachments": []
+    },
+    {
+      "id": 103,
+      "folder": "sent",
+      "sender": "me@milo.com",
+      "senderEmail": "me@milo.com",
+      "receiverEmail": [
+        "client@corp.com"
+      ],
+      "time": "2023-12-03T10:00:00Z",
+      "subject": "Project Proposal",
+      "body": "Please find the attached proposal.",
+      "read": true,
+      "starred": false,
+      "priority": 4,
+      "hasAttachment": true,
+      "attachments": []
+    },
+    {
+      "id": 104,
+      "folder": "drafts",
+      "sender": "me@milo.com",
+      "senderEmail": "me@milo.com",
+      "receiverEmail": [
+        "hr@milo.com"
+      ],
+      "time": "2023-12-04T08:45:00Z",
+      "subject": "Leave Request",
+      "body": "I would like to request leave for...",
+      "read": true,
+      "starred": false,
+      "priority": 3,
+      "hasAttachment": false,
+      "attachments": []
+    },
+    {
+      "id": 105,
+      "folder": "trash",
+      "sender": "Spam Bot",
+      "senderEmail": "spam@bad.com",
+      "receiverEmail": [
+        "me@milo.com"
+      ],
+      "time": "2023-11-20T00:00:00Z",
+      "subject": "You won a prize!",
+      "body": "Click here to claim...",
+      "read": true,
+      "starred": false,
+      "priority": 1,
+      "hasAttachment": false,
+      "attachments": []
+    },
+    {
+      "id": 106,
+      "folder": "sent",
+      "sender": "bbbbbbbbb",
+      "senderEmail": "spam@bad.com",
+      "receiverEmail": [
+        "me@milo.com"
+      ],
+      "time": "2023-11-20T00:00:00Z",
+      "subject": "You won a prize!",
+      "body": "Click here to claim...",
+      "read": true,
+      "starred": false,
+      "priority": 1,
+      "hasAttachment": false,
+      "attachments": []
+    },
+    {
+      "id": 101,
+      "folder": "inbox",
+      "sender": "Sarah Johnson",
+      "senderEmail": "sarah.j@milo.com",
+      "receiverEmail": [
+        "me@milo.com"
+      ],
+      "time": "2023-12-01T09:30:00Z",
+      "subject": "Q4 Project Updates",
+      "body": "Hi team, we are on track for Q4...",
+      "read": false,
+      "starred": true,
+      "priority": 5,
+      "hasAttachment": true,
+      "attachments": []
+    },
+    {
+      "id": 104,
+      "folder": "drafts",
+      "sender": "me",
+      "senderEmail": "me@milo.com",
+      "receiverEmail": [
+        "hr@milo.com"
+      ],
+      "time": "2025-12-09T17:57:39.710Z",
+      "subject": "Leave Request",
+      "body": "I would like to request leave for...",
+      "attachments": [],
+      "read": true,
+      "active": false,
+      "starred": false,
+      "hasAttachment": false,
+      "priority": 3
+    }
+  ]
+}

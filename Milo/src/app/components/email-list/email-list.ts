@@ -1,10 +1,10 @@
-import {Component, computed, EventEmitter, inject, OnInit, Output, signal} from '@angular/core';
-import {Email} from '../../models/email';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
-import {EmailService} from '../../Services/email-service';
-import {EmailViewComponent} from '../email-viewer/email-viewer';
+import { Component, computed, EventEmitter, inject, OnInit, Output, signal } from '@angular/core';
+import { Email } from '../../models/email';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { EmailService } from '../../Services/email-service';
+import { EmailViewComponent } from '../email-viewer/email-viewer';
 
 @Component({
   selector: 'app-email-list',
@@ -27,10 +27,7 @@ export class EmailList implements OnInit {
   // Tracks if a child route (Compose or Email Viewer) is active
   isRouterActive = false;
 
-  filteredEmails = computed(() => {
-    const folder = this.currentFolder();
-    return this.emailService.filterEmails(folder);
-  });
+  filteredEmails = this.emailService.emailsSignal;
 
   moveableFolders = computed(() => {
     const excluded = ['starred', 'sent', 'drafts'];
@@ -39,14 +36,26 @@ export class EmailList implements OnInit {
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
-      this.currentFolder.set(params.get('folderId') || 'inbox');
+      const folderId = params.get('folderId') || 'inbox';
+      this.currentFolder.set(folderId);
       this.checkedEmailIds.set(new Set());
+
+      this.loadData();
     });
+  }
+
+  // NEW: Refresh Action
+  loadData() {
+    this.emailService.loadEmailsForFolder(this.currentFolder());
+  }
+
+  refresh() {
+    this.loadData();
   }
 
   // Helper for Priority Color
   getPriorityColor(priority?: number): string {
-    const p = priority || 3; 
+    const p = priority || 3;
     switch (p) {
       case 5: return '#ef4444'; // Extreme (Red)
       case 4: return '#f97316'; // High (Orange)
@@ -59,7 +68,7 @@ export class EmailList implements OnInit {
 
   selectEmail(email: Email) {
     this.emailService.setSelectedEmail(email);
-    this.router.navigate(['email', email.id], {relativeTo: this.route});
+    this.router.navigate(['email', email.id], { relativeTo: this.route });
   }
 
   navigateEmail(direction: 'next' | 'prev') {
