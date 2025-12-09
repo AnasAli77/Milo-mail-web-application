@@ -40,7 +40,7 @@ export class EmailList implements OnInit {
       this.currentFolder.set(folderId);
       this.checkedEmailIds.set(new Set());
 
-      this.loadData();
+      this.emailService.loadEmailsForFolder(folderId, 0);
     });
   }
 
@@ -145,4 +145,25 @@ export class EmailList implements OnInit {
   get selectionCount() {
     return this.checkedEmailIds().size;
   }
+
+/* --------------PAGINATION OF LISTS ---------*/
+  nextPage() {
+    const current = this.emailService.currentPage();
+    const folder = this.currentFolder();
+    this.emailService.changePage(folder, current + 1);
+  }
+
+  prevPage() {
+    const current = this.emailService.currentPage();
+    const folder = this.currentFolder();
+    this.emailService.changePage(folder, current - 1);
+  }
+
+
+  get currentPage() { return this.emailService.currentPage(); }
+  get totalPages() { return this.emailService.totalPages(); }
+  get isFirstPage() { return this.currentPage === 0; }
+  get isLastPage() { return this.currentPage === this.totalPages - 1 || this.totalPages === 0; }
+
+
 }

@@ -25,18 +25,36 @@ export class EmailService {
 
   emailsSignal = signal<Email[]>([]);
 
+  currentPage = signal<number>(0);
+  totalPages = signal<number>(0);
+  totalElements = signal<number>(0);
+  readonly pageSize = 9;
+
   // LOAD DATA FROM BACKEND
-  loadEmailsForFolder(folder: string) {
+  loadEmailsForFolder(folder: string , page : number = 0) {
     if (folder === 'search') {
       this.api.filterEmails(this.searchCriteria()).subscribe({
         next: (data) => this.emailsSignal.set(data),
         error: (err) => console.error('Failed to search', err)
       });
     } else {
-      this.api.getAllMails().subscribe({
-        next: (data) => this.emailsSignal.set(data),
+      this.api.getEmails(folder, page, this.pageSize).subscribe({
+        next: (response) => {
+          // Update Data
+          this.emailsSignal.set(response.content);
+
+          this.currentPage.set(response.number);
+          this.totalPages.set(response.totalPages);
+          this.totalElements.set(response.totalElements);
+        },
         error: (err) => console.error(`Failed to load ${folder}`, err)
       });
+    }
+  }
+
+  changePage(folder: string, newPage: number) {
+    if (newPage >= 0 && newPage < this.totalPages()) {
+      this.loadEmailsForFolder(folder, newPage);
     }
   }
 
@@ -168,7 +186,7 @@ export class EmailService {
           // If it was an edit, update it; if new, add it
           this.emailsSignal.update(list => {
             const exists = list.find(e => e.id === savedEmail.id);
-            return exists 
+            return exists
               ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
               : [savedEmail, ...list];
           });
