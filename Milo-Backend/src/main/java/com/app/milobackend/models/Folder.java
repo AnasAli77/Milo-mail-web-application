@@ -1,14 +1,13 @@
 package com.app.milobackend.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @NoArgsConstructor
@@ -19,7 +18,7 @@ public class Folder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Instant createdAt = Instant.now();
+    private LocalDateTime createdAt = LocalDateTime.now(ZoneId.of("Africa/Cairo"));
 
     private String name;
 
