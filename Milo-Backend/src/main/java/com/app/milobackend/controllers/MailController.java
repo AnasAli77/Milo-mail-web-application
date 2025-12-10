@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/mail")
 @RequiredArgsConstructor
@@ -28,9 +28,8 @@ public class MailController {
     @PostMapping("/add")
     public void addMail (@RequestBody MailDTO dto)
     {
-        System.out.println("Data received: " + dto.toString());
-        Mail mail= mailService.mapMailDTOtoMail(dto);
-        mailService.AddMail(mail);
+//        System.out.println("Data received: " + dto.toString());
+        mailService.saveMail(dto);
     }
     @GetMapping("/sort")
     public List<Mail> getSortedMails(@RequestParam String  sortBy){

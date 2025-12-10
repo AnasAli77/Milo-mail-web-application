@@ -13,7 +13,7 @@ public class SortBySender implements MailSortingStrategy {
         copy.sort(new Comparator<Mail>() {
             @Override
             public int compare(Mail m1, Mail m2) {
-                return m1.getSender().compareToIgnoreCase(m2.getSender());
+                return m1.getSender().getEmail().compareToIgnoreCase(m2.getSender().getEmail());
             }
         });
         return copy;

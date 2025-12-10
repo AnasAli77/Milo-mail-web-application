@@ -1,5 +1,6 @@
 package com.app.milobackend.filter;
 
+import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.models.Mail;
 
 import java.util.ArrayList;
@@ -15,8 +16,10 @@ public class CriteriaReceiver implements Criteria {
     public List<Mail> filter(List<Mail> mails) {
         List<Mail> mailsFiltered = new ArrayList<>();
         for (Mail mail : mails) {
-            if(mail.getReceiver().toLowerCase().contains(this.word.toLowerCase())){
-                mailsFiltered.add(mail);
+            for(ClientUser receiver:mail.getReceivers()) {
+                if(receiver.getEmail().toLowerCase().contains(this.word)) {
+                    mailsFiltered.add(mail);
+                }
             }
         }
         return mailsFiltered;

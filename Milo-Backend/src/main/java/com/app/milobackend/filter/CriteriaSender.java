@@ -15,7 +15,7 @@ public class CriteriaSender implements Criteria {
     public List<Mail> filter(List<Mail> mails) {
         List<Mail> mailsFiltered = new ArrayList<>();
         for (Mail mail : mails) {
-            if(mail.getSender().toLowerCase().contains(this.word.toLowerCase())){
+            if(mail.getSender().getEmail().toLowerCase().contains(this.word.toLowerCase())){
                 mailsFiltered.add(mail);
             }
         }

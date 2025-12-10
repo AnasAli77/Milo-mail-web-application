@@ -19,13 +19,25 @@ public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String sender;
-    private String receiver;
     private String subject;
     private boolean read;
     private boolean active;
     private boolean starred;
     private boolean hasAttachment;
+
+    // 1. SENDER: Linked via the 'email' column
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_email", referencedColumnName = "email")
+    private ClientUser sender;
+
+    // 2. RECEIVERS: List of users, linked via their 'email'
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "mail_receivers", // Name of the hidden join table
+            joinColumns = @JoinColumn(name = "mail_id"), // Key from Mail side
+            inverseJoinColumns = @JoinColumn(name = "receiver_email", referencedColumnName = "email") // Key from User side
+    )
+    private List<ClientUser> receivers = new ArrayList<>();
 
     @Column(columnDefinition = "TEXT")
     private String body;

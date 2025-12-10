@@ -5,11 +5,13 @@ import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
 import com.app.milobackend.models.Attachment;
+import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.models.Folder;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.AttachmentRepository;
 //import com.app.milobackend.repositories.FolderRepo;
 import com.app.milobackend.repositories.MailRepo;
+import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.strategies.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ public class MailService {
 
     @Autowired
     private AttachmentService attachmentService;
+    @Autowired
+    private UserRepo userRepo;
 
 
     public void deleteMail (Long id)
@@ -71,9 +75,9 @@ public class MailService {
 //                attachments.add(att);
 //            }
 //        }
+        ClientUser clientSender=userRepo.findByEmail(mailDTO.getSenderEmail());
         Mail mail = Mail.builder()
-                .sender(mailDTO.getSenderEmail())
-                .receiver(mailDTO.getReceiverEmail())
+                .sender(clientSender)
                 .subject(mailDTO.getSubject())
                 .body(mailDTO.getBody())
                 .read(mailDTO.isRead())
@@ -96,6 +100,26 @@ public class MailService {
 
 
 
+    }
+    public void saveMail(MailDTO mailDTO) {
+        Mail mail = mapMailDTOtoMail(mailDTO);
+        ClientUser sender= userRepo.findByEmail(mailDTO.getSenderEmail());
+        if(sender==null){
+            throw new RuntimeException("User not found");
+        }
+        //btcheck el Email valid wla laa
+        List<ClientUser> receivers=new ArrayList<>();
+        for(String receiverEmail:mailDTO.getReceiverEmail()){
+            ClientUser receiver = userRepo.findByEmail(receiverEmail);
+            if (receiver != null) {
+                receivers.add(receiver);
+                receiver.addReceivedMail(mail);
+            }
+
+        }
+        sender.addSentMail(mail);
+        mail.setReceivers(receivers);
+        mailRepo.save(mail);
     }
 //    public Mail DeleteMail(long id) {
 //        Mail mail = mailRepo.findById(id).get();
@@ -120,9 +144,9 @@ public class MailService {
             case "sender":
                 sortworker.setStrategy(new SortBySender());
                 break;
-//            case "receiver":
-//                sortworker.setStrategy(new SortByReceiver());
-//                break;
+            case "receiver":
+                sortworker.setStrategy(new SortByReceiver());
+                break;
             case "body":
                 sortworker.setStrategy(new SortByBody());
             default:
