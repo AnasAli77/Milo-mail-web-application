@@ -5,26 +5,16 @@ import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
 import com.app.milobackend.mappers.MailMapperImpl;
-import com.app.milobackend.models.Attachment;
-import com.app.milobackend.models.ClientUser;
-import com.app.milobackend.models.Folder;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.AttachmentRepository;
-//import com.app.milobackend.repositories.FolderRepo;
 import com.app.milobackend.repositories.FolderRepo;
 import com.app.milobackend.repositories.MailRepo;
 import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.strategies.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,58 +39,56 @@ public class MailService {
     @Autowired
     private MailMapperImpl mailMapper;
 
+    // Restoring your cache
+    private List<Mail> allMails;
 
-    public void deleteMail (Long id)
-    {
-        if(mailRepo.findById(id).isPresent())
-        {
+    @Autowired
+    public MailService(MailRepo mailRepo) {
+        this.mailRepo = mailRepo;
+        this.allMails = this.mailRepo.findAllWithDetails();
+    }
+
+    public void deleteMail(Long id) {
+        if (mailRepo.findById(id).isPresent()) {
             mailRepo.deleteById(id);
+            allMails.removeIf(mail -> mail.getId().equals(id));
         }
     }
-    public List<Mail> GetAllMails()
-    {
-        return mailRepo.findAll();
+
+    public List<Mail> GetAllMails() {
+        return allMails;
     }
+
     public Mail GetMailById(long id) {
-        return mailRepo.findById(id).get();
+        return mailRepo.findById(id).orElse(null);
     }
+
     public void AddMail(Mail mail) {
-        mailRepo.save(mail);
+        Mail savedMail = mailRepo.save(mail);
+        allMails.add(savedMail);
     }
+
     public Mail UpdateMail(Mail mail) {
-        return mailRepo.save(mail);
+        allMails.removeIf(m -> m.getId().equals(mail.getId()));
+        Mail updatedMail = mailRepo.save(mail);
+        allMails.add(updatedMail);
+        return updatedMail;
     }
 
     public void saveMail(MailDTO mailDTO) throws RuntimeException {
-
         Mail mail = mailMapper.toEntity(mailDTO);
-        mailRepo.save(mail);
+        Mail savedMail = mailRepo.save(mail);
+        allMails.add(savedMail);
     }
 
-//    public Mail DeleteMail(long id) {
-//        Mail mail = mailRepo.findById(id).get();
-//        mailRepo.delete(mail);
-//        return mail;
-//    }
-
     public List<Mail> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
-        // 1. Create a Pageable object
-        // pageNumber: The index (0 for first page, 1 for second...)
-        // pageSize: The 'M' (how many emails to retrieve)
-        // Sort: Usually you want the newest emails first
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
-
-        // 2. Execute the query
         Page<Mail> mailPage = mailRepo.findByFolder(folderName, pageable);
-
-        // 3. Return the content (the list of M mails)
         return mailPage.getContent();
     }
 
-    public List<Mail> getSortedMails(String  sortBy)
-    {
+    public List<Mail> getSortedMails(String sortBy) {
         SortWorker sortworker = new SortWorker();
-        List<Mail> mails = GetAllMails();
         switch(sortBy.toLowerCase()){
             case "subject":
                 sortworker.setStrategy(new SortBySubject());
@@ -122,25 +110,24 @@ public class MailService {
                 break;
             case "attachments":
                 sortworker.setStrategy(new SortByAttachment());
+                break;
             default:
                 throw new IllegalArgumentException("Invalid sort by");
-
         }
-        return sortworker.sort(mails);
-
+        return sortworker.sort(allMails);
     }
+
     public List<Mail> Filter(FilterDTO request){
-        List<Mail> mails = GetAllMails();
         String word = request.getWord();
         List<String> selectedCriteria = request.getCriteria();
-        if(selectedCriteria==null ||selectedCriteria.isEmpty()){
+        if(selectedCriteria == null || selectedCriteria.isEmpty()){
             selectedCriteria = CriteriaFactory.allCriteriaNames();
         }
         List<Mail> filteredMails = new ArrayList<>();
         for(String name : selectedCriteria){
-            Criteria criteria=CriteriaFactory.create(name,word);
-            if(criteria!=null){
-                filteredMails.addAll(criteria.filter(mails));
+            Criteria criteria = CriteriaFactory.create(name, word);
+            if(criteria != null){
+                filteredMails.addAll(criteria.filter(allMails));
             }
         }
         return filteredMails.stream().distinct().toList();
