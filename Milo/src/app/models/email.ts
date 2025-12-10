@@ -1,3 +1,5 @@
+import { Attachment } from "./attachment";
+
 export interface Email {
   id: number;
   folder: string;
@@ -7,7 +9,7 @@ export interface Email {
   time: string;
   subject: string;
   body: string;
-  attachments?: File[];
+  attachments?: Attachment[];
   read: boolean;
   active: boolean;
   starred: boolean;

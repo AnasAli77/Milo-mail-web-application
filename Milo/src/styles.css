@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800,900');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
 /* Variables based on the design colors */
 :root {
   --color-primary: #2d2d2d;
@@ -10,7 +13,9 @@
   --color-text-muted: #94a3b8; /* slate-400 */
   --color-active-bg: #e2e8f0;
   --color-blue-accent: #2563eb;
-  --font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Update Font Family to use Inter as primary */
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: 'Poppins', var(--font-family); /* Optional: Use Poppins for headings */
 }
 
 * {
@@ -19,7 +24,7 @@
 
 body {
   margin: 0;
-  font-family: var(--font-family);
+  font-family: var(--font-family); /* Applied globally */
   background-color: var(--color-bg-app);
   color: var(--color-text-main);
   height: 100vh;

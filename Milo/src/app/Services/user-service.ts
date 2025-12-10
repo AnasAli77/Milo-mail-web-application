@@ -9,8 +9,10 @@ export class UserService {
 
   constructor() {
   }
-  
-  getEmail() {
-
+  getName(): string {
+    return this.currentUser?.name || '';
+  }
+  getEmail(): string {
+    return this.currentUser?.email || '';
   }
 }

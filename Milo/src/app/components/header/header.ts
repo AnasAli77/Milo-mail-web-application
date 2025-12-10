@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { SearchCriteria } from '../../models/searchCriteria';
 import { FormsModule } from '@angular/forms';
 import { EmailService } from '../../Services/email-service';
+import { UserService } from '../../Services/user-service';
 
 @Component({
   selector: 'app-header',
@@ -18,6 +19,7 @@ export class Header {
 
   route = inject(Router);
   emailService = inject(EmailService);
+  user = inject(UserService);
   isProfileOpen = signal(false);
   isSearchFilterOpen = signal(false); // Track search filter state
 

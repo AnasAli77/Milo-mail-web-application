@@ -3,6 +3,7 @@ import { Email } from '../models/email'
 import { Router } from '@angular/router';
 import { SearchCriteria } from '../models/searchCriteria';
 import { ApiEmailService } from './api-email-service';
+import { UserService } from './user-service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ export class EmailService {
 
   private api = inject(ApiEmailService);
   private router = inject(Router);
+  private user = inject(UserService);
 
   readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
   // All folders signal
@@ -164,8 +166,8 @@ export class EmailService {
     const draftEmail: Email = {
       id: currentDraft ? currentDraft.id : 0,
       folder: 'drafts',
-      sender: 'me', // Current user
-      senderEmail: 'me@milo.com',
+      sender: this.user.getName(), // Current user
+      senderEmail: this.user.getEmail(),
       receiverEmail: data.email, // Ensure array
       time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',
@@ -201,8 +203,8 @@ export class EmailService {
     const newEmail: Email = {
       id: 0, // Backend generates ID
       folder: 'sent',
-      sender: 'me', // Current user
-      senderEmail: 'me@milo.com',
+      sender: this.user.getName(), // Current user
+      senderEmail: this.user.getEmail(),
       receiverEmail: data.email, // Ensure array
       time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',

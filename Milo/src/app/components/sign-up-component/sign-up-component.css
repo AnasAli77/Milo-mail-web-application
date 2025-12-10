@@ -4,7 +4,7 @@
 
 :host {
   display: block;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 /* --- LAYOUT CONTAINER --- */
@@ -15,6 +15,7 @@
   background: linear-gradient(136deg, #848484 0%, #1E1E1E 99%);
   overflow: hidden;
   display: flex;
+  font-family: 'Inter', sans-serif;
   justify-content: center;
   align-items: center;
 }
@@ -26,6 +27,7 @@
   left: 550px;
   transform: translate(-50%, -50%);
   color: #C4C4C4;
+  /* font-family: 'Inter', sans-serif; */
   font-family: 'Inter', sans-serif;
   font-size: 35vw;
   /* Huge responsive text */
@@ -55,10 +57,12 @@
   z-index: 10;
   width: 350px;
   padding: 40px 30px;
-  background: #fff;
+  /* background: #fff; */
   border-radius: 15px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
   /* Stronger shadow for depth */
+  background: rgba(255, 255, 255, 0.1); /* Glass effect */
+  backdrop-filter: blur(10px); /* Blurs the text behind form */
   display: flex;
   flex-direction: column;
   animation: floatIn 0.5s ease-out;
@@ -79,8 +83,10 @@
 h2 {
   margin-bottom: 30px;
   font-weight: 600;
+  font-size: 3rem;
   text-align: center;
   color: #333;
+  font-family: 'Inter', sans-serif;
 }
 
 /* --- INPUT STYLES (From your design) --- */
@@ -175,7 +181,7 @@ h2 {
   margin-top: 20px;
   text-align: center;
   font-size: 14px;
-  color: #666;
+  color: #333;
 }
 
 .switch-text a {

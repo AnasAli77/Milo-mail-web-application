@@ -37,7 +37,7 @@ export class Contacts implements OnInit {
 
   ngOnInit() {
     // Initial load
-    this.refresh();
+    this.contactService.refreshContacts();
   }
 
   refresh() {

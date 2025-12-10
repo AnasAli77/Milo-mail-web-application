@@ -4,7 +4,8 @@
 
 :host {
   display: block;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Inter', sans-serif;
+  /* font-family: "Poppins", sans-serif; */
 }
 
 /* --- LAYOUT CONTAINER --- */
@@ -15,6 +16,7 @@
   background: linear-gradient(136deg, #848484 0%, #1E1E1E 99%);
   overflow: hidden;
   display: flex;
+  font-family: 'Inter', sans-serif;
   justify-content: center;
   align-items: center;
 }
@@ -55,9 +57,11 @@
   z-index: 10;
   width: 350px;
   padding: 40px 30px;
-  background: #fff;
+  /* background: #fff; */
   border-radius: 15px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.1); /* Glass effect */
+  backdrop-filter: blur(10px); /* Blurs the text behind form */
   /* Stronger shadow for depth */
   display: flex;
   flex-direction: column;
@@ -79,8 +83,10 @@
 h2 {
   margin-bottom: 30px;
   font-weight: 600;
+  font-size: 3rem;
   text-align: center;
   color: #333;
+  font-family: 'Inter', sans-serif;
 }
 
 /* --- INPUT STYLES (From your design) --- */
@@ -167,7 +173,7 @@ h2 {
   margin-top: 20px;
   text-align: center;
   font-size: 14px;
-  color: #666;
+  color: #333;
 }
 
 .switch-text a {

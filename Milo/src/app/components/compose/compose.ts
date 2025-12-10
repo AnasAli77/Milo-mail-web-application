@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { EmailService } from '../../Services/email-service';
+import { Attachment } from '../../models/attachment';
+import { FileToBase64Service } from '../../Services/file-to-base64-service';
+import { UserService } from '../../Services/user-service';
 
 interface ReceiverInput {
   email: string;
@@ -21,17 +24,18 @@ interface ReceiverInput {
 export class Compose {
   receivers: ReceiverInput[] = [{ email: '' }];
   subject: string = '';
-  message: string = ''; 
+  message: string = '';
   priority: number = 3;
 
   // Array to store attached files
-  attachments: File[] = [];
+  attachments: Attachment[] = [];
 
   private emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$/;
 
   constructor(
     private location: Location,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private fileService: FileToBase64Service,
   ) { }
 
   // Load draft data if we are editing one
@@ -49,7 +53,7 @@ export class Compose {
     }
   }
 
-// Helper to get text label for UI
+  // Helper to get text label for UI
   getPriorityLabel(): string {
     switch (Number(this.priority)) {
       case 1: return 'Very Low';
@@ -61,12 +65,23 @@ export class Compose {
     }
   }
 
-  onFilesSelected(event: any) {
+  async onFilesSelected(event: any) {
     const files: FileList = event.target.files;
     if (files) {
       for (let i = 0; i < files.length; i++) {
-        // Prevent duplicates if needed, or just push
-        this.attachments.push(files[i]);
+        const file = files[i];
+
+        try {
+          // Convert to Attachment object
+          const attachment: Attachment = await this.fileService.fileToAttachment(file);
+
+          // Push to your attachments array (ensure your array accepts Attachment objects now)
+          console.log(attachment);
+          this.attachments.push(attachment);
+
+        } catch (error) {
+          console.error("Error reading file:", error);
+        }
       }
     }
     // Reset input so the same file can be selected again if needed
@@ -78,13 +93,13 @@ export class Compose {
     this.attachments.splice(index, 1);
   }
   // Format file size (e.g., 1.2 MB)
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
+  // formatFileSize(bytes: number): string {
+  //   if (bytes === 0) return '0 B';
+  //   const k = 1024;
+  //   const sizes = ['B', 'KB', 'MB', 'GB'];
+  //   const i = Math.floor(Math.log(bytes) / Math.log(k));
+  //   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  // }
 
   // ------------------------
 

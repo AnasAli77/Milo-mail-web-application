@@ -1,65 +1,53 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Contact } from '../models/contact';
+import { ApiContactService } from './api-contact-service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContactService {
-  
-  // Internal store to simulate backend database
-  private _allContacts: Contact[] = [
-    { id: 1, name: 'Alice Smith', emails: ['alice@example.com', 'alice.work@milo.com'] },
-    { id: 2, name: 'Bob Jones', emails: ['bob@example.com'] },
-    { id: 3, name: 'Charlie Day', emails: ['charlie@day.com'] }
-  ];
+
+  private api = inject(ApiContactService);
 
   // Signal exposed to components
-  contacts = signal<Contact[]>([...this._allContacts]);
+  contacts = signal<Contact[]>([]);
 
   /**
    * Simulates fetching sorted/searched data from backend
    */
   refreshContacts(searchQuery: string = '', sortBy: string = 'name') {
-    let result = [...this._allContacts];
-
-    // 1. Backend Search Simulation
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(c => 
-        c.name.toLowerCase().includes(q) || 
-        c.emails.some(email => email.toLowerCase().includes(q))
-      );
+      this.api.searchContacts(searchQuery).subscribe(data => this.contacts.set(data));
+    } else if (sortBy !== 'name') { // 'name' is default
+      this.api.sortContacts(sortBy).subscribe(data => this.contacts.set(data));
+    } else {
+      this.api.getContacts().subscribe(data => this.contacts.set(data));
     }
+  }
 
-    // 2. Backend Sort Simulation
-    result.sort((a, b) => {
-      const fieldA = sortBy === 'name' ? a.name.toLowerCase() : a.emails[0].toLowerCase();
-      const fieldB = sortBy === 'name' ? b.name.toLowerCase() : b.emails[0].toLowerCase();
-      return fieldA.localeCompare(fieldB);
+  addContact(contactData: { name: string, emails: string[] }) {
+    // ID is 0 or null, backend generates it
+    const newContact: Contact = { id: 0, name: contactData.name, emails: contactData.emails };
+
+    this.api.addContact(newContact).subscribe(savedContact => {
+      this.contacts.update(list => [...list, savedContact]);
     });
-
-    this.contacts.set(result);
   }
 
-  addContact(contactData: {name: string, emails: string[]}) {
-    const newContact: Contact = {
-      id: Date.now(),
-      name: contactData.name,
-      emails: contactData.emails
-    };
-    this._allContacts.push(newContact);
-    this.refreshContacts(); 
-  }
-
-  updateContact(id: number, contactData: {name: string, emails: string[]}) {
-    this._allContacts = this._allContacts.map(c => 
-      c.id === id ? { ...c, ...contactData } : c
-    );
-    this.refreshContacts();
+  updateContact(id: number, contactData: { name: string, emails: string[] }) {
+    const contactToUpdate: Contact = { id, name: contactData.name, emails: contactData.emails };
+    this.api.editContact(contactToUpdate.id, contactToUpdate).subscribe(savedContact => {
+      // Update the specific contact in the signal list
+      this.contacts.update(list =>
+        list.map(c => c.id === id ? savedContact : c)
+      );
+    });
   }
 
   deleteContact(id: number) {
-    this._allContacts = this._allContacts.filter(c => c.id !== id);
-    this.refreshContacts();
+    this.api.removeContact(id).subscribe(() => {
+      // Remove the contact from the signal list
+      this.contacts.update(list => list.filter(c => c.id !== id));
+    });
   }
 }
