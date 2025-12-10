@@ -57,4 +57,9 @@ public class MailController {
     public void toggleStarredMail(@PathVariable Long mailId){
         mailService.toggleStarredMail(mailId);
     }
+
+    @GetMapping("/{folderName}")
+    public List<Mail> getMails(@PathVariable String folderName, @RequestParam("page") Integer page, @RequestParam("size") Integer size) {
+        return mailService.getMailsByFolder(folderName, page, size);
+    }
 }

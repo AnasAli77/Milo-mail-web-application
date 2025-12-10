@@ -16,6 +16,10 @@ import com.app.milobackend.repositories.MailRepo;
 import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.strategies.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -78,6 +82,20 @@ public class MailService {
 //        mailRepo.delete(mail);
 //        return mail;
 //    }
+
+    public List<Mail> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
+        // 1. Create a Pageable object
+        // pageNumber: The index (0 for first page, 1 for second...)
+        // pageSize: The 'M' (how many emails to retrieve)
+        // Sort: Usually you want the newest emails first
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
+
+        // 2. Execute the query
+        Page<Mail> mailPage = mailRepo.findByFolder(folderName, pageable);
+
+        // 3. Return the content (the list of M mails)
+        return mailPage.getContent();
+    }
 
     public List<Mail> getSortedMails(String  sortBy)
     {
