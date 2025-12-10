@@ -1,6 +1,7 @@
 package com.app.milobackend.controllers;
 
 import com.app.milobackend.dtos.FilterDTO;
+import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.services.MailService;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,17 @@ public class MailController {
     private final MailService mailService;
 
     @DeleteMapping("/delete/{id}")
-    public void deleteMail (@PathVariable String id)
+    public void deleteMail (@PathVariable Long id)
     {
-        mailService.delete(id);
+        mailService.deleteMail(id);
 
+    }
+
+    @PostMapping("/add")
+    public void addMail (@ModelAttribute MailDTO dto)
+    {
+        Mail mail= mailService.mapMailDTOtoMail(dto);
+        mailService.AddMail(mail);
     }
     @GetMapping("/sort")
     public List<Mail> getSortedMails(@RequestParam String  sortBy){

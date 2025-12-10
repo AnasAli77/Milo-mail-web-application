@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-
+@Builder
 @Entity
 @Table(name = "attachments")
 @Data

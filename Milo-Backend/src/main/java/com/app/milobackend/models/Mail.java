@@ -13,15 +13,19 @@ import java.util.List;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String sender;
-    private String receiver;
+    private List<String> receiver;
     private String subject;
+    private boolean read;
+    private boolean active;
+    private boolean starred;
+    private boolean hasAttachment;
 
     @Column(columnDefinition = "TEXT")
     private String body;
