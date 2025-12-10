@@ -20,7 +20,7 @@ public class Mail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String sender;
-    private List<String> receiver;
+    private String receiver;
     private String subject;
     private boolean read;
     private boolean active;
