@@ -79,7 +79,7 @@
   </div>
 
   <div class="header-right">
-    <button class="profile-btn" (click)="toggleProfile()">T</button>
+    <button class="profile-btn" (click)="toggleProfile()">{{user.getName().charAt(0).toUpperCase()}}</button>
 
     <div *ngIf="isProfileOpen()" class="dropdown-menu">
       <div class="dropdown-header">

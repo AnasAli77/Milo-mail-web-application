@@ -44,6 +44,7 @@ export class loginComponent {
           const responseBody = response.body;
           if (responseBody.token) {
             sessionStorage.setItem('auth_token', responseBody.token);
+            localStorage.setItem('token', responseBody.token);
           }
           if (responseBody.email && responseBody.name) {
             this.userService.currentUser = {
@@ -62,13 +63,3 @@ export class loginComponent {
     });
   }
 }
-
-
-// if (this.authLoginForm.valid) {
-//   // sessionStorage.setItem('tkn', 'saa61');
-
-//   // localStorage.clear();
-//   // Add your Firebase/Backend logic here
-// } else {
-//   this.authLoginForm.markAllAsTouched();
-// }
