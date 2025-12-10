@@ -20,7 +20,7 @@ public class MailDTO {
     private String time;
     private String subject;
     private String body;
-    private List<MultipartFile> attachments;
+    private List<AttachmentDTO> attachments;
     private boolean read;
     private boolean active;
     private boolean starred;

@@ -6,6 +6,7 @@ import com.app.milobackend.models.Mail;
 import com.app.milobackend.services.MailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +27,9 @@ public class MailController {
     }
 
     @PostMapping("/add")
-    public void addMail (@ModelAttribute MailDTO dto)
+    public void addMail (@RequestBody MailDTO dto)
     {
+        System.out.println("Data received: " + dto.toString());
         Mail mail= mailService.mapMailDTOtoMail(dto);
         mailService.AddMail(mail);
     }

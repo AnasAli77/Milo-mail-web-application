@@ -29,6 +29,8 @@ public class Mail {
 
     @Column(columnDefinition = "TEXT")
     private String body;
+
+    @Builder.Default
     private LocalDateTime sentAt =  LocalDateTime.now(ZoneId.of("Africa/Cairo"));
     private int priority; //from 1to 4 (map it in frontEnd)
 
@@ -41,6 +43,7 @@ public class Mail {
     // One Mail has many Attachments.
     @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference // Attachments for this mail WILL be serialized
+    @Builder.Default
     private List<Attachment> attachments = new ArrayList<>();
 
     public void addAttachment(Attachment m) {

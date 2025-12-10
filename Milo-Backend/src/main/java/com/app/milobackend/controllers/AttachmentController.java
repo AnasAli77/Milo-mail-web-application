@@ -39,12 +39,12 @@ public class AttachmentController {
                 .body(new ByteArrayResource(attachment.getData()));
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<Attachment> upload(@RequestParam("file") MultipartFile file) throws IOException {
-        System.out.println("============== File uploaded: " + file.getOriginalFilename());
-        Attachment attachment = attachmentService.storeFile(file);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(attachment);
-    }
+//    @PostMapping("/upload")
+//    public ResponseEntity<Attachment> upload(@RequestParam("file") MultipartFile file) throws IOException {
+//        System.out.println("============== File uploaded: " + file.getOriginalFilename());
+//        Attachment attachment = attachmentService.storeFile(file);
+//
+//        return ResponseEntity.status(HttpStatus.CREATED).body(attachment);
+//    }
 
 }

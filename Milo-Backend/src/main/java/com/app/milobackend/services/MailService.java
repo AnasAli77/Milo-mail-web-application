@@ -29,6 +29,9 @@ public class MailService {
 //    @Autowired
 //    FolderRepo folderRepo;
 
+    @Autowired
+    private AttachmentService attachmentService;
+
 
     public void deleteMail (Long id)
     {
@@ -68,7 +71,7 @@ public class MailService {
 //                attachments.add(att);
 //            }
 //        }
-        Mail mail=Mail.builder()
+        Mail mail = Mail.builder()
                 .sender(mailDTO.getSenderEmail())
                 .receiver(mailDTO.getReceiverEmail())
                 .subject(mailDTO.getSubject())
@@ -78,11 +81,18 @@ public class MailService {
                 .starred(mailDTO.isStarred())
                 .hasAttachment(mailDTO.isHasAttachment())
                 .priority(mailDTO.getPriority())
-//                .folder(folder)
-//                .attachments(attachments)
                 .build();
 
-        return  mail;
+        // 2. Convert Files to Attachment Entities (In Memory)
+        List<Attachment> attachments = attachmentService.convertDTOsToAttachments(mailDTO.getAttachments());
+
+        // 3. Link them together
+        for (Attachment attachment : attachments) {
+            attachment.setMail(mail); // Critical: Tells Attachment who its parent is
+            mail.addAttachment(attachment); // Critical: Adds to the parent's list
+        }
+
+        return mail;
 
 
 
