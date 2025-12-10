@@ -37,6 +37,8 @@ public class CriteriaFactory {
 
             case "minute":
                 return new CriteriaMinute(word);
+            case "hasattachment":
+                return new CrteriaHasAttachment();
 
             default:
                 return null;

@@ -18,10 +18,14 @@ public class SortByAttachment implements MailSortingStrategy {
     @Override
     public List<Mail> SortingMails(List<Mail> mails) {
         List<Mail> copy=new ArrayList<>(mails);
-        map<Mail,int>
-        for(Mail mail:copy){
-
-        }
+        copy.sort(new Comparator<Mail>() {
+            @Override
+            public int compare(Mail m1, Mail m2) {
+                int size1=m1.getAttachments().size();
+                int size2=m2.getAttachments().size();
+                return Integer.compare(size2, size1);
+            }
+        });
 
         return copy;
     }

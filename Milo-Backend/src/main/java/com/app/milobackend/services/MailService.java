@@ -149,6 +149,9 @@ public class MailService {
                 break;
             case "body":
                 sortworker.setStrategy(new SortByBody());
+                break;
+            case "attachments":
+                sortworker.setStrategy(new SortByAttachment());
             default:
                 throw new IllegalArgumentException("Invalid sort by");
 
