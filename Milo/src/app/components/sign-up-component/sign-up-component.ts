@@ -52,8 +52,9 @@ export class SignUpComponent {
     };
     this._ApiAuthService.register(registerData).subscribe({
       next: (response) => {
+        console.log("Response: " + response);
 
-        if (response.status === 200 && response.body) {
+        if (response.status === 201 && response.body) {
           console.log('Register successful', response);
           const responseBody = response.body;
           if (responseBody.token) {
@@ -63,6 +64,7 @@ export class SignUpComponent {
             this.userService.currentUser = {
               name: responseBody.name,
               email: responseBody.email,
+              token: responseBody.token
             };
           }
           this.route.navigateByUrl('/layout');

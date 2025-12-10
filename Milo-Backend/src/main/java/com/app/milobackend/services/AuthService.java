@@ -24,9 +24,12 @@ public class AuthService {
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(11);
 
-    public ClientUser register(ClientUser user) {
+    public UserDTO register(ClientUser user) {
+        String token = jwtService.generateToken(user.getEmail());
         user.setPasswordHash(encoder.encode(user.getPasswordHash()));
-        return userRepo.save(user);
+        userRepo.save(user);
+
+        return new UserDTO(user.getName(), user.getEmail(), "", token);
     }
 
     public UserDTO verify(ClientUser user) {
@@ -38,5 +41,10 @@ public class AuthService {
             return new UserDTO(user.getName(), user.getEmail(), "", token);
         }
         return null;
+    }
+
+    public boolean exists(String email) {
+        ClientUser user = userRepo.findByEmail(email);
+        return (user != null);
     }
 }

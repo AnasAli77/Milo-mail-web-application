@@ -36,6 +36,8 @@ export class loginComponent {
     };
     this._ApiAuthService.login(loginData).subscribe({
       next: (response) => {
+        console.log("Response: ");
+        console.log(response);
 
         if (response.status === 200 && response.body) {
           console.log('Login successful', response);
@@ -47,6 +49,7 @@ export class loginComponent {
             this.userService.currentUser = {
               name: responseBody.name,
               email: responseBody.email,
+              token: responseBody.token
             };
           }
           this.route.navigateByUrl('/layout');

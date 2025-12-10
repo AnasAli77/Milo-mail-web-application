@@ -4,10 +4,15 @@ import com.app.milobackend.dtos.UserDTO;
 import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.services.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@CrossOrigin(origins={"http://localhost:4200", "*"})
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -21,20 +26,30 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ClientUser> register(@RequestBody UserDTO user) {
+    public ResponseEntity<Map<String, Object>> register(@RequestBody UserDTO user) {
+
+        if (authService.exists(user.getEmail())) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         ClientUser clientUser = new ClientUser();
 
-        clientUser.setEmail(user.getEmail());
         clientUser.setName(user.getName());
+        clientUser.setEmail(user.getEmail());
         clientUser.setPasswordHash(user.getPassword());
 
-        ClientUser createdUser = authService.register(clientUser);
+        UserDTO returnedUser = authService.register(clientUser);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        Map<String,Object> response = new HashMap<>();
+        response.put("status", 201);
+        response.put("message","Registered successfully");
+        response.put("body", returnedUser);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDTO> login(@RequestBody UserDTO user) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody UserDTO user) {
 
         ClientUser incomingUser = new ClientUser();
         incomingUser.setEmail(user.getEmail());
@@ -42,7 +57,12 @@ public class AuthController {
 
         UserDTO returnedUser = authService.verify(incomingUser);
         if (returnedUser != null) {
-            return ResponseEntity.ok(returnedUser);
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 200);
+            response.put("body", returnedUser);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+//            return ResponseEntity.status(200).body(returnedUser);
+//            return ResponseEntity.ok(returnedUser);
         }
         else
             return ResponseEntity.badRequest().build();
