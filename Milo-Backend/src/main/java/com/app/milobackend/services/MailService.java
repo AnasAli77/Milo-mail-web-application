@@ -10,6 +10,7 @@ import com.app.milobackend.models.Folder;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.AttachmentRepository;
 //import com.app.milobackend.repositories.FolderRepo;
+import com.app.milobackend.repositories.FolderRepo;
 import com.app.milobackend.repositories.MailRepo;
 import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.strategies.*;
@@ -36,6 +37,9 @@ public class MailService {
     @Autowired
     private UserRepo userRepo;
 
+    @Autowired
+    private FolderRepo folderRepo;
+
 
     public void deleteMail (Long id)
     {
@@ -59,22 +63,6 @@ public class MailService {
     }
     public Mail mapMailDTOtoMail(MailDTO mailDTO)
     {
-//        LocalDateTime sentTime = LocalDateTime.now(ZoneId.of("Africa/Cairo"));
-//        Folder folder = null;
-//        if (mailDTO.getFolder() != null) {
-//            folder = folderRepo.findByName(mailDTO.getFolder())
-//                    .orElseThrow(() -> new RuntimeException("Folder not found"));
-//        }
-//        List<Attachment> attachments = new ArrayList<>();
-//        if (mailDTO.getAttachments() != null) {
-//            for (MultipartFile mf : mailDTO.getAttachments()) {
-//                Attachment att = Attachment.builder()
-//                        .fileName(mf.getOriginalFilename())
-//                        .content(mf.getBytes())
-//                        .build();
-//                attachments.add(att);
-//            }
-//        }
         ClientUser clientSender=userRepo.findByEmail(mailDTO.getSenderEmail());
         Mail mail = Mail.builder()
                 .sender(clientSender)
@@ -96,22 +84,34 @@ public class MailService {
             mail.addAttachment(attachment); // Critical: Adds to the parent's list
         }
 
+        String folderName = mailDTO.getFolder();
+        Folder folder = folderRepo.findByName(folderName);
+
+        if (folder != null) {
+            mail.setFolder(folder);
+
+            List<Mail> folderMails = folder.getMails();
+            folderMails.add(mail);
+            folder.setMails(folderMails);
+        }
         return mail;
 
-
-
     }
-    public void saveMail(MailDTO mailDTO) {
+    public void saveMail(MailDTO mailDTO) throws RuntimeException {
         Mail mail = mapMailDTOtoMail(mailDTO);
         ClientUser sender= userRepo.findByEmail(mailDTO.getSenderEmail());
         if(sender==null){
-            throw new RuntimeException("User not found");
+            throw new RuntimeException("Sender not found");
         }
         //btcheck el Email valid wla laa
         List<ClientUser> receivers=new ArrayList<>();
-        for(String receiverEmail:mailDTO.getReceiverEmail()){
+
+        for(String receiverEmail : mailDTO.getReceiverEmail()){
             ClientUser receiver = userRepo.findByEmail(receiverEmail);
-            if (receiver != null) {
+            if (receiver == null) {
+                throw new RuntimeException("Receiver not found");
+            }
+            else {
                 receivers.add(receiver);
                 receiver.addReceivedMail(mail);
             }

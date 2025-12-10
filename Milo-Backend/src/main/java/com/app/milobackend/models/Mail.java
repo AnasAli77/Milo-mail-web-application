@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+@ToString
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,6 +29,7 @@ public class Mail {
     // 1. SENDER: Linked via the 'email' column
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_email", referencedColumnName = "email")
+    @ToString.Exclude
     private ClientUser sender;
 
     // 2. RECEIVERS: List of users, linked via their 'email'
@@ -37,6 +39,7 @@ public class Mail {
             joinColumns = @JoinColumn(name = "mail_id"), // Key from Mail side
             inverseJoinColumns = @JoinColumn(name = "receiver_email", referencedColumnName = "email") // Key from User side
     )
+    @ToString.Exclude
     private List<ClientUser> receivers = new ArrayList<>();
 
     @Column(columnDefinition = "TEXT")
@@ -50,12 +53,14 @@ public class Mail {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id")
     @JsonBackReference // When serializing Mail, the full Folder object will be omitted (breaking the loop with Folder's @JsonManagedReference)
+    @ToString.Exclude
     private Folder folder;
 
     // One Mail has many Attachments.
     @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference // Attachments for this mail WILL be serialized
     @Builder.Default
+    @ToString.Exclude
     private List<Attachment> attachments = new ArrayList<>();
 
     public void addAttachment(Attachment m) {

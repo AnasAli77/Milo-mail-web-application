@@ -2,6 +2,7 @@ package com.app.milobackend.controllers;
 
 import com.app.milobackend.dtos.FilterDTO;
 import com.app.milobackend.dtos.MailDTO;
+import com.app.milobackend.models.Folder;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.services.MailService;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 @CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/mail")
@@ -26,10 +30,19 @@ public class MailController {
     }
 
     @PostMapping("/add")
-    public void addMail (@RequestBody MailDTO dto)
+    public Map<String, Object> addMail (@RequestBody MailDTO dto)
     {
-//        System.out.println("Data received: " + dto.toString());
-        mailService.saveMail(dto);
+        String message = "";
+        try {
+            mailService.saveMail(dto);
+            message = "Mail has been saved successfully";
+        } catch (RuntimeException e) {
+            message = e.getMessage();
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", message);
+        return response;
     }
     @GetMapping("/sort")
     public List<Mail> getSortedMails(@RequestParam String  sortBy){

@@ -9,6 +9,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+@ToString
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,6 +26,7 @@ public class Folder {
     // One Folder can have many Mails.
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference  // Mails within this folder WILL be serialized
+//    @ToString.Exclude
     private List<Mail> mails = new ArrayList<>();
 
     public void addMail(Mail m) {
