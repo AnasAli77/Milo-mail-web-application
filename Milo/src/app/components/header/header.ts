@@ -34,7 +34,6 @@ export class Header {
 
   signOut() {
     sessionStorage.clear();
-    localStorage.clear();
     this.route.navigateByUrl("");
   }
   toggleProfile() {

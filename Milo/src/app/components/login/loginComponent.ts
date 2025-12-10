@@ -44,7 +44,6 @@ export class loginComponent {
           const responseBody = response.body;
           if (responseBody.token) {
             sessionStorage.setItem('auth_token', responseBody.token);
-            localStorage.setItem('token', responseBody.token);
           }
           if (responseBody.email && responseBody.name) {
             this.userService.currentUser = {
