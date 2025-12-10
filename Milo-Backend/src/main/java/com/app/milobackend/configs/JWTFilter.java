@@ -31,7 +31,7 @@ public class JWTFilter extends OncePerRequestFilter {
     private MyUserDetailsService userDetailsService;
 
     public JWTFilter() {
-        pattern = Pattern.compile("Bearer (.*)");
+        pattern = Pattern.compile("Bearer\\s+(.*)");
     }
 
     @Override
