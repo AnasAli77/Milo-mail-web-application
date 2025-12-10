@@ -1,15 +1,14 @@
 package com.app.milobackend.mappers;
 
+import com.app.milobackend.dtos.AttachmentDTO;
 import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.models.Attachment;
 import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.models.Folder;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.FolderRepo;
-import com.app.milobackend.repositories.MailRepo;
 import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.services.AttachmentService;
-import com.app.milobackend.services.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,9 +20,6 @@ import java.util.stream.Collectors;
 public class MailMapperImpl implements MailMapper {
 
     @Autowired
-    MailRepo mailRepo;
-
-    @Autowired
     UserRepo userRepo;
 
     @Autowired
@@ -31,6 +27,9 @@ public class MailMapperImpl implements MailMapper {
 
     @Autowired
     FolderRepo folderRepo;
+
+    @Autowired
+    private AttachmentMapper attachmentMapper;
 
     @Override
     public Mail toEntity(MailDTO mailDTO) {
@@ -115,9 +114,11 @@ public class MailMapperImpl implements MailMapper {
             dto.setReceiverEmail(receiverEmails);
         }
 
-        // Map Attachments (Entity -> DTO)
-        // You would need to reverse the logic in AttachmentService or do it here
-        // (Convert byte[] back to Base64 string for the frontend)
+        List<Attachment> attachments = entity.getAttachments();
+        List<AttachmentDTO> attachmentDTOs = attachments.stream().map(
+                (attachment -> attachmentMapper.toDTO(attachment))).toList();
+
+        dto.setAttachments(attachmentDTOs);
 
         return dto;
     }

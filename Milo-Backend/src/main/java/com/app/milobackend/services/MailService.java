@@ -4,6 +4,7 @@ import com.app.milobackend.dtos.FilterDTO;
 import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
+import com.app.milobackend.mappers.AttachmentMapper;
 import com.app.milobackend.mappers.MailMapperImpl;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.AttachmentRepository;
@@ -42,11 +43,11 @@ public class MailService {
     // Restoring your cache
     private List<Mail> allMails;
 
-    @Autowired
-    public MailService(MailRepo mailRepo) {
-        this.mailRepo = mailRepo;
-        this.allMails = this.mailRepo.findAllWithDetails();
-    }
+//    @Autowired
+//    public MailService(MailRepo mailRepo) {
+//        this.mailRepo = mailRepo;
+////        this.allMails = this.mailRepo.findAllWithDetails();
+//    }
 
     public void deleteMail(Long id) {
         if (mailRepo.findById(id).isPresent()) {
@@ -81,10 +82,11 @@ public class MailService {
         allMails.add(savedMail);
     }
 
-    public List<Mail> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
+    public Page<MailDTO> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
         Page<Mail> mailPage = mailRepo.findByFolder(folderName, pageable);
-        return mailPage.getContent();
+        Page<MailDTO> dtoPage = mailPage.map(mail -> mailMapper.toDTO(mail));
+        return dtoPage;
     }
 
     public List<Mail> getSortedMails(String sortBy) {

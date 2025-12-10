@@ -24,14 +24,14 @@ export class ApiEmailService {
   }
 
   sendEmail(email: Email): Observable<Email> {
-    return this.httpClient.post<Email>(`${environment.baseUrl}/mail`, email);
+    return this.httpClient.post<Email>(`${environment.baseUrl}/mail/send`, email);
   }
 
   // Fetch emails by folder (e.g., /mail/folder/inbox)
   getEmails(folderName: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
     let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+      .set('page', page)
+      .set('size', size);
 
     return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/${folderName}`, {params});
   }

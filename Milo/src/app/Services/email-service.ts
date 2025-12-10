@@ -172,7 +172,7 @@ export class EmailService {
       time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',
       body: data.body,
-      attachments: [], // Handle attachments upload separately if needed
+      attachments: data.attachments, // Handle attachments upload separately if needed
       read: true,
       active: false,
       starred: false,
@@ -209,7 +209,7 @@ export class EmailService {
       time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',
       body: data.body,
-      attachments: [], // Handle attachments upload separately if needed
+      attachments: data.attachments, // Handle attachments upload separately if needed
       read: true,
       active: false,
       starred: false,
