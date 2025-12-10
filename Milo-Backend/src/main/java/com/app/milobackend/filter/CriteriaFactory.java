@@ -17,8 +17,8 @@ public class CriteriaFactory {
             case "sender":
                 return new CriteriaSender(word);
 
-            case "receiver":
-                return new CriteriaReceiver(word);
+//            case "receiver":
+//                return new CriteriaReceiver(word);
 
             case "priority":
                 return new CriteriaPriority(word);

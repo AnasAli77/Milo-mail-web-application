@@ -52,7 +52,7 @@ public class MailService {
     }
     public Mail mapMailDTOtoMail(MailDTO mailDTO)
     {
-        LocalDateTime sentTime = LocalDateTime.now(ZoneId.of("Africa/Cairo"));
+//        LocalDateTime sentTime = LocalDateTime.now(ZoneId.of("Africa/Cairo"));
 //        Folder folder = null;
 //        if (mailDTO.getFolder() != null) {
 //            folder = folderRepo.findByName(mailDTO.getFolder())
@@ -69,7 +69,6 @@ public class MailService {
 //            }
 //        }
         Mail mail=Mail.builder()
-                .id(mailDTO.getId())
                 .sender(mailDTO.getSenderEmail())
                 .receiver(mailDTO.getReceiverEmail())
                 .subject(mailDTO.getSubject())
@@ -78,7 +77,6 @@ public class MailService {
                 .active(mailDTO.isActive())
                 .starred(mailDTO.isStarred())
                 .hasAttachment(mailDTO.isHasAttachment())
-                .sentAt(sentTime)
                 .priority(mailDTO.getPriority())
 //                .folder(folder)
 //                .attachments(attachments)
@@ -112,9 +110,9 @@ public class MailService {
             case "sender":
                 sortworker.setStrategy(new SortBySender());
                 break;
-            case "receiver":
-                sortworker.setStrategy(new SortByReceiver());
-                break;
+//            case "receiver":
+//                sortworker.setStrategy(new SortByReceiver());
+//                break;
             case "body":
                 sortworker.setStrategy(new SortByBody());
             default:
