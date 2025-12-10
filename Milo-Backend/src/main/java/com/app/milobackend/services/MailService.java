@@ -4,6 +4,7 @@ import com.app.milobackend.dtos.FilterDTO;
 import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
+import com.app.milobackend.mappers.MailMapperImpl;
 import com.app.milobackend.models.Attachment;
 import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.models.Folder;
@@ -25,20 +26,24 @@ import java.util.List;
 
 @Service
 public class MailService {
+
     @Autowired
-    MailRepo mailRepo;
+    private MailRepo mailRepo;
+
     @Autowired
-    AttachmentRepository attachmentRepo;
-//    @Autowired
-//    FolderRepo folderRepo;
+    private AttachmentRepository attachmentRepo;
 
     @Autowired
     private AttachmentService attachmentService;
+
     @Autowired
     private UserRepo userRepo;
 
     @Autowired
     private FolderRepo folderRepo;
+
+    @Autowired
+    private MailMapperImpl mailMapper;
 
 
     public void deleteMail (Long id)
@@ -61,66 +66,13 @@ public class MailService {
     public Mail UpdateMail(Mail mail) {
         return mailRepo.save(mail);
     }
-    public Mail mapMailDTOtoMail(MailDTO mailDTO)
-    {
-        ClientUser clientSender=userRepo.findByEmail(mailDTO.getSenderEmail());
-        Mail mail = Mail.builder()
-                .sender(clientSender)
-                .subject(mailDTO.getSubject())
-                .body(mailDTO.getBody())
-                .read(mailDTO.isRead())
-                .active(mailDTO.isActive())
-                .starred(mailDTO.isStarred())
-                .hasAttachment(mailDTO.isHasAttachment())
-                .priority(mailDTO.getPriority())
-                .build();
 
-        // 2. Convert Files to Attachment Entities (In Memory)
-        List<Attachment> attachments = attachmentService.convertDTOsToAttachments(mailDTO.getAttachments());
-
-        // 3. Link them together
-        for (Attachment attachment : attachments) {
-            attachment.setMail(mail); // Critical: Tells Attachment who its parent is
-            mail.addAttachment(attachment); // Critical: Adds to the parent's list
-        }
-
-        String folderName = mailDTO.getFolder();
-        Folder folder = folderRepo.findByName(folderName);
-
-        if (folder != null) {
-            mail.setFolder(folder);
-
-            List<Mail> folderMails = folder.getMails();
-            folderMails.add(mail);
-            folder.setMails(folderMails);
-        }
-        return mail;
-
-    }
     public void saveMail(MailDTO mailDTO) throws RuntimeException {
-        Mail mail = mapMailDTOtoMail(mailDTO);
-        ClientUser sender= userRepo.findByEmail(mailDTO.getSenderEmail());
-        if(sender==null){
-            throw new RuntimeException("Sender not found");
-        }
-        //btcheck el Email valid wla laa
-        List<ClientUser> receivers=new ArrayList<>();
 
-        for(String receiverEmail : mailDTO.getReceiverEmail()){
-            ClientUser receiver = userRepo.findByEmail(receiverEmail);
-            if (receiver == null) {
-                throw new RuntimeException("Receiver not found");
-            }
-            else {
-                receivers.add(receiver);
-                receiver.addReceivedMail(mail);
-            }
-
-        }
-        sender.addSentMail(mail);
-        mail.setReceivers(receivers);
+        Mail mail = mailMapper.toEntity(mailDTO);
         mailRepo.save(mail);
     }
+
 //    public Mail DeleteMail(long id) {
 //        Mail mail = mailRepo.findById(id).get();
 //        mailRepo.delete(mail);
@@ -176,4 +128,10 @@ public class MailService {
         return filteredMails.stream().distinct().toList();
     }
 
+    public void toggleStarredMail(Long mailId) {
+        Mail mail = mailRepo.findById(mailId).orElse(null);
+        if (mail != null) {
+            mail.setStarred(!mail.isStarred());
+        }
+    }
 }

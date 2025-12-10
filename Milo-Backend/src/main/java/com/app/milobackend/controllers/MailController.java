@@ -53,6 +53,8 @@ public class MailController {
         return mailService.Filter(filterDTO);
     }
 
-
-
+    @PutMapping("/star/{mailId}")
+    public void toggleStarredMail(@PathVariable Long mailId){
+        mailService.toggleStarredMail(mailId);
+    }
 }
