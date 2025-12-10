@@ -51,6 +51,8 @@ export class loginComponent {
               email: responseBody.email,
               token: responseBody.token
             };
+            sessionStorage.setItem('name', responseBody.name);
+            sessionStorage.setItem('email', responseBody.email);
           }
           this.route.navigateByUrl('/layout');
         }

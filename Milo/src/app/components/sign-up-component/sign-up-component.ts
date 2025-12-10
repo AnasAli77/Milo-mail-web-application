@@ -16,7 +16,7 @@ export class SignUpComponent {
 
   route = inject(Router);
   userService = inject(UserService);
-  
+
   authSignUpForm: FormGroup;
   private fb = inject(FormBuilder);
 
@@ -66,6 +66,8 @@ export class SignUpComponent {
               email: responseBody.email,
               token: responseBody.token
             };
+            sessionStorage.setItem('name', responseBody.name);
+            sessionStorage.setItem('email', responseBody.email);
           }
           this.route.navigateByUrl('/layout');
         }

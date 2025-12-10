@@ -5,7 +5,7 @@ import { ClientUser } from '../models/ClientUser';
   providedIn: 'root',
 })
 export class UserService {
-  currentUser!: ClientUser;
+  currentUser: ClientUser = { name: sessionStorage.getItem("name") ?? '', email: sessionStorage.getItem("email") ?? '' };
 
   constructor() {
   }
