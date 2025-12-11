@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,7 +85,7 @@ public class MailMapperImpl implements MailMapper {
 
         }
         sender.addSentMail(mail);
-        mail.setReceivers(receivers);
+        mail.setReceivers(new HashSet<>(receivers));
 
         return mail;
     }
@@ -114,7 +115,7 @@ public class MailMapperImpl implements MailMapper {
             dto.setReceiverEmail(receiverEmails);
         }
 
-        List<Attachment> attachments = entity.getAttachments();
+        List<Attachment> attachments = entity.getAttachments().stream().toList();
         List<AttachmentDTO> attachmentDTOs = attachments.stream().map(
                 (attachment -> attachmentMapper.toDTO(attachment))).toList();
 

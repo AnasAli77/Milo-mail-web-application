@@ -4,7 +4,6 @@ import com.app.milobackend.dtos.FilterDTO;
 import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
-import com.app.milobackend.mappers.AttachmentMapper;
 import com.app.milobackend.mappers.MailMapperImpl;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.AttachmentRepository;
@@ -13,10 +12,16 @@ import com.app.milobackend.repositories.MailRepo;
 import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.strategies.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -40,56 +45,78 @@ public class MailService {
     @Autowired
     private MailMapperImpl mailMapper;
 
-    // Restoring your cache
-    private List<Mail> allMails;
+    @Autowired
+    @Lazy // <--- CRITICAL: Prevents application crash on startup
+    private MailService self;
 
-//    @Autowired
-//    public MailService(MailRepo mailRepo) {
-//        this.mailRepo = mailRepo;
-////        this.allMails = this.mailRepo.findAllWithDetails();
-//    }
+    @EventListener(ApplicationReadyEvent.class)
+    public void init() {
+        System.out.println("Warming up cache...");
+        try {
+            self.GetAllMails(); // This triggers the DB fetch and stores it in Redis/Memory
+        } catch (Exception e) {
+            System.err.println("Database not ready yet, skipping cache warm-up.");
+            System.err.println(e.getMessage());
+            for (StackTraceElement ele : e.getStackTrace()) {
+                System.err.println(ele.toString());
+            }
+        }
+    }
+
+    // 1. READ (The Cache)
+    // The result of this method is stored in Redis under the key "user_mails"
+    // Note: You should ideally cache by User ID (e.g., "mails_user_1")
+    @Cacheable(value = "mails", key = "'all_mails'")
+    public List<Mail> GetAllMails() {
+        System.out.println("Fetching from Database..."); // You will only see this once!
+        return mailRepo.findAllWithDetails();
+    }
 
     public void deleteMail(Long id) {
         if (mailRepo.findById(id).isPresent()) {
             mailRepo.deleteById(id);
-            allMails.removeIf(mail -> mail.getId().equals(id));
         }
     }
 
-    public List<Mail> GetAllMails() {
-        return allMails;
-    }
+//    public List<Mail> GetAllMails() {
+//        return allMails;
+//    }
 
     public Mail GetMailById(long id) {
         return mailRepo.findById(id).orElse(null);
     }
 
-    public void AddMail(Mail mail) {
-        Mail savedMail = mailRepo.save(mail);
-        allMails.add(savedMail);
-    }
+//    public void AddMail(Mail mail) {
+//        Mail savedMail = mailRepo.save(mail);
+//        allMails.add(savedMail);
+//    }
 
+    @CacheEvict(value = "mails", allEntries = true)
     public Mail UpdateMail(Mail mail) {
-        allMails.removeIf(m -> m.getId().equals(mail.getId()));
-        Mail updatedMail = mailRepo.save(mail);
-        allMails.add(updatedMail);
-        return updatedMail;
+        return mailRepo.save(mail);
     }
 
+    @CacheEvict(value = "mails", allEntries = true)
     public void saveMail(MailDTO mailDTO) throws RuntimeException {
         Mail mail = mailMapper.toEntity(mailDTO);
-        Mail savedMail = mailRepo.save(mail);
-        allMails.add(savedMail);
+        mailRepo.save(mail);
     }
 
+    @Cacheable(value = "mails", key = "#folderName + '_' + #pageNumber")
     public Page<MailDTO> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
-        Page<Mail> mailPage = mailRepo.findByFolder(folderName, pageable);
-        Page<MailDTO> dtoPage = mailPage.map(mail -> mailMapper.toDTO(mail));
-        return dtoPage;
+        Page<Mail> mailPage;
+        if (folderName.equals("starred")) {
+            mailPage = mailRepo.findByStarredTrue(pageable);
+
+        }
+        else {
+            mailPage = mailRepo.findByFolder(folderName, pageable);
+        }
+        return mailPage.map(mail -> mailMapper.toDTO(mail));
     }
 
-    public List<Mail> getSortedMails(String sortBy) {
+    public Page<Mail> getSortedMails(String sortBy, String folderName, int pageNumber, int pageSize) {
         SortWorker sortworker = new SortWorker();
         switch(sortBy.toLowerCase()){
             case "subject":
@@ -116,29 +143,62 @@ public class MailService {
             default:
                 throw new IllegalArgumentException("Invalid sort by");
         }
-        return sortworker.sort(allMails);
+        List<Mail> mailsToSort = new ArrayList<>(self.GetAllMails());
+        List<Mail> sortedMails =  sortworker.sort(mailsToSort.stream().filter((mail) -> mail.getFolder().getName().equals(folderName)).toList());
+        return convertListToPage(sortedMails, pageNumber, pageSize);
     }
 
-    public List<Mail> Filter(FilterDTO request){
+    public Page<Mail> Filter(FilterDTO request, int pageNumber, int pageSize) {
         String word = request.getWord();
         List<String> selectedCriteria = request.getCriteria();
         if(selectedCriteria == null || selectedCriteria.isEmpty()){
             selectedCriteria = CriteriaFactory.allCriteriaNames();
         }
+        List<Mail> sourceMails = self.GetAllMails();
+
         List<Mail> filteredMails = new ArrayList<>();
         for(String name : selectedCriteria){
             Criteria criteria = CriteriaFactory.create(name, word);
             if(criteria != null){
-                filteredMails.addAll(criteria.filter(allMails));
+                filteredMails.addAll(criteria.filter(sourceMails));
             }
         }
-        return filteredMails.stream().distinct().toList();
+        return convertListToPage(filteredMails.stream().distinct().toList(), pageNumber, pageSize);
     }
 
+
+    @CacheEvict(value = "mails", allEntries = true)
     public void toggleStarredMail(Long mailId) {
         Mail mail = mailRepo.findById(mailId).orElse(null);
-        if (mail != null) {
-            mail.setStarred(!mail.isStarred());
+        if (mail == null) {
+            System.out.println("mail to toggle star: not found for id=" + mailId);
+            return;
         }
+        System.out.println("mail to toggle star (before): " + mail);
+        mail.setStarred(!mail.isStarred());
+        mailRepo.save(mail);
+        System.out.println("mail to toggle star (after): " + mail);
+    }
+
+    private <T> Page<T> convertListToPage(List<T> list, int pageNumber, int pageSize) {
+        // 1. Create Pageable
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        // 2. Calculate Start Item
+        int start = (int) pageable.getOffset();
+
+        // 3. Calculate End Item (Handle out of bounds)
+        int end = Math.min((start + pageable.getPageSize()), list.size());
+
+        // 4. Handle "Page is empty" case
+        if (start > list.size()) {
+            return new PageImpl<>(new ArrayList<>(), pageable, list.size());
+        }
+
+        // 5. Create Sublist
+        List<T> content = list.subList(start, end);
+
+        // 6. Return Page
+        return new PageImpl<>(content, pageable, list.size());
     }
 }

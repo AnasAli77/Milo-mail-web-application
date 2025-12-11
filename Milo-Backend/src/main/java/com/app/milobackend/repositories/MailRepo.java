@@ -13,14 +13,14 @@ import java.util.UUID;
 
 @Repository
 public interface MailRepo extends JpaRepository<Mail, Long> {
-    List<Mail> findByStarredTrue();
+    Page<Mail> findByStarredTrue(Pageable pageable);
 
     @Query("SELECT m FROM Mail m WHERE m.folder.name = :folderName")
     Page<Mail> findByFolder(@Param("folderName") String folderName, Pageable pageable);
-//    @Query("SELECT m FROM Mail m " +
-//            "LEFT JOIN FETCH m.attachments " +
-//            "LEFT JOIN FETCH m.sender " +
-//            "LEFT JOIN FETCH m.receivers")
-//    List<Mail> findAllWithDetails();
+    @Query("SELECT m FROM Mail m " +
+            "LEFT JOIN FETCH m.attachments " +
+            "LEFT JOIN FETCH m.sender " +
+            "LEFT JOIN FETCH m.receivers")
+    List<Mail> findAllWithDetails();
 
 }

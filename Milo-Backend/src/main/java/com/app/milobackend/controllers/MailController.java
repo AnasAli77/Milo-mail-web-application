@@ -50,13 +50,13 @@ public class MailController {
         response.put("message", message);
         return response;
     }
-    @GetMapping("/sort")
-    public List<Mail> getSortedMails(@RequestParam String  sortBy){
-        return mailService.getSortedMails(sortBy);
+    @GetMapping("/sort/{folderName}/{sortBy}")
+    public Page<Mail> getSortedMails(@PathVariable("sortBy") String  sortBy,@PathVariable("folderName") String folderName , @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
+        return mailService.getSortedMails(sortBy, folderName, pageNumber, pageSize);
     }
-    @PostMapping("/filter")
-    public List<Mail> getFilteredMails(@RequestParam FilterDTO filterDTO){
-        return mailService.Filter(filterDTO);
+    @PostMapping("/filter") // 8ayar deeh ya 3m markeb
+    public Page<Mail> getFilteredMails(@RequestParam("filter") FilterDTO filterDTO, @RequestParam("pageNumber") Integer pageNumber, @RequestParam("pageSize") Integer pageSize){
+        return mailService.Filter(filterDTO, pageNumber, pageSize);
     }
 
     @PutMapping("/star/{mailId}")
@@ -68,5 +68,10 @@ public class MailController {
     public Page<MailDTO> getMails(@PathVariable String folderName, @RequestParam("page") Integer page, @RequestParam("size") Integer size) {
         Page<MailDTO> mails = mailService.getMailsByFolder(folderName, page, size);
         return mails;
+    }
+
+    @PutMapping("/move")
+    public void moveMails(@RequestBody List<MailDTO> mailDTO){
+
     }
 }

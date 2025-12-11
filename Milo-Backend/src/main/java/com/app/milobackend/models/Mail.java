@@ -5,10 +5,14 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @ToString
 @Getter @Setter
@@ -16,7 +20,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-public class Mail {
+public class Mail implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,7 +48,7 @@ public class Mail {
             inverseJoinColumns = @JoinColumn(name = "receiver_email", referencedColumnName = "email") // Key from User side
     )
     @ToString.Exclude
-    private List<ClientUser> receivers = new ArrayList<>();
+    private Set<ClientUser> receivers = new HashSet<>();
 
     @Column(columnDefinition = "TEXT")
     private String body;
@@ -61,17 +69,17 @@ public class Mail {
     @JsonManagedReference // Attachments for this mail WILL be serialized
     @Builder.Default
     @ToString.Exclude
-    private List<Attachment> attachments = new ArrayList<>();
+    private Set<Attachment> attachments = new HashSet<>();
 
-    public void addAttachment(Attachment m) {
-        if (m == null) return;
-        attachments.add(m);
-
+    public void addAttachment(Attachment a) {
+        if (a == null) return;
+        a.setMail(this);
+        attachments.add(a);
     }
 
-    public void removeMail(Attachment m) {
-        if (m == null) return;
-        attachments.remove(m);
-
+    public void removeAttachment(Attachment a) {
+        if (a == null) return;
+        attachments.remove(a);
+        if (a.getMail() == this) a.setMail(null);
     }
 }
