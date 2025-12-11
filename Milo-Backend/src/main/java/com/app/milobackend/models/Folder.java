@@ -16,10 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter
-public class Folder implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class Folder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

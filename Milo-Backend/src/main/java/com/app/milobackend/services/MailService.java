@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -71,7 +72,20 @@ public class MailService {
     @Transactional(readOnly = true)
     public List<Mail> GetAllMails() {
         System.out.println("Fetching from Database..."); // You will only see this once!
-        return mailRepo.findAllWithDetails();
+        List<Mail> mails =  mailRepo.findAllWithDetails();
+
+        for (Mail m : mails) {
+            if (m.getReceivers() != null) {
+                m.setReceivers(new HashSet<>(m.getReceivers()));
+            }
+            if (m.getAttachments() != null) {
+                m.setAttachments(new HashSet<>(m.getAttachments()));
+            }
+            // If you have other relationships (like sender), they are usually fine
+            // unless they are also proxy objects causing issues.
+        }
+
+        return mails;
     }
 
     public void deleteMail(Long id) {
@@ -111,11 +125,14 @@ public class MailService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
         Page<Mail> mailPage;
         if (folderName.equals("starred")) {
-            mailPage = mailRepo.findByStarredTrue(pageable);
-
+//            mailPage = mailRepo.findByStarredTrue(pageable);
+              List<Mail> starredMails = self.GetAllMails().stream().filter(Mail::isStarred).toList();
+              mailPage = convertListToPage(starredMails, pageNumber, pageSize);
         }
         else {
-            mailPage = mailRepo.findByFolder(folderName, pageable);
+//            mailPage = mailRepo.findByFolder(folderName, pageable);
+              List<Mail> folderMails = self.GetAllMails().stream().filter((mail) -> mail != null && mail.getFolder() != null && mail.getFolder().getName().equals(folderName)).toList();
+              mailPage = convertListToPage(folderMails, pageNumber, pageSize);
         }
         return mailPage.map(mail -> mailMapper.toDTO(mail));
     }

@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,8 +22,10 @@ import java.util.regex.Pattern;
 @Component
 public class JWTFilter extends OncePerRequestFilter {
 
-    private Pattern pattern;
-    private Matcher matcher;
+    private static final Pattern pattern = Pattern.compile("Bearer\\s+(.*)");
+
+    @Getter
+    private String email = null;
 
     @Autowired
     private JWTService jwtService;
@@ -30,18 +33,14 @@ public class JWTFilter extends OncePerRequestFilter {
     @Autowired
     private MyUserDetailsService userDetailsService;
 
-    public JWTFilter() {
-        pattern = Pattern.compile("Bearer\\s+(.*)");
-    }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // Bearer {token}
         String authHeader = request.getHeader("Authorization");
         String token = null;
-        String email = null;
+//        String email = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            matcher = pattern.matcher(authHeader);
+            Matcher matcher = pattern.matcher(authHeader);
             if (matcher.matches()) {
                 token = matcher.group(1);
                 email = jwtService.extractEmail(token);
@@ -61,4 +60,5 @@ public class JWTFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
+
 }

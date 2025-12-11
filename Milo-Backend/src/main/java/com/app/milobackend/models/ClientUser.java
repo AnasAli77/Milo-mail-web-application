@@ -18,10 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter @Setter
 @Table(name="users")
-public class ClientUser implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class ClientUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

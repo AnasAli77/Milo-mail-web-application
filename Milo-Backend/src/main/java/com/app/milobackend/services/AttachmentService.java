@@ -2,6 +2,8 @@ package com.app.milobackend.services;
 
 import com.app.milobackend.dtos.AttachmentDTO;
 import com.app.milobackend.models.Attachment;
+import com.app.milobackend.models.AttachmentContent;
+import com.app.milobackend.repositories.AttachmentContentRepo;
 import com.app.milobackend.repositories.AttachmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,11 +20,11 @@ import java.util.UUID;
 public class AttachmentService {
 
 
-    private final AttachmentRepository attachmentrepo;
     @Autowired
-    public AttachmentService(AttachmentRepository attachmentrepo) {
-        this.attachmentrepo = attachmentrepo;
-    }
+    private AttachmentRepository attachmentrepo;
+
+    @Autowired
+    private AttachmentContentRepo contentRepo;
 
     public Attachment createAttachmentEntity(MultipartFile file) throws IOException {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
@@ -38,6 +40,15 @@ public class AttachmentService {
     public Attachment getFile(Long fileId) {
         return attachmentrepo.findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found with id: " + fileId));
+    }
+
+    public byte[] getAttachmentData(Long attachmentId) {
+        // 1. We look up ONLY the content table using the ID
+        AttachmentContent content = contentRepo.findById(attachmentId)
+                .orElseThrow(() -> new RuntimeException("Content not found"));
+
+        // 2. Return the bytes
+        return content.getData();
     }
 
     public List<Attachment> convertDTOsToAttachments(List<AttachmentDTO> attachmentDTOs) {

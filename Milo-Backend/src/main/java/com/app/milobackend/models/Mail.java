@@ -20,10 +20,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Entity
-public class Mail implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class Mail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
