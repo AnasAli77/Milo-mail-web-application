@@ -7,6 +7,7 @@ import com.app.milobackend.repositories.AttachmentContentRepo;
 import com.app.milobackend.repositories.AttachmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,6 +43,7 @@ public class AttachmentService {
                 .orElseThrow(() -> new RuntimeException("File not found with id: " + fileId));
     }
 
+    @Transactional(readOnly = true)
     public byte[] getAttachmentData(Long attachmentId) {
         // 1. We look up ONLY the content table using the ID
         AttachmentContent content = contentRepo.findById(attachmentId)

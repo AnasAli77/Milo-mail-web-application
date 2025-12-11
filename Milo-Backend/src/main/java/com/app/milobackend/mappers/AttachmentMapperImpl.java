@@ -14,42 +14,38 @@ public class AttachmentMapperImpl implements AttachmentMapper {
 
     @Override
     public Attachment toEntity(AttachmentDTO dto) {
-        if (dto == null) {
-            return null;
-        }
+        if (dto == null) return null;
 
         byte[] decodedBytes = null;
-        // Decode String (DTO) -> Bytes (Entity)
         if (dto.getBase64Content() != null && !dto.getBase64Content().isEmpty()) {
             try {
-                decodedBytes = Base64.getDecoder().decode(dto.getBase64Content());
+                // Decode Base64 -> Byte[]
+                // In Angular, files often come as "data:image/png;base64,iVBOR..."
+                // You might need to split the string if it contains the header.
+                String cleanBase64 = dto.getBase64Content();
+                if (cleanBase64.contains(",")) {
+                    cleanBase64 = cleanBase64.split(",")[1];
+                }
+                decodedBytes = Base64.getDecoder().decode(cleanBase64);
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid Base64 content for file: " + dto.getFileName(), e);
+                System.err.println("Failed to decode attachment: " + dto.getFileName());
             }
         }
 
-        return new Attachment(
-                dto.getFileName(),
-                dto.getFileType(),
-                decodedBytes
-        );
+        // Use the constructor we made in Attachment.java to link them instantly
+        return new Attachment(dto.getFileName(), dto.getFileType(), decodedBytes);
     }
 
     @Override
     public AttachmentDTO toDTO(Attachment entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
         AttachmentDTO dto = new AttachmentDTO();
         dto.setFileName(entity.getName());
         dto.setFileType(entity.getType());
-
-        // Encode Bytes (Entity) -> String (DTO)
-        if (entity.getData() != null) {
-            String encodedString = Base64.getEncoder().encodeToString(entity.getData());
-            dto.setBase64Content(encodedString);
-        }
+        // IMPORTANT: We do NOT map the content back to DTO here.
+        // We want the list to be light. Content is fetched only via specific download endpoint.
+        dto.setBase64Content(null);
 
         return dto;
     }
@@ -57,16 +53,12 @@ public class AttachmentMapperImpl implements AttachmentMapper {
     @Override
     public List<Attachment> toEntityList(List<AttachmentDTO> dtos) {
         if (dtos == null) return new ArrayList<>();
-        return dtos.stream()
-                .map(this::toEntity)
-                .collect(Collectors.toList());
+        return dtos.stream().map(this::toEntity).collect(Collectors.toList());
     }
 
     @Override
-    public List<AttachmentDTO> toDTOList(List<Attachment> entities) {
+    public List<AttachmentDTO> toDTOList(List<Attachment> entities) { // Changed input from Set to List if needed, or convert
         if (entities == null) return new ArrayList<>();
-        return entities.stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return entities.stream().map(this::toDTO).collect(Collectors.toList());
     }
 }

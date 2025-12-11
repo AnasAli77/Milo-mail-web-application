@@ -2,7 +2,6 @@ package com.app.milobackend.controllers;
 
 import com.app.milobackend.models.Attachment;
 import com.app.milobackend.services.AttachmentService;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -10,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -28,14 +26,13 @@ public class AttachmentController {
     }
 
     @GetMapping("/download/{attachmentId}")
-    public ResponseEntity<ByteArrayResource> download(@PathVariable Long attachmentId) {
-        Attachment attachment = attachmentService.getFile(attachmentId);
+    public ResponseEntity<byte[]> downloadAttachment(@PathVariable Long id) {
+        byte[] data = attachmentService.getAttachmentData(id);
 
         return ResponseEntity.ok()
-                // Tell the browser this is a file download
-                .contentType(MediaType.parseMediaType(attachment.getType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.getName() + "\"")
-                .body(new ByteArrayResource(attachment.getData()));
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"file_" + id + "\"")
+                .body(data);
     }
 
 //    @PostMapping("/upload")

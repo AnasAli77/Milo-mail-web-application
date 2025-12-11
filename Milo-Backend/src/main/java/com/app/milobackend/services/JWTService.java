@@ -1,6 +1,7 @@
 package com.app.milobackend.services;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -30,9 +31,7 @@ public class JWTService {
 
     public String generateToken(String email){
         Map<String,Object> claims = new HashMap<>();
-
-
-    return Jwts.builder()
+        return Jwts.builder()
             .claims()
             .add(claims)
             .subject(email)
@@ -43,10 +42,15 @@ public class JWTService {
             .compact();
     }
 
-    private SecretKey getSecretKey(){
-        byte[] keybytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keybytes);
+    private SecretKey getSecretKey() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET environment variable is not set");
+        }
+        // expect JWT_SECRET to be base64. If you prefer raw text, change this accordingly.
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
+
 
     public String extractEmail(String token) {
         // extract the username from jwt token
@@ -59,11 +63,18 @@ public class JWTService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSecretKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("JWT token is null or empty");
+        }
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (JwtException e) {
+            throw new IllegalArgumentException("Invalid JWT token", e);
+        }
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

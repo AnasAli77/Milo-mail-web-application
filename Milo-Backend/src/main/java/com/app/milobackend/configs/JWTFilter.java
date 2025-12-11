@@ -16,13 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Component
 public class JWTFilter extends OncePerRequestFilter {
-
-    private static final Pattern pattern = Pattern.compile("Bearer\\s+(.*)");
 
     @Getter
     private String email = null;
@@ -37,13 +33,16 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // Bearer {token}
         String authHeader = request.getHeader("Authorization");
+        System.out.println(STR."authHeader: \{authHeader}");
         String token = null;
-//        String email = null;
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            Matcher matcher = pattern.matcher(authHeader);
-            if (matcher.matches()) {
-                token = matcher.group(1);
+        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+            token = authHeader.substring(7).trim(); // safe extraction
+        }
+        if (!(token == null || token.isBlank())) {
+            try {
                 email = jwtService.extractEmail(token);
+            } catch (Exception ex) {
+                // log invalid token and continue filterChain (do not let it throw raw to filter)
             }
         }
 
