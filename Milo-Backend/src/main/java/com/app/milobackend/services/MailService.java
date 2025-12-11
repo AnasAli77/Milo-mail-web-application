@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,6 +68,7 @@ public class MailService {
     // The result of this method is stored in Redis under the key "user_mails"
     // Note: You should ideally cache by User ID (e.g., "mails_user_1")
     @Cacheable(value = "mails", key = "'all_mails'")
+    @Transactional(readOnly = true)
     public List<Mail> GetAllMails() {
         System.out.println("Fetching from Database..."); // You will only see this once!
         return mailRepo.findAllWithDetails();
@@ -102,6 +104,8 @@ public class MailService {
         mailRepo.save(mail);
     }
 
+
+    // STILL NEED TO IMPLEMENT THE OTHER TABLE FOR THE ATTACHMENTS CONTENTS
     @Cacheable(value = "mails", key = "#folderName + '_' + #pageNumber")
     public Page<MailDTO> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
@@ -144,7 +148,23 @@ public class MailService {
                 throw new IllegalArgumentException("Invalid sort by");
         }
         List<Mail> mailsToSort = new ArrayList<>(self.GetAllMails());
-        List<Mail> sortedMails =  sortworker.sort(mailsToSort.stream().filter((mail) -> mail.getFolder().getName().equals(folderName)).toList());
+        for (Mail mail : mailsToSort) {
+            System.out.println(mail.toString());
+        }
+        Long startTime = System.currentTimeMillis();
+        List<Mail> filtered;
+        if ("starred".equalsIgnoreCase(folderName)) {
+            filtered = mailsToSort.stream()
+                    .filter(mail -> mail != null && Boolean.TRUE.equals(mail.isStarred()))
+                    .toList();
+        } else {
+            filtered = mailsToSort.stream()
+                    .filter(mail -> mail != null && mail.getFolder() != null && folderName.equals(mail.getFolder().getName()))
+                    .toList();
+        }
+        List<Mail> sortedMails =  sortworker.sort(filtered);
+        Long endTime = System.currentTimeMillis();
+        System.out.println("Time taken in sort: " + (endTime - startTime) + " ms");
         return convertListToPage(sortedMails, pageNumber, pageSize);
     }
 
