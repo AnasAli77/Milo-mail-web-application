@@ -111,6 +111,8 @@ export class EmailList implements OnInit {
 
   updateSort(value: string) {
     this.sortBy.set(value);
+    // Call the service to fetch sorted emails
+    this.emailService.sortEmails(this.currentFolder(), value);
   }
 
   onRouterActivate() {

@@ -35,13 +35,14 @@ export class ApiEmailService {
     }
   */
 
+
   // Fetch emails by folder (e.g., /mail/folder/inbox)
   getEmails(folderName: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size);
 
-    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/${folderName}`, {params});
+    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/${folderName}`, { params });
   }
 
   getAllMails(): Observable<Email[]> {
@@ -53,6 +54,10 @@ export class ApiEmailService {
     return this.httpClient.delete<void>(`${environment.baseUrl}/mail/delete/${id}`);
   }
 
+  updateEmail(email: Email): Observable<Email> {
+    return this.httpClient.put<Email>(`${environment.baseUrl}/mail/update`, email);
+  }
+
   // NEW: Mark as read
   markAsRead(id: number): Observable<void> {
     return this.httpClient.put<void>(`${environment.baseUrl}/mail/read/${id}`, {});
@@ -61,6 +66,10 @@ export class ApiEmailService {
   // NEW: Toggle Star
   toggleStar(id: number): Observable<void> {
     return this.httpClient.put<void>(`${environment.baseUrl}/mail/star/${id}`, {});
+  }
+
+  getUserFolders(): Observable<string[]> {
+    return this.httpClient.get<string[]>(`${environment.baseUrl}/folders`);
   }
 
   // Batch move
@@ -91,6 +100,19 @@ export class ApiEmailService {
     if (criteria.priority) params = params.set('priority', criteria.priority.toString());
 
     // Use the backend's sort/filter endpoint
-    return this.httpClient.get<Email[]>(`${environment.baseUrl}/mail/search`, { params });
+    return this.httpClient.get<Email[]>(`${environment.baseUrl}/mail/filter`, { params });
+  }
+
+  searchEmails(searchBy: string): Observable<Email[]> {
+    // Use the backend's sort/filter endpoint
+    return this.httpClient.get<Email[]>(`${environment.baseUrl}/mail/search/${searchBy}`);
+  }
+
+  sortEmailsBy(sortBy: string, folderName: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/sort/${folderName}/${sortBy}`);
   }
 }

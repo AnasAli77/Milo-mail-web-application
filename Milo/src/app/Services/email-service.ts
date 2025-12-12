@@ -25,6 +25,12 @@ export class EmailService {
   // Current Search State
   searchCriteria = signal<SearchCriteria>({});
 
+  // NEW: State for Simple String Search
+  currentSearchTerm = signal<string>('');
+
+  // Sorting State (Default: Date)
+  currentSortBy = signal<string>('Date');
+
   emailsSignal = signal<Email[]>([]);
 
   currentPage = signal<number>(0);
@@ -32,8 +38,13 @@ export class EmailService {
   totalElements = signal<number>(0);
   readonly pageSize = 9;
 
+  constructor() {
+    // Automatically load folders when service is created
+    this.loadFolders();
+  }
+
   // LOAD DATA FROM BACKEND
-  loadEmailsForFolder(folder: string , page : number = 0) {
+  loadEmailsForFolder(folder: string, page: number = 0) {
     if (folder === 'search') {
       this.api.filterEmails(this.searchCriteria()).subscribe({
         next: (data) => this.emailsSignal.set(data),
@@ -54,6 +65,49 @@ export class EmailService {
     }
   }
 
+  // UPDATED: Now processes string[] directly
+  loadFolders() {
+    this.api.getUserFolders().subscribe({
+      next: (folderNames) => {
+        const uniqueBackendFolders = folderNames
+          .map(f => f.toLowerCase())
+          .filter(f => !this.systemFolders.includes(f));
+        
+        this.folders.set([...this.systemFolders, ...uniqueBackendFolders]);
+      },
+      error: (err) => console.error('Failed to load user folders', err)
+    });
+  }
+
+  // NEW: Sort Action
+  sortEmails(folder: string, sortBy: string, page: number = 0) {
+    this.currentSortBy.set(sortBy);
+
+    this.api.sortEmailsBy(sortBy, folder, page, this.pageSize).subscribe({
+      next: (response) => {
+        this.emailsSignal.set(response.content);
+        this.currentPage.set(response.number);
+        this.totalPages.set(response.totalPages);
+        this.totalElements.set(response.totalElements);
+      },
+      error: (err) => console.error(`Failed to sort by ${sortBy}`, err)
+    });
+  }
+
+  // NEW: Trigger Simple Search
+  performSearch(query: string) {
+    if (!query) return;
+
+    this.currentSearchTerm.set(query);
+    this.searchCriteria.set({}); // Clear advanced criteria to avoid confusion
+
+    this.router.navigate(['/layout/search']);
+    // If we are already on the search route, manual reload might be needed depending on router config,
+    // but usually setting the signal and calling load handles it if the component reacts to params.
+    // Explicitly calling load here guarantees update:
+    this.loadEmailsForFolder('search');
+  }
+
   changePage(folder: string, newPage: number) {
     if (newPage >= 0 && newPage < this.totalPages()) {
       this.loadEmailsForFolder(folder, newPage);
@@ -64,12 +118,14 @@ export class EmailService {
   addFolder(folderName: string) {
     this.api.addFolder(folderName).subscribe(() => {
       this.folders.update(list => [...list, folderName.toLowerCase()]);
+      this.loadFolders();
     });
   }
 
   renameFolder(oldName: string, newName: string) {
     this.api.renameFolder(oldName, newName).subscribe(() => {
       this.folders.update(list => list.map(f => f === oldName ? newName.toLowerCase() : f));
+      this.loadFolders(); // Reload to update list
       // Refresh current list if we are in that folder
       this.loadEmailsForFolder(newName);
     });
@@ -79,6 +135,7 @@ export class EmailService {
     if (this.systemFolders.includes(folderName)) return;
     this.api.removeFolder(folderName).subscribe(() => {
       this.folders.update(list => list.filter(f => f !== folderName));
+      this.loadFolders();
     });
   }
 
@@ -180,23 +237,47 @@ export class EmailService {
       priority: data.priority || 3
     };
 
-    this.api.sendEmail(draftEmail).subscribe({
-      next: (savedEmail) => {
-        this.draftToEdit.set(null);
-        // If we are currently viewing Drafts, update the list
-        if (this.router.url.includes('/drafts')) {
-          // If it was an edit, update it; if new, add it
-          this.emailsSignal.update(list => {
-            const exists = list.find(e => e.id === savedEmail.id);
-            return exists
-              ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
-              : [savedEmail, ...list];
-          });
-        }
-      },
-      error: (err) => console.error('Failed to save draft', err)
-    });
+
+    // hna ana lma bdoos (x) w elback 3ndo eldraft da be3ml draft gded elmafrood elback
+    // DONE NEED TO TESTED
+
+    if (draftEmail.id == 0) {
+      this.api.sendEmail(draftEmail).subscribe({
+        next: (savedEmail) => {
+          this.draftToEdit.set(null);
+          // If we are currently viewing Drafts, update the list
+          if (this.router.url.includes('/drafts')) {
+            // If it was an edit, update it; if new, add it
+            this.emailsSignal.update(list => {
+              const exists = list.find(e => e.id === savedEmail.id);
+              return exists
+                ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
+                : [savedEmail, ...list];
+            });
+          }
+        },
+        error: (err) => console.error('Failed to save draft', err)
+      });
+    } else {
+      this.api.updateEmail(draftEmail).subscribe({
+        next: (savedEmail) => {
+          this.draftToEdit.set(null);
+          // If we are currently viewing Drafts, update the list
+          if (this.router.url.includes('/drafts')) {
+            // If it was an edit, update it; if new, add it
+            this.emailsSignal.update(list => {
+              const exists = list.find(e => e.id === savedEmail.id);
+              return exists
+                ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
+                : [savedEmail, ...list];
+            });
+          }
+        },
+        error: (err) => console.error('Failed to update draft', err)
+      })
+    }
   }
+
 
   sendEmail(data: any) {
     // Map form data to Email model
@@ -223,6 +304,16 @@ export class EmailService {
       if (this.router.url.includes('/sent')) {
         this.emailsSignal.update(list => [savedEmail, ...list]);
       }
+    });
+  }
+
+  deleteEmail(id: number) {
+    this.api.removeEmail(id).subscribe({
+      next: () => {
+        // Remove from local list if present
+        this.emailsSignal.update(emails => emails.filter(e => e.id !== id));
+      },
+      error: (err) => console.error('Failed to delete email', err)
     });
   }
 

@@ -30,7 +30,7 @@ export class Header {
   searchSubject = '';
   searchHasAttachment = false;
   searchPriority = ''; // NEW: Bind to string for <select>
-  
+
 
   signOut() {
     sessionStorage.clear();
@@ -44,18 +44,15 @@ export class Header {
     this.isProfileOpen.set(false); // Close other dropdown
   }
 
-  // General Search (Enter in main input)
+  // General Search: Uses the new Simple String Search endpoint
   onQuickSearch() {
-    this.performSearch();
+    if (this.searchQuery.trim()) {
+      this.emailService.performSearch(this.searchQuery);
+    }
   }
 
-  // Advanced Search (Button in dropdown)
+  // Advanced Search: Uses the Filter endpoint with criteria
   onAdvancedSearch() {
-    this.performSearch();
-    this.isSearchFilterOpen.set(false); // Close dropdown
-  }
-
-  performSearch() {
     const criteria: SearchCriteria = {
       query: this.searchQuery,
       from: this.searchFrom,
@@ -64,8 +61,9 @@ export class Header {
       hasAttachment: this.searchHasAttachment,
       priority: this.searchPriority ? parseInt(this.searchPriority) : undefined
     };
-    
+
     this.emailService.executeSearch(criteria);
+    this.isSearchFilterOpen.set(false);
   }
 
   clearFilter() {

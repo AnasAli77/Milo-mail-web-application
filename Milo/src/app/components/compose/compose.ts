@@ -7,6 +7,7 @@ import { EmailService } from '../../Services/email-service';
 import { Attachment } from '../../models/attachment';
 import { FileToBase64Service } from '../../Services/file-to-base64-service';
 import { UserService } from '../../Services/user-service';
+import {ApiEmailService} from '../../Services/api-email-service';
 
 interface ReceiverInput {
   email: string;
@@ -36,6 +37,7 @@ export class Compose {
     private location: Location,
     private emailService: EmailService,
     private fileService: FileToBase64Service,
+    private apiemailservice : ApiEmailService,
   ) { }
 
   // Load draft data if we are editing one
@@ -153,7 +155,14 @@ export class Compose {
 
   // Discard Button - Does NOT Save
   discard() {
-    // Clear the draft reference without saving
+    const draft = this.emailService.draftToEdit();
+
+    // If the draft exists and has a real ID (not 0), delete it from backend
+    if (draft && draft.id && draft.id !== 0) {
+      this.emailService.deleteEmail(draft.id);
+    }
+
+    // Clear the reference and go back
     this.emailService.draftToEdit.set(null);
     this.location.back();
   }
