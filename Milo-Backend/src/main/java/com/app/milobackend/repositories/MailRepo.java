@@ -19,16 +19,16 @@ public interface MailRepo extends JpaRepository<Mail, Long> {
     @Query("SELECT m FROM Mail m WHERE m.folder.name = :folderName")
     Page<Mail> findByFolder(@Param("folderName") String folderName, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"folder","sender","receivers","attachments"})
+    @EntityGraph(attributePaths = {"folder","sender","receiver","attachments"})
     @Query("select distinct m from Mail m")
     List<Mail> findAllWithDetails();
 
     // Check if User is (Sender OR Receiver) AND Mail is Starred
-    @Query("SELECT DISTINCT m FROM Mail m LEFT JOIN m.receivers r WHERE m.starred = true AND (m.sender.email = :email OR r.email = :email)")
+    @Query("SELECT DISTINCT m FROM Mail m WHERE m.starred = true AND (m.sender.email = :email OR m.receiver.email = :email)")
     Page<Mail> findStarredMailsForUser(@Param("email") String email, Pageable pageable);
 
     // Check if User is a Receiver AND Folder is correct for inbox
-    @Query("SELECT DISTINCT m FROM Mail m JOIN m.receivers r WHERE m.folder.name = :folderName AND r.email = :email")
+    @Query("SELECT DISTINCT m FROM Mail m WHERE m.folder.name = :folderName AND m.receiver.email = :email")
     Page<Mail> findReceivedMailsByFolder(@Param("folderName") String folderName, @Param("email") String email, Pageable pageable);
 
     // Check if User is the Sender AND Folder is correct for sent/drafts
@@ -36,7 +36,7 @@ public interface MailRepo extends JpaRepository<Mail, Long> {
     Page<Mail> findSentMailsByFolder(@Param("folderName") String folderName, @Param("email") String email, Pageable pageable);
 
     // Check if User is (Sender OR Receiver) AND Folder is correct for Other/Generic
-    @Query("SELECT DISTINCT m FROM Mail m LEFT JOIN m.receivers r WHERE m.folder.name = :folderName AND (m.sender.email = :email OR r.email = :email)")
+    @Query("SELECT DISTINCT m FROM Mail m WHERE m.folder.name = :folderName AND (m.sender.email = :email OR m.receiver.email = :email)")
     Page<Mail> findMailsByFolderAndUserInvolvement(@Param("folderName") String folderName, @Param("email") String email, Pageable pageable);
 
 }

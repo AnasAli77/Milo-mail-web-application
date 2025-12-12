@@ -15,7 +15,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,29 +45,47 @@ public class MailMapperImpl implements MailMapper {
 
     @Override
     public Mail toEntity(MailDTO mailDTO) {
-        ClientUser clientSender=userRepo.findByEmail(mailDTO.getSenderEmail());
-        Mail mail = Mail.builder()
-                .sender(clientSender)
+        if (mailDTO == null) return null;
+//        Mail mail = Mail.builder()
+//                .sender(clientSender)
+//                .subject(mailDTO.getSubject())
+//                .body(mailDTO.getBody())
+//                .read(mailDTO.isRead())
+//                .active(mailDTO.isActive())
+//                .starred(mailDTO.isStarred())
+//                .hasAttachment(mailDTO.isHasAttachment())
+//                .priority(mailDTO.getPriority())
+//                .build();
+
+        Mail.MailBuilder mailBuilder = Mail.builder()
                 .subject(mailDTO.getSubject())
                 .body(mailDTO.getBody())
                 .read(mailDTO.isRead())
                 .active(mailDTO.isActive())
                 .starred(mailDTO.isStarred())
                 .hasAttachment(mailDTO.isHasAttachment())
-                .priority(mailDTO.getPriority())
-                .build();
+                .priority(mailDTO.getPriority());
+
+        // Map Sender
+        if (mailDTO.getSenderEmail() != null) {
+            ClientUser sender = userRepo.findByEmail(mailDTO.getSenderEmail());
+            mailBuilder.sender(sender);
+        }
+
+        Mail mail = mailBuilder.build();
 
         // 2. Convert Files to Attachment Entities (In Memory)
-        List<Attachment> attachments = attachmentService.convertDTOsToAttachments(mailDTO.getAttachments());
+        if (mailDTO.getAttachments() != null) {
+            List<Attachment> attachments = attachmentService.convertDTOsToAttachments(mailDTO.getAttachments());
 
-        // 3. Link them together
-        for (Attachment attachment : attachments) {
-            attachment.setMail(mail); // Critical: Tells Attachment who its parent is
-            mail.addAttachment(attachment); // Critical: Adds to the parent's list
+            // 3. Link them together
+            for (Attachment attachment : attachments) {
+                attachment.setMail(mail);
+                mail.addAttachment(attachment);
+            }
         }
 
         String folderName = mailDTO.getFolder();
-//        System.out.println(STR."folderName: \{folderName} from the request");
         String email = getCurrentUserEmail();
         if (email == null) {
             throw new RuntimeException("User not Authenticated");
@@ -80,29 +100,9 @@ public class MailMapperImpl implements MailMapper {
             folderMails.add(mail);
             folder.setMails(folderMails);
         }
-//        Mail mail = mapMailDTOtoMail(mailDTO);
-        ClientUser sender= userRepo.findByEmail(mailDTO.getSenderEmail());
-        if(sender == null) {
-            throw new RuntimeException("Sender not found");
-        }
-        //btcheck el Email valid wla laa
-        List<ClientUser> receivers=new ArrayList<>();
-
-        for(String receiverEmail : mailDTO.getReceiverEmail()){
-            ClientUser receiver = userRepo.findByEmail(receiverEmail);
-            if (receiver == null) {
-                throw new RuntimeException("Receiver not found");
-            }
-            else {
-                Folder receiverFolder = folderRepo.findByNameAndUserEmail("inbox", receiver.getEmail());
-                receiverFolder.addMail(mail);
-                receiver.addReceivedMail(mail);
-                receivers.add(receiver);
-            }
-
-        }
-        sender.addSentMail(mail);
-        mail.setReceivers(new HashSet<>(receivers));
+        
+        // Note: Sender relationship (addSentMail) is handled in MailService.saveMail()
+        // to avoid duplication and maintain single responsibility
 
         return mail;
     }
@@ -110,6 +110,12 @@ public class MailMapperImpl implements MailMapper {
     @Override
     public MailDTO toDTO(Mail entity) {
         if (entity == null) return null;
+
+        // Build the receiver emails queue first
+        Queue<String> receiverEmailsQueue = new LinkedList<>();
+        if (entity.getReceiver() != null) {
+            receiverEmailsQueue.add(entity.getReceiver().getEmail());
+        }
 
         MailDTO dto = MailDTO.builder()
                 .id(entity.getId())
@@ -122,15 +128,9 @@ public class MailMapperImpl implements MailMapper {
                 .hasAttachment(entity.isHasAttachment())
                 .time(entity.getSentAt().toString())
                 .sender(entity.getSender().getName())
-                .senderEmail(entity.getSender().getEmail()).build();
-
-        // Map Receivers
-        if (entity.getReceivers() != null) {
-            List<String> receiverEmails = entity.getReceivers().stream()
-                    .map(ClientUser::getEmail)
-                    .collect(Collectors.toList());
-            dto.setReceiverEmail(receiverEmails);
-        }
+                .senderEmail(entity.getSender().getEmail())
+                .receiverEmails(receiverEmailsQueue)
+                .build();
 
         List<Attachment> attachments = entity.getAttachments().stream().toList();
         List<AttachmentDTO> attachmentDTOs = attachments.stream().map(

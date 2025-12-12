@@ -32,7 +32,6 @@ public class AttachmentMapperImpl implements AttachmentMapper {
             }
         }
 
-        // Use the constructor we made in Attachment.java to link them instantly
         return new Attachment(dto.getFileName(), dto.getFileType(), decodedBytes);
     }
 

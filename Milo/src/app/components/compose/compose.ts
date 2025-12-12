@@ -45,8 +45,8 @@ export class Compose {
     const draft = this.emailService.draftToEdit();
     if (draft) {
       // Populate receivers
-      if (draft.receiverEmail && draft.receiverEmail.length > 0) {
-        this.receivers = draft.receiverEmail.map(email => ({ email }));
+      if (draft.receiverEmails && draft.receiverEmails.length > 0) {
+        this.receivers = draft.receiverEmails.map(email => ({ email }));
       }
       this.subject = draft.subject;
       this.message = draft.body;

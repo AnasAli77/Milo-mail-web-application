@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+
 @Builder
 @Data
 @AllArgsConstructor
@@ -17,7 +20,8 @@ public class MailDTO {
     private String folder;
     private String sender;
     private String senderEmail;
-    private List<String> receiverEmail;
+    @Builder.Default
+    private Queue<String> receiverEmails = new LinkedList<>();
     private String time;
     private String subject;
     private String body;

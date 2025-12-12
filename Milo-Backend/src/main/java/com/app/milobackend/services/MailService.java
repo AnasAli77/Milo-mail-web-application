@@ -6,6 +6,7 @@ import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
 import com.app.milobackend.mappers.MailMapperImpl;
 import com.app.milobackend.models.ClientUser;
+import com.app.milobackend.models.Folder;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.AttachmentRepository;
 import com.app.milobackend.repositories.FolderRepo;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 
 @Service
 public class MailService {
@@ -85,14 +87,9 @@ public class MailService {
         List<Mail> mails =  mailRepo.findAllWithDetails();
 
         for (Mail m : mails) {
-            if (m.getReceivers() != null) {
-                m.setReceivers(new HashSet<>(m.getReceivers()));
-            }
             if (m.getAttachments() != null) {
                 m.setAttachments(new HashSet<>(m.getAttachments()));
             }
-            // If you have other relationships (like sender), they are usually fine
-            // unless they are also proxy objects causing issues.
         }
 
         return mails;
@@ -113,17 +110,59 @@ public class MailService {
         return mailRepo.save(mail);
     }
 
+    /**
+     * Saves a mail using Queue-based processing for multiple receivers.
+     * 
+     * Flow:
+     * 1. Create sender's copy in their "sent" folder (or "drafts" if saving draft)
+     * 2. For each receiver in the queue, create a copy in their "inbox" folder
+     * 
+     * @param mailDTO The mail data transfer object containing the mail info and receiver queue
+     * @throws RuntimeException if a receiver is not found
+     */
     @CacheEvict(value = "mails", allEntries = true)
     @Transactional
     public void saveMail(MailDTO mailDTO) throws RuntimeException {
         String currentEmail = getCurrentUserEmail();
         ClientUser sender = userRepo.findByEmail(currentEmail);
 
-        Mail mail = mailMapper.toEntity(mailDTO);
+        // Step 1: Create the sender's copy (goes to their sent/drafts folder)
+        Mail senderMail = mailMapper.toEntity(mailDTO);
+        senderMail.setSender(sender);
+        sender.addSentMail(senderMail);
+        
+        // The folder is already set by the mapper based on mailDTO.getFolder() 
+        // (e.g., "sent" for sending, "drafts" for saving draft)
+        mailRepo.save(senderMail);
 
-        mail.setSender(sender);
-
-        mailRepo.save(mail);
+        // Step 2: Process the queue of receivers - each gets their own copy in their inbox
+        // Only create receiver copies if this is NOT a draft (folder != "drafts")
+        if (!"drafts".equalsIgnoreCase(mailDTO.getFolder())) {
+            Queue<String> receiverQueue = mailDTO.getReceiverEmails();
+            
+            while (receiverQueue != null && !receiverQueue.isEmpty()) {
+                String receiverEmail = receiverQueue.remove();
+                ClientUser receiver = userRepo.findByEmail(receiverEmail);
+                
+                if (receiver == null) {
+                    throw new RuntimeException("Receiver not found: " + receiverEmail);
+                }
+                
+                // Create a copy for this receiver using the copy constructor
+                Mail receiverMail = new Mail(senderMail, receiver);
+                receiverMail.setRead(false); // New mail is unread for receiver
+                
+                // Add to receiver's inbox folder
+                Folder receiverInbox = folderRepo.findByNameAndUserEmail("inbox", receiver.getEmail());
+                if (receiverInbox != null) {
+                    receiverInbox.addMail(receiverMail);
+                    receiverMail.setFolder(receiverInbox);
+                }
+                
+                receiver.addReceivedMail(receiverMail);
+                mailRepo.save(receiverMail);
+            }
+        }
     }
 
 

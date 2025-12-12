@@ -16,10 +16,9 @@ public class CriteriaReceiver implements Criteria {
     public List<Mail> filter(List<Mail> mails) {
         List<Mail> mailsFiltered = new ArrayList<>();
         for (Mail mail : mails) {
-            for(ClientUser receiver:mail.getReceivers()) {
-                if(receiver.getEmail().toLowerCase().contains(this.word)) {
-                    mailsFiltered.add(mail);
-                }
+            ClientUser receiver = mail.getReceiver();
+            if (receiver != null && receiver.getEmail().toLowerCase().contains(this.word)) {
+                mailsFiltered.add(mail);
             }
         }
         return mailsFiltered;

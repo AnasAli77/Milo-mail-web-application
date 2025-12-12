@@ -18,7 +18,7 @@ import java.util.Set;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Entity
 public class Mail {
 
@@ -37,15 +37,17 @@ public class Mail {
     @ToString.Exclude
     private ClientUser sender;
 
-    // 2. RECEIVERS: List of users, linked via their 'email'
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "mail_receivers", // Name of the hidden join table
-            joinColumns = @JoinColumn(name = "mail_id"), // Key from Mail side
-            inverseJoinColumns = @JoinColumn(name = "receiver_email", referencedColumnName = "email") // Key from User side
-    )
+//     2. RECEIVERS: List of users, linked via their 'email'
+//    @ManyToMany(fetch = FetchType.LAZY)
+//    @JoinTable(
+//            name = "mail_receivers", // Name of the hidden join table
+//            joinColumns = @JoinColumn(name = "mail_id"), // Key from Mail side
+//            inverseJoinColumns = @JoinColumn(name = "receiver_email", referencedColumnName = "email") // Key from User side
+//    )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receiver_id", referencedColumnName = "email")
     @ToString.Exclude
-    private Set<ClientUser> receivers = new HashSet<>();
+    private ClientUser receiver;
 
     @Column(columnDefinition = "TEXT")
     private String body;
@@ -67,6 +69,48 @@ public class Mail {
     @Builder.Default
     @ToString.Exclude
     private Set<Attachment> attachments = new HashSet<>();
+
+    // Copy Constructor
+    public Mail(Mail source) {
+        // never copy the ID nor the receiver
+
+        this.id = null; // Reset ID
+        this.subject = source.getSubject();
+        this.body = source.getBody();
+        this.priority = source.getPriority();
+        this.sender = source.getSender(); // Shallow copy is fine for User
+        this.sentAt = LocalDateTime.now();
+        this.read = source.isRead();
+        this.starred = false;
+        this.hasAttachment = source.isHasAttachment();
+
+        // Deep Copy Attachments
+        this.attachments = new HashSet<>();
+        if (source.getAttachments() != null) {
+            for (Attachment att : source.getAttachments()) {
+                Attachment newAtt = new Attachment();
+                newAtt.setName(att.getName());
+                newAtt.setType(att.getType());
+
+                // IMPORTANT: Point to the same heavy content ID or Path
+                // If using the Split Table approach:
+                if(att.getContent() != null) {
+                    // Create new content wrapper pointing to same bytes?
+                    // Or simpler: Just duplicate the bytes for now (easiest logic)
+                    // Ideally, you'd share the blob, but let's deep copy for safety first.
+                    newAtt.setContent(new AttachmentContent(att.getContent().getData()));
+                    newAtt.getContent().setAttachment(newAtt);
+                }
+                this.addAttachment(newAtt);
+            }
+        }
+    }
+
+    // Copy Constructor with specific receiver (for Queue-based multi-recipient sending)
+    public Mail(Mail source, ClientUser receiver) {
+        this(source); // Call the base copy constructor
+        this.receiver = receiver;
+    }
 
     public void addAttachment(Attachment a) {
         if (a == null) return;

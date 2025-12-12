@@ -43,8 +43,8 @@ public class ClientUser {
     @JsonIgnore // Prevent infinite recursion
     private List<Mail> sentMails = new ArrayList<>();
 
-    // Mails received by this user
-    @ManyToMany(mappedBy = "receivers")
+    // Mails received by this user (single receiver per mail)
+    @OneToMany(mappedBy = "receiver")
     @JsonIgnore // Prevent infinite recursion
     private List<Mail> receivedMails = new ArrayList<>();
 

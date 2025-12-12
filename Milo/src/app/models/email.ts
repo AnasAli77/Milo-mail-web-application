@@ -5,7 +5,7 @@ export interface Email {
   folder: string;
   sender: string;
   senderEmail: string;
-  receiverEmail: string[];
+  receiverEmails: string[]; // Array that will be converted to Queue in backend
   time: string;
   subject: string;
   body: string;

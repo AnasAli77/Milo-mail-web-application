@@ -225,7 +225,7 @@ export class EmailService {
       folder: 'drafts',
       sender: this.user.getName(), // Current user
       senderEmail: this.user.getEmail(),
-      receiverEmail: data.email, // Ensure array
+      receiverEmails: data.email, // Array that backend converts to Queue
       time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',
       body: data.body,
@@ -286,7 +286,7 @@ export class EmailService {
       folder: 'sent',
       sender: this.user.getName(), // Current user
       senderEmail: this.user.getEmail(),
-      receiverEmail: data.email, // Ensure array
+      receiverEmails: data.email, // Array that backend converts to Queue
       time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',
       body: data.body,
