@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AttachmentContentRepo extends JpaRepository<AttachmentContent, Long> {
-    public AttachmentContent findByName(String name);
 }

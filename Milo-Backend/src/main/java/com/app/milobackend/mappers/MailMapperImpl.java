@@ -10,6 +10,7 @@ import com.app.milobackend.repositories.FolderRepo;
 import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.services.AttachmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -31,6 +32,14 @@ public class MailMapperImpl implements MailMapper {
 
     @Autowired
     private AttachmentMapper attachmentMapper;
+
+    public String getCurrentUserEmail() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            return authentication.getName();
+        }
+        return null; // Or throw an exception
+    }
 
     @Override
     public Mail toEntity(MailDTO mailDTO) {
@@ -56,7 +65,13 @@ public class MailMapperImpl implements MailMapper {
         }
 
         String folderName = mailDTO.getFolder();
-        Folder folder = folderRepo.findByName(folderName);
+//        System.out.println(STR."folderName: \{folderName} from the request");
+        String email = getCurrentUserEmail();
+        if (email == null) {
+            throw new RuntimeException("User not Authenticated");
+        }
+        Folder folder = folderRepo.findByNameAndUserEmail(folderName, email);
+//        System.out.println(STR."folderName: \{folder.getName()} from the database");
 
         if (folder != null) {
             mail.setFolder(folder);
@@ -79,8 +94,10 @@ public class MailMapperImpl implements MailMapper {
                 throw new RuntimeException("Receiver not found");
             }
             else {
-                receivers.add(receiver);
+                Folder receiverFolder = folderRepo.findByNameAndUserEmail("inbox", receiver.getEmail());
+                receiverFolder.addMail(mail);
                 receiver.addReceivedMail(mail);
+                receivers.add(receiver);
             }
 
         }

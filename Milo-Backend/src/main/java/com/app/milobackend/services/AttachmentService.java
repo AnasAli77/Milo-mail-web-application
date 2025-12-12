@@ -44,13 +44,13 @@ public class AttachmentService {
 
     @Transactional(readOnly = true)
     public byte[] getAttachmentData(String attachmentName) throws RuntimeException {
-        // 1. We look up ONLY the content table using the ID
-        AttachmentContent content = contentRepo.findByName(attachmentName);
-        if (content == null) {
-            throw new RuntimeException("Content not found");
+        Attachment attachment = attachmentrepo.findByName(attachmentName);
+        if (attachment == null) {
+            throw new RuntimeException(STR."Attachment with name \{attachmentName} is not found");
         }
 
-        // 2. Return the bytes
+        AttachmentContent content = attachment.getContent();
+
         return content.getData();
     }
 

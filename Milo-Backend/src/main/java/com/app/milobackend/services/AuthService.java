@@ -20,6 +20,9 @@ public class AuthService {
     AuthenticationManager authManager;
 
     @Autowired
+    private FolderService folderService;
+
+    @Autowired
     private JWTService jwtService;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(11);
@@ -29,7 +32,17 @@ public class AuthService {
         user.setPasswordHash(encoder.encode(user.getPasswordHash()));
         userRepo.save(user);
 
+        createDefaultFolders(user);
+
         return new UserDTO(user.getName(), user.getEmail(), "", token);
+    }
+
+    public void createDefaultFolders(ClientUser user) {
+        // "Starred" is usually a filter/view, not a physical folder storage
+        folderService.createFolderWithUser("inbox", user);
+        folderService.createFolderWithUser("sent", user);
+        folderService.createFolderWithUser("drafts", user);
+        folderService.createFolderWithUser("trash", user);
     }
 
     public UserDTO verify(ClientUser user) {

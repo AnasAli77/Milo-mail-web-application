@@ -5,6 +5,7 @@ import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
 import com.app.milobackend.mappers.MailMapperImpl;
+import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.AttachmentRepository;
 import com.app.milobackend.repositories.FolderRepo;
@@ -18,6 +19,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,14 @@ public class MailService {
     @Autowired
     @Lazy // <--- CRITICAL: Prevents application crash on startup
     private MailService self;
+
+    public String getCurrentUserEmail() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            return authentication.getName();
+        }
+        return null; // Or throw an exception
+    }
 
     @EventListener(ApplicationReadyEvent.class)
     public void init() {
@@ -94,18 +104,9 @@ public class MailService {
         }
     }
 
-//    public List<Mail> GetAllMails() {
-//        return allMails;
-//    }
-
     public Mail GetMailById(long id) {
         return mailRepo.findById(id).orElse(null);
     }
-
-//    public void AddMail(Mail mail) {
-//        Mail savedMail = mailRepo.save(mail);
-//        allMails.add(savedMail);
-//    }
 
     @CacheEvict(value = "mails", allEntries = true)
     public Mail UpdateMail(Mail mail) {
@@ -113,27 +114,51 @@ public class MailService {
     }
 
     @CacheEvict(value = "mails", allEntries = true)
+    @Transactional
     public void saveMail(MailDTO mailDTO) throws RuntimeException {
+        String currentEmail = getCurrentUserEmail();
+        ClientUser sender = userRepo.findByEmail(currentEmail);
+
         Mail mail = mailMapper.toEntity(mailDTO);
+
+        mail.setSender(sender);
+
         mailRepo.save(mail);
     }
 
 
-    // STILL NEED TO IMPLEMENT THE OTHER TABLE FOR THE ATTACHMENTS CONTENTS
-    @Cacheable(value = "mails", key = "#folderName + '_' + #pageNumber")
+    @Cacheable(value = "mails", key = "#folderName + '_' + #root.target.getCurrentUserEmail() + '_' + #pageNumber")
     public Page<MailDTO> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
+        String userEmail = getCurrentUserEmail();
+
+        if (userEmail == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+
         Page<Mail> mailPage;
-        if (folderName.equals("starred")) {
-//            mailPage = mailRepo.findByStarredTrue(pageable);
-              List<Mail> starredMails = self.GetAllMails().stream().filter(Mail::isStarred).toList();
-              mailPage = convertListToPage(starredMails, pageNumber, pageSize);
+        // Logic breakdown based on your requirements:
+        if ("starred".equalsIgnoreCase(folderName)) {
+            // "check both the Mail sender field and recievers" + starred
+            mailPage = mailRepo.findStarredMailsForUser(userEmail, pageable);
+        }
+        else if ("inbox".equalsIgnoreCase(folderName)) {
+            // "check for the mails receivers field"
+            ClientUser receiver = userRepo.findByEmail(userEmail);
+            mailPage = convertListToPage(receiver.getReceivedMails(), pageNumber, pageSize);
+//            mailPage = mailRepo.findReceivedMailsByFolder(folderName, userEmail, pageable);
+        }
+        else if ("sent".equalsIgnoreCase(folderName) || "draft".equalsIgnoreCase(folderName)) {
+            // "check for the mails sender field"
+            ClientUser sender = userRepo.findByEmail(userEmail);
+            mailPage = convertListToPage(sender.getSentMails(), pageNumber, pageSize);
+//            mailPage = mailRepo.findSentMailsByFolder(folderName, userEmail, pageable);
         }
         else {
-//            mailPage = mailRepo.findByFolder(folderName, pageable);
-              List<Mail> folderMails = self.GetAllMails().stream().filter((mail) -> mail != null && mail.getFolder() != null && mail.getFolder().getName().equals(folderName)).toList();
-              mailPage = convertListToPage(folderMails, pageNumber, pageSize);
+            // "something else... check for both the sender field and receivers field"
+            mailPage = mailRepo.findMailsByFolderAndUserInvolvement(folderName, userEmail, pageable);
         }
+
         return mailPage.map(mail -> mailMapper.toDTO(mail));
     }
 

@@ -26,6 +26,10 @@ public class Folder {
 
     private String name;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private ClientUser user; // The owner of this folder
+
     // One Folder can have many Mails.
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference  // Mails within this folder WILL be serialized

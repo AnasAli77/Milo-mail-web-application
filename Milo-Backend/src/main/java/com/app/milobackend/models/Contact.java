@@ -22,4 +22,8 @@ public class Contact {
     String name;
 
     List<String> emails;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private ClientUser user; // The owner of this contact
 }

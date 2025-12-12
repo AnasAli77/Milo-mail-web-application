@@ -10,7 +10,9 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -46,6 +48,17 @@ public class ClientUser {
     @JsonIgnore // Prevent infinite recursion
     private List<Mail> receivedMails = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Folder> folders = new HashSet<>();
+
+    public void addFolder(Folder folder) {
+        folders.add(folder);
+    }
+
+    public void removeFolder(Folder folder) {
+        folders.remove(folder);
+    }
 
     public void addSentMail(Mail m) {
         if (m == null) return;
