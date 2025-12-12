@@ -20,9 +20,6 @@ import java.io.IOException;
 @Component
 public class JWTFilter extends OncePerRequestFilter {
 
-    @Getter
-    private String email = null;
-
     @Autowired
     private JWTService jwtService;
 
@@ -33,8 +30,8 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // Bearer {token}
         String authHeader = request.getHeader("Authorization");
-        System.out.println(STR."authHeader: \{authHeader}");
         String token = null;
+        String email = null;
         if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
             token = authHeader.substring(7).trim(); // safe extraction
         }

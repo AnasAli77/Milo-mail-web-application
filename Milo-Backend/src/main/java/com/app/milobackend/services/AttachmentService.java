@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class AttachmentService {
@@ -44,10 +43,12 @@ public class AttachmentService {
     }
 
     @Transactional(readOnly = true)
-    public byte[] getAttachmentData(Long attachmentId) {
+    public byte[] getAttachmentData(String attachmentName) throws RuntimeException {
         // 1. We look up ONLY the content table using the ID
-        AttachmentContent content = contentRepo.findById(attachmentId)
-                .orElseThrow(() -> new RuntimeException("Content not found"));
+        AttachmentContent content = contentRepo.findByName(attachmentName);
+        if (content == null) {
+            throw new RuntimeException("Content not found");
+        }
 
         // 2. Return the bytes
         return content.getData();

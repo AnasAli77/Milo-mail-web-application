@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContactDTO {
+    private Long id;
     private String name;
     private List<String> emails;
 }

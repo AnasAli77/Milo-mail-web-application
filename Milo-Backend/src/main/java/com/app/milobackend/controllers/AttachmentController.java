@@ -25,13 +25,13 @@ public class AttachmentController {
         return "Hello from attachment";
     }
 
-    @GetMapping("/download/{attachmentId}")
-    public ResponseEntity<byte[]> downloadAttachment(@PathVariable Long id) {
-        byte[] data = attachmentService.getAttachmentData(id);
+    @GetMapping("/download/{attachmentName}")
+    public ResponseEntity<byte[]> downloadAttachment(@PathVariable("attachmentName") String name) {
+        byte[] data = attachmentService.getAttachmentData(name);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"file_" + id + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, STR."attachment; filename=\"file_\{name}\"")
                 .body(data);
     }
 

@@ -18,8 +18,8 @@ public class FolderController {
     private FolderService folderService;
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createFolder(@RequestBody String folderName) {
-        Folder folder = folderService.createFolder(folderName);
+    public ResponseEntity<Map<String, Object>> createFolder(@RequestBody Map<String, String> folderName) {
+        Folder folder = folderService.createFolder(folderName.get("name"));
         Map<String, Object> map = new HashMap<>();
         map.put("status", HttpStatus.CREATED);
         map.put("folder", folder);
@@ -33,7 +33,7 @@ public class FolderController {
     }
 
     @PutMapping("{oldName}")
-    public void updateFolder(@PathVariable("oldName") String oldName, @RequestBody String name) {
-        folderService.renameFolder(oldName, name);
+    public void updateFolder(@PathVariable("oldName") String oldName, @RequestBody Map<String, String> nameBody) {
+        folderService.renameFolder(oldName, nameBody.get("newName"));
     }
 }

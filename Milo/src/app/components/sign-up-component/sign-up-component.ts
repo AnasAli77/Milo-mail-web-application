@@ -46,7 +46,7 @@ export class SignUpComponent {
 
   onSubmit() {
     const registerData: ClientUser = {
-      name: this.authSignUpForm.get('name')?.value,
+      name: this.authSignUpForm.get('fullName')?.value,
       email: this.authSignUpForm.get('email')?.value,
       password: this.authSignUpForm.get('password')?.value,
     };

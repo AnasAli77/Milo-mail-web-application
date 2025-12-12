@@ -32,7 +32,6 @@ public class AuthController {
         }
 
         ClientUser clientUser = new ClientUser();
-
         clientUser.setName(user.getName());
         clientUser.setEmail(user.getEmail());
         clientUser.setPasswordHash(user.getPassword());

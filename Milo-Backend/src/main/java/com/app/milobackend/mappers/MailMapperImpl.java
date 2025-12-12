@@ -120,6 +120,7 @@ public class MailMapperImpl implements MailMapper {
                 (attachment -> attachmentMapper.toDTO(attachment))).toList();
 
         dto.setAttachments(attachmentDTOs);
+        dto.setFolder(entity.getFolder().getName());
 
         return dto;
     }

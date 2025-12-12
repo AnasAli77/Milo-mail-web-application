@@ -20,7 +20,7 @@ public class ContactController {
     @Autowired
     private ContactService contactService;
 
-    @PostMapping("/save")
+    @PostMapping("/add")
     public ResponseEntity<Contact> save(@RequestBody ContactDTO contact) {
         System.out.println("Received Contact: " + contact.toString());
         Contact incomingContact = new Contact();
@@ -46,7 +46,7 @@ public class ContactController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/all")
+    @GetMapping("/get")
     public ResponseEntity<List<Contact>> getAllContacts() {
         return ResponseEntity.ok(contactService.getAllContacts());
     }
