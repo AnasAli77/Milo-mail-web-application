@@ -42,6 +42,7 @@ export class EmailService implements OnInit{
   }
   ngOnInit() {
     this.loadFolders();
+    console.log("LOL ON INIT" + this.folders);
   }
 
   // LOAD DATA FROM BACKEND
@@ -75,6 +76,8 @@ export class EmailService implements OnInit{
           .filter(f => !this.systemFolders.includes(f));
 
         this.folders.set([...this.systemFolders, ...uniqueBackendFolders]);
+
+        console.log("LOL" + this.folders);
       },
       error: (err) => console.error('Failed to load user folders', err)
     });
