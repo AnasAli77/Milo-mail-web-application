@@ -48,19 +48,39 @@ export class EmailService implements OnInit {
     this.loadFolders();
   }
 
-  // LOAD DATA FROM BACKEND
-  loadEmailsForFolder(folder: string, page: number = 0) {
+  // UPDATED: Now handles pagination for Search and Filter as well
+  loadEmailsForFolder(folder: string , page : number = 0) {
+    this.currentSortBy.set('');
+
     if (folder === 'search') {
-      this.api.filterEmails(this.searchCriteria()).subscribe({
-        next: (data) => this.emailsSignal.set(data),
-        error: (err) => console.error('Failed to search', err)
-      });
+      if (this.currentSearchTerm()) {
+        // Simple Search with Pagination
+        this.api.searchEmails(this.currentSearchTerm(), page, this.pageSize).subscribe({
+          next: (response) => {
+            this.emailsSignal.set(response.content);
+            this.currentPage.set(response.number);
+            this.totalPages.set(response.totalPages);
+            this.totalElements.set(response.totalElements);
+          },
+          error: (err) => console.error('Failed to search emails', err)
+        });
+      } else {
+        // Advanced Filter with Pagination
+        this.api.filterEmails(this.searchCriteria(), page, this.pageSize).subscribe({
+          next: (response) => {
+            this.emailsSignal.set(response.content);
+            this.currentPage.set(response.number);
+            this.totalPages.set(response.totalPages);
+            this.totalElements.set(response.totalElements);
+          },
+          error: (err) => console.error('Failed to filter emails', err)
+        });
+      }
     } else {
+      // Standard Folder Load
       this.api.getEmails(folder, page, this.pageSize).subscribe({
         next: (response) => {
-          // Update Data
           this.emailsSignal.set(response.content);
-
           this.currentPage.set(response.number);
           this.totalPages.set(response.totalPages);
           this.totalElements.set(response.totalElements);
@@ -100,18 +120,12 @@ export class EmailService implements OnInit {
     });
   }
 
-  // NEW: Trigger Simple Search
   performSearch(query: string) {
     if (!query) return;
-
     this.currentSearchTerm.set(query);
-    this.searchCriteria.set({}); // Clear advanced criteria to avoid confusion
-
+    this.searchCriteria.set({});
     this.router.navigate(['/layout/search']);
-    // If we are already on the search route, manual reload might be needed depending on router config,
-    // but usually setting the signal and calling load handles it if the component reacts to params.
-    // Explicitly calling load here guarantees update:
-    this.loadEmailsForFolder('search');
+    this.loadEmailsForFolder('search', 0); // Load page 0
   }
 
   changePage(folder: string, newPage: number) {
@@ -348,8 +362,9 @@ export class EmailService implements OnInit {
 
   executeSearch(criteria: SearchCriteria) {
     this.searchCriteria.set(criteria);
+    this.currentSearchTerm.set('');
     this.router.navigate(['/layout/search']);
-    // The component will trigger loadEmailsForFolder('search')
+    this.loadEmailsForFolder('search', 0); // Load page 0
   }
 
 }

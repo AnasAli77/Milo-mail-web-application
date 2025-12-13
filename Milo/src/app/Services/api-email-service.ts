@@ -46,12 +46,6 @@ export class ApiEmailService {
     return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/${folderName}`, { params });
   }
 
-  getAllMails(): Observable<Email[]> {
-    // return this.httpClient.get<Email[]>(`${environment.baseUrl}`);
-    return this.httpClient.get<Email[]>(`${environment.baseUrl}/mail`);
-  }
-
-  // discard draft
   removeEmail(id: number): Observable<void> {
     return this.httpClient.delete<void>(`${environment.baseUrl}/mail/delete/${id}`);
   }
@@ -95,7 +89,7 @@ export class ApiEmailService {
 
   // Kamel elfilter ya beeh 2nt w howa + 7otto elpageNumber w elpageSize
   // Search/Filter
-  filterEmails(criteria: SearchCriteria): Observable<Email[]> {
+  filterEmails(criteria: SearchCriteria, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
     let params = new HttpParams();
     if (criteria.query) params = params.set('query', criteria.query);
     if (criteria.from) params = params.set('sender', criteria.from);
@@ -103,12 +97,15 @@ export class ApiEmailService {
     if (criteria.priority) params = params.set('priority', criteria.priority.toString());
 
     // Use the backend's sort/filter endpoint
-    return this.httpClient.get<Email[]>(`${environment.baseUrl}/mail/filter`, { params });
+    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/filter`, { params });
   }
 
-  searchEmails(searchBy: string): Observable<Email[]> {
+  searchEmails(searchBy: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
     // Use the backend's sort/filter endpoint
-    return this.httpClient.get<Email[]>(`${environment.baseUrl}/mail/search/${searchBy}`);
+    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/search/${searchBy}`, { params });
   }
 
   sortEmailsBy(sortBy: string, folderName: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
@@ -116,6 +113,6 @@ export class ApiEmailService {
       .set('pageNumber', page)
       .set('pageSize', size);
 
-    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/sort/${folderName}/${sortBy}`,{params});
+    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/sort/${folderName}/${sortBy}`, { params });
   }
 }
