@@ -1,9 +1,9 @@
 import {inject, Injectable, OnInit, signal} from '@angular/core';
-import { Email } from '../models/email'
-import { Router } from '@angular/router';
-import { SearchCriteria } from '../models/searchCriteria';
-import { ApiEmailService } from './api-email-service';
-import { UserService } from './user-service';
+import {Email} from '../models/email'
+import {Router} from '@angular/router';
+import {SearchCriteria} from '../models/searchCriteria';
+import {ApiEmailService} from './api-email-service';
+import {UserService} from './user-service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,9 +14,9 @@ export class EmailService implements OnInit{
   private router = inject(Router);
   private user = inject(UserService);
 
-  readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
+  // readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
   // All folders signal
-  folders = signal<string[]>([...this.systemFolders]);
+  folders = signal<string[]>([]);
 
   selectedEmail = signal<Email | null>(null);
 
@@ -71,10 +71,7 @@ export class EmailService implements OnInit{
   loadFolders() {
     this.api.getUserFolders().subscribe({
       next: (folderNames) => {
-        const uniqueBackendFolders = folderNames
-          .filter(f => !this.systemFolders.includes(f));
-
-        this.folders.set([...this.systemFolders, ...uniqueBackendFolders]);
+        this.folders.set([...(folderNames)]);
 
         console.log("LOL" + this.folders);
       },
@@ -135,7 +132,7 @@ export class EmailService implements OnInit{
   }
 
   deleteFolder(folderName: string) {
-    if (this.systemFolders.includes(folderName)) return;
+    // if (this.systemFolders.includes(folderName)) return;
     this.api.removeFolder(folderName).subscribe(() => {
       this.folders.update(list => list.filter(f => f !== folderName));
       this.loadFolders();
