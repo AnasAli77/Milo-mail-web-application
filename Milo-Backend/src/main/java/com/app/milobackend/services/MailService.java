@@ -1,6 +1,7 @@
 package com.app.milobackend.services;
 
 import com.app.milobackend.dtos.FilterDTO;
+import com.app.milobackend.dtos.SearchDTO;
 import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
@@ -282,7 +283,7 @@ public class MailService {
     }
 
     @Transactional(readOnly = true)
-    public Page<MailDTO> Filter(FilterDTO request, int pageNumber, int pageSize) {
+    public Page<MailDTO> Search(SearchDTO request, int pageNumber, int pageSize) {
         String word = request.getWord();
         List<String> selectedCriteria = request.getCriteria();
         if(selectedCriteria == null || selectedCriteria.isEmpty()){
@@ -301,6 +302,53 @@ public class MailService {
         Page<Mail> mails= convertListToPage(filteredMails.stream().distinct().toList(), pageNumber, pageSize);
         return  mails.map(mail -> mailMapper.toDTO(mail));
     }
+    @Transactional(readOnly = true)
+    public Page<MailDTO> Filter(FilterDTO request, int pageNumber, int pageSize) {
+
+        Map<String, String> criteriaMap = request.getKeys();
+
+        if (criteriaMap == null || criteriaMap.isEmpty()) {
+            return Page.empty();
+        }
+
+        Pageable pageable =
+                PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
+
+        List<Mail> sourceMails =
+                mailRepo.findMailsByUserInvolvement(
+                        getCurrentUserEmail(),
+                        pageable
+                ).getContent();
+
+        List<Mail> filteredMails = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : criteriaMap.entrySet()) {
+
+            String criteriaName = entry.getKey();
+            String criteriaValue = entry.getValue();
+
+            // Skip empty values
+            if (criteriaValue == null || criteriaValue.isBlank()) {
+                continue;
+            }
+
+            Criteria criteria =
+                    CriteriaFactory.create(criteriaName, criteriaValue);
+
+            if (criteria != null) {
+                filteredMails.addAll(criteria.filter(sourceMails));
+            }
+        }
+
+        Page<Mail> resultPage = convertListToPage(
+                filteredMails.stream().distinct().toList(),
+                pageNumber,
+                pageSize
+        );
+
+        return resultPage.map(mailMapper::toDTO);
+    }
+
 
 
     @Transactional

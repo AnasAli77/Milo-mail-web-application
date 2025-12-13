@@ -1,19 +1,15 @@
 package com.app.milobackend.controllers;
 
 import com.app.milobackend.dtos.FilterDTO;
+import com.app.milobackend.dtos.SearchDTO;
 import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.mappers.MailMapper;
-import com.app.milobackend.models.Folder;
-import com.app.milobackend.models.Mail;
 import com.app.milobackend.services.MailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,16 +56,16 @@ public class MailController {
     public Page<MailDTO> getSortedMails(@PathVariable("sortBy") String  sortBy,@PathVariable("folderName") String folderName , @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
         return mailService.getSortedMails(sortBy, folderName, pageNumber, pageSize);
     }
-    @PostMapping("/filter") // 8ayar deeh ya 3m markeb
-    public Page<MailDTO> getFilteredMails(@RequestParam("filter") FilterDTO filterDTO, @RequestParam("pageNumber") Integer pageNumber, @RequestParam("pageSize") Integer pageSize){
+    @GetMapping("/filter") // 8ayar deeh ya 3m markeb
+    public Page<MailDTO> getFilteredMails(@RequestParam FilterDTO filterDTO, @RequestParam("pageNumber") Integer pageNumber, @RequestParam("pageSize") Integer pageSize){
         return mailService.Filter(filterDTO, pageNumber, pageSize);
     }
     @GetMapping("/search/{searchBy}")
     public Page<MailDTO> searchEmails(@PathVariable("searchBy") String searchBy, @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
-        FilterDTO filterDTO = new FilterDTO();
-        filterDTO.setCriteria(List.of("body", "subject","receiver"));
-        filterDTO.setWord(searchBy);
-        return mailService.Filter(filterDTO,pageNumber,pageSize);
+        SearchDTO searchDTO = new SearchDTO();
+        searchDTO.setCriteria(List.of("body", "subject","receiver","sender"));
+        searchDTO.setWord(searchBy);
+        return mailService.Search(searchDTO,pageNumber,pageSize);
 
     }
 

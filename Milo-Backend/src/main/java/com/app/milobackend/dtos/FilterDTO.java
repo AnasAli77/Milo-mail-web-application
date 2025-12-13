@@ -3,11 +3,9 @@ package com.app.milobackend.dtos;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
-@Getter @Setter
+import java.util.Map;
+@Setter
+@Getter
 public class FilterDTO {
-    private String word;
-    private List<String> criteria;
-
+    private Map<String,String> Keys;
 }

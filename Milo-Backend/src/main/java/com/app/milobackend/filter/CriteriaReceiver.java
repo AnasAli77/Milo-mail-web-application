@@ -20,6 +20,9 @@ public class CriteriaReceiver implements Criteria {
             if (receiver != null && receiver.getEmail().toLowerCase().contains(this.word)) {
                 mailsFiltered.add(mail);
             }
+            if(receiver != null && receiver.getName().toLowerCase().contains(this.word)){
+                mailsFiltered.add(mail);
+            }
         }
         return mailsFiltered;
     }
