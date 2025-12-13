@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -56,13 +57,22 @@ public class MailController {
         return response;
     }
     @GetMapping("/sort/{folderName}/{sortBy}")
-    public Page<Mail> getSortedMails(@PathVariable("sortBy") String  sortBy,@PathVariable("folderName") String folderName , @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
+    public Page<MailDTO> getSortedMails(@PathVariable("sortBy") String  sortBy,@PathVariable("folderName") String folderName , @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
         return mailService.getSortedMails(sortBy, folderName, pageNumber, pageSize);
     }
     @PostMapping("/filter") // 8ayar deeh ya 3m markeb
-    public Page<Mail> getFilteredMails(@RequestParam("filter") FilterDTO filterDTO, @RequestParam("pageNumber") Integer pageNumber, @RequestParam("pageSize") Integer pageSize){
+    public Page<MailDTO> getFilteredMails(@RequestParam("filter") FilterDTO filterDTO, @RequestParam("pageNumber") Integer pageNumber, @RequestParam("pageSize") Integer pageSize){
         return mailService.Filter(filterDTO, pageNumber, pageSize);
     }
+    @PostMapping("/search/{searchBy}")
+    public Page<MailDTO> searchEmails(@PathVariable("searchBy") String searchBy, @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
+        FilterDTO filterDTO = new FilterDTO();
+        filterDTO.setCriteria(List.of("body", "subject", "day","hour","month","priority","receiver"));
+        filterDTO.setWord(searchBy);
+        return mailService.Filter(filterDTO,pageNumber,pageSize);
+        
+    }
+
 
     @PutMapping("/star/{mailId}")
     public void toggleStarredMail(@PathVariable Long mailId){

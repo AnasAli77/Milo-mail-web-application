@@ -221,7 +221,7 @@ public class MailService {
 
     @Transactional(readOnly = true)
     @Cacheable(value = "mails", key = "#sortBy + '_' + #folderName + '_' + #pageNumber + '_' + #pageSize + '_'+ #root.target.getCurrentUserEmail()")
-    public Page<Mail> getSortedMails(String sortBy, String folderName, int pageNumber, int pageSize) {
+    public Page<MailDTO> getSortedMails(String sortBy, String folderName, int pageNumber, int pageSize) {
         SortWorker sortworker = new SortWorker();
         switch(sortBy.toLowerCase()){
             case "subject":
@@ -248,7 +248,8 @@ public class MailService {
             default:
                 throw new IllegalArgumentException("Invalid sort by");
         }
-        List<Mail> mailsToSort = new ArrayList<>(self.GetAllMails());
+        Pageable pageable= PageRequest.of(pageNumber, pageSize);
+        List<Mail> mailsToSort = mailRepo.findMailsByUserInvolvement(getCurrentUserEmail(), pageable);
         for (Mail mail : mailsToSort) {
             System.out.println(mail.toString());
         }
@@ -256,7 +257,7 @@ public class MailService {
         List<Mail> filtered;
         if ("starred".equalsIgnoreCase(folderName)) {
             filtered = mailsToSort.stream()
-                    .filter(mail -> mail != null && Boolean.TRUE.equals(mail.isStarred()))
+                    .filter(mail -> mail != null && mail.isStarred())
                     .toList();
         } else {
             filtered = mailsToSort.stream()
@@ -266,17 +267,19 @@ public class MailService {
         List<Mail> sortedMails =  sortworker.sort(filtered);
         Long endTime = System.currentTimeMillis();
         System.out.println("Time taken in sort: " + (endTime - startTime) + " ms");
-        return convertListToPage(sortedMails, pageNumber, pageSize);
+        Page<Mail> mails= convertListToPage(sortedMails, pageNumber, pageSize);
+        return  mails.map(mail -> mailMapper.toDTO(mail));
     }
 
     @Transactional(readOnly = true)
-    public Page<Mail> Filter(FilterDTO request, int pageNumber, int pageSize) {
+    public Page<MailDTO> Filter(FilterDTO request, int pageNumber, int pageSize) {
         String word = request.getWord();
         List<String> selectedCriteria = request.getCriteria();
         if(selectedCriteria == null || selectedCriteria.isEmpty()){
             selectedCriteria = CriteriaFactory.allCriteriaNames();
         }
-        List<Mail> sourceMails = self.GetAllMails();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
+        List<Mail> sourceMails = mailRepo.findMailsByUserInvolvement(getCurrentUserEmail(),pageable);
 
         List<Mail> filteredMails = new ArrayList<>();
         for(String name : selectedCriteria){
@@ -285,7 +288,8 @@ public class MailService {
                 filteredMails.addAll(criteria.filter(sourceMails));
             }
         }
-        return convertListToPage(filteredMails.stream().distinct().toList(), pageNumber, pageSize);
+        Page<Mail> mails= convertListToPage(filteredMails.stream().distinct().toList(), pageNumber, pageSize);
+        return  mails.map(mail -> mailMapper.toDTO(mail));
     }
 
 

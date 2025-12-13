@@ -46,7 +46,7 @@ public class AttachmentService {
     public byte[] getAttachmentData(String attachmentName) throws RuntimeException {
         Attachment attachment = attachmentrepo.findByName(attachmentName);
         if (attachment == null) {
-            throw new RuntimeException(STR."Attachment with name \{attachmentName} is not found");
+            throw new RuntimeException("Attachment with name" +attachmentName+ "is not found");
         }
 
         AttachmentContent content = attachment.getContent();

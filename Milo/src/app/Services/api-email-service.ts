@@ -113,9 +113,9 @@ export class ApiEmailService {
 
   sortEmailsBy(sortBy: string, folderName: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
     let params = new HttpParams()
-      .set('page', page)
-      .set('size', size);
+      .set('pageNumber', page)
+      .set('pageSize', size);
 
-    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/sort/${folderName}/${sortBy}`);
+    return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/sort/${folderName}/${sortBy}`,{params});
   }
 }
