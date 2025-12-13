@@ -72,7 +72,6 @@ export class EmailService implements OnInit{
     this.api.getUserFolders().subscribe({
       next: (folderNames) => {
         const uniqueBackendFolders = folderNames
-          .map(f => f.toLowerCase())
           .filter(f => !this.systemFolders.includes(f));
 
         this.folders.set([...this.systemFolders, ...uniqueBackendFolders]);
