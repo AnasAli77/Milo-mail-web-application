@@ -30,15 +30,21 @@ export class Header {
   searchSubject = '';
   searchHasAttachment = false;
   searchPriority = ''; // NEW: Bind to string for <select>
+  // NEW: Separate date fields
+  searchDay = '';
+  searchMonth = '';
+  searchYear = '';
 
 
   signOut() {
     sessionStorage.clear();
     this.route.navigateByUrl("");
   }
+
   toggleProfile() {
     this.isProfileOpen.update(v => !v);
   }
+
   toggleSearchFilter() {
     this.isSearchFilterOpen.update(v => !v);
     this.isProfileOpen.set(false); // Close other dropdown
@@ -59,7 +65,10 @@ export class Header {
       to: this.searchTo,
       subject: this.searchSubject,
       hasAttachment: this.searchHasAttachment,
-      priority: this.searchPriority ? parseInt(this.searchPriority) : undefined
+      priority: this.searchPriority ? parseInt(this.searchPriority) : undefined,
+      day: this.searchDay,
+      month: this.searchMonth,
+      year: this.searchYear
     };
 
     this.emailService.executeSearch(criteria);
@@ -73,5 +82,8 @@ export class Header {
     this.searchSubject = '';
     this.searchHasAttachment = false;
     this.searchPriority = ''; // Clear priority
+    this.searchDay = '';
+    this.searchMonth = '';
+    this.searchYear = '';
   }
 }

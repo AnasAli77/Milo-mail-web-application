@@ -95,6 +95,9 @@ export class ApiEmailService {
     if (criteria.from) params = params.set('sender', criteria.from);
     if (criteria.subject) params = params.set('subject', criteria.subject);
     if (criteria.priority) params = params.set('priority', criteria.priority.toString());
+    if (criteria.day) params = params.set('day', criteria.day);
+    if (criteria.month) params = params.set('month', criteria.month);
+    if (criteria.year) params = params.set('year', criteria.year);
 
     // Use the backend's sort/filter endpoint
     return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/filter`, { params });

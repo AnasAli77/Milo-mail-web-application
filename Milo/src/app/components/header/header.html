@@ -63,6 +63,18 @@
         </select>
       </div>
 
+      <div class="filter-row date-row">
+        <label>Date</label>
+        <div class="date-inputs">
+          <input type="text" [(ngModel)]="searchDay" placeholder="DD" maxlength="2"
+            style="width: 3rem; text-align: center;">
+          <input type="text" [(ngModel)]="searchMonth" placeholder="MM" maxlength="2"
+            style="width: 3rem; text-align: center;">
+          <input type="text" [(ngModel)]="searchYear" placeholder="YYYY" maxlength="4"
+            style="width: 4rem; text-align: center;">
+        </div>
+      </div>
+
       <div class="filter-row checkbox-row">
         <input type="checkbox" id="hasAttach" [(ngModel)]="searchHasAttachment">
         <label for="hasAttach">Has attachment</label>

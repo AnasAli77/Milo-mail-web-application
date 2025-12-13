@@ -6,4 +6,7 @@ export interface SearchCriteria {
   subject?: string;
   hasAttachment?: boolean;
   priority?: number; // Added
+  day?: string;
+  month?: string;
+  year?: string;
 }
