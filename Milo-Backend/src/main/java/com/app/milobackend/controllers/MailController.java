@@ -57,7 +57,29 @@ public class MailController {
         return mailService.getSortedMails(sortBy, folderName, pageNumber, pageSize);
     }
     @GetMapping("/filter") // 8ayar deeh ya 3m markeb
-    public Page<MailDTO> getFilteredMails(@RequestParam FilterDTO filterDTO, @RequestParam("pageNumber") Integer pageNumber, @RequestParam("pageSize") Integer pageSize){
+    public Page<MailDTO> getFilteredMails(@RequestParam(required = false) String body,
+                                          @RequestParam(required = false) String sender,
+                                          @RequestParam(required = false) String subject,
+                                          @RequestParam(required = false) String priority,
+                                          @RequestParam(required = false) String hasAttachment,
+                                          @RequestParam(required = false) String day,
+                                          @RequestParam(required = false) String month,
+                                          @RequestParam(required = false) String year,
+                                          @RequestParam(defaultValue = "0") int pageNumber,
+                                          @RequestParam(defaultValue = "9") int pageSize){
+        Map<String, String> map = new HashMap<>();
+        if (body != null) map.put("body", body);
+        if (sender != null) map.put("sender", sender);
+        if (subject != null) map.put("subject", subject);
+        if (priority != null) map.put("priority", priority);
+        if (hasAttachment != null) map.put("hasAttachment", hasAttachment);
+        if (day != null) map.put("day", day);
+        if (month != null) map.put("month", month);
+        if (year != null) map.put("year", year);
+
+        FilterDTO filterDTO = new FilterDTO();
+        filterDTO.setKeys(map);
+
         return mailService.Filter(filterDTO, pageNumber, pageSize);
     }
     @GetMapping("/search/{searchBy}")

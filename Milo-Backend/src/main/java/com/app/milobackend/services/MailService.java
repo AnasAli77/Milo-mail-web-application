@@ -320,14 +320,13 @@ public class MailService {
                         pageable
                 ).getContent();
 
-        List<Mail> filteredMails = new ArrayList<>();
+        List<Mail> filteredMails = new ArrayList<>(sourceMails);
 
         for (Map.Entry<String, String> entry : criteriaMap.entrySet()) {
 
             String criteriaName = entry.getKey();
             String criteriaValue = entry.getValue();
 
-            // Skip empty values
             if (criteriaValue == null || criteriaValue.isBlank()) {
                 continue;
             }
@@ -336,15 +335,16 @@ public class MailService {
                     CriteriaFactory.create(criteriaName, criteriaValue);
 
             if (criteria != null) {
-                filteredMails.addAll(criteria.filter(sourceMails));
+                filteredMails = criteria.filter(filteredMails);
+            }
+
+            if (filteredMails.isEmpty()) {
+                break;
             }
         }
 
-        Page<Mail> resultPage = convertListToPage(
-                filteredMails.stream().distinct().toList(),
-                pageNumber,
-                pageSize
-        );
+        Page<Mail> resultPage =
+                convertListToPage(filteredMails, pageNumber, pageSize);
 
         return resultPage.map(mailMapper::toDTO);
     }

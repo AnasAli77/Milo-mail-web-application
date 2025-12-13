@@ -91,10 +91,11 @@ export class ApiEmailService {
   // Search/Filter
   filterEmails(criteria: SearchCriteria, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
     let params = new HttpParams();
-    if (criteria.query) params = params.set('query', criteria.query);
+    if (criteria.query) params = params.set('body', criteria.query);
     if (criteria.from) params = params.set('sender', criteria.from);
     if (criteria.subject) params = params.set('subject', criteria.subject);
     if (criteria.priority) params = params.set('priority', criteria.priority.toString());
+    if(criteria.hasAttachment) params=params.set('hasAttachment',criteria.hasAttachment);
     if (criteria.day) params = params.set('day', criteria.day);
     if (criteria.month) params = params.set('month', criteria.month);
     if (criteria.year) params = params.set('year', criteria.year);
