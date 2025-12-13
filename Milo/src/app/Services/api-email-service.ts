@@ -105,8 +105,9 @@ export class ApiEmailService {
 
   searchEmails(searchBy: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
     let params = new HttpParams()
-      .set('page', page)
-      .set('size', size);
+      .set('pageNumber', page)
+      .set('pageSize', size);
+
     // Use the backend's sort/filter endpoint
     return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/search/${searchBy}`, { params });
   }

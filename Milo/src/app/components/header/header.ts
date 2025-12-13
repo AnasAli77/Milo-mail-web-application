@@ -1,10 +1,11 @@
-import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SearchCriteria } from '../../models/searchCriteria';
 import { FormsModule } from '@angular/forms';
 import { EmailService } from '../../Services/email-service';
 import { UserService } from '../../Services/user-service';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -12,7 +13,7 @@ import { UserService } from '../../Services/user-service';
   templateUrl: './header.html',
   styleUrl: './header.css',
 })
-export class Header {
+export class Header implements OnInit{
 
   @Input() collapsed = false;
   @Output() onToggleSidebar = new EventEmitter<void>();
@@ -35,6 +36,25 @@ export class Header {
   searchMonth = '';
   searchYear = '';
 
+  // NEW: Subject to handle debounce
+  private searchDebouncer = new Subject<string>();
+
+  ngOnInit() {
+    // Setup the subscription for live search
+    this.searchDebouncer.pipe(
+      debounceTime(300),        // Wait 300ms after user stops typing
+      distinctUntilChanged()    // Only search if the text is different from last time
+    ).subscribe((term) => {
+      if (term.trim()) {
+        this.emailService.performSearch(term);
+      }
+    });
+  }
+
+  // NEW: Triggered on every keystroke via (ngModelChange)
+  onSearchInput(value: string) {
+    this.searchDebouncer.next(value);
+  }
 
   signOut() {
     sessionStorage.clear();

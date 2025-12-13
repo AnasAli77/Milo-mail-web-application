@@ -22,7 +22,8 @@
         </svg>
       </button>
 
-      <input type="text" placeholder="Search mail" [(ngModel)]="searchQuery" (keydown.enter)="onQuickSearch()">
+      <input type="text" placeholder="Search mail" [(ngModel)]="searchQuery" (ngModelChange)="onSearchInput($event)"
+        (keydown.enter)="onQuickSearch()">
 
       <button class="filter-toggle-btn" (click)="toggleSearchFilter()" title="Show search options">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
