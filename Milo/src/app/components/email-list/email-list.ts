@@ -41,6 +41,7 @@ export class EmailList implements OnInit {
       this.checkedEmailIds.set(new Set());
 
       this.emailService.loadEmailsForFolder(folderId, 0);
+      this.emailService.loadFolders();
     });
   }
 
@@ -52,7 +53,6 @@ export class EmailList implements OnInit {
 
   refresh() {
     this.loadData();
-
   }
 
   // Helper for Priority Color

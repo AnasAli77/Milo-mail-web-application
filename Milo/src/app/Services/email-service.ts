@@ -40,6 +40,7 @@ export class EmailService implements OnInit{
 
   constructor() {
   }
+
   ngOnInit() {
     this.loadFolders();
   }
