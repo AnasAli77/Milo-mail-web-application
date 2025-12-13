@@ -265,6 +265,8 @@ export class EmailService implements OnInit {
             //     : [savedEmail, ...list];
             // });
             this.loadEmailsForFolder("drafts", 0);
+            this.selectedEmail.set(null) ;
+            this.router.navigate(['/layout/drafts']);
           }
         },
         error: (err) => console.error('Failed to save draft', err)
@@ -282,7 +284,9 @@ export class EmailService implements OnInit {
             //     ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
             //     : [savedEmail, ...list];
             // });
-            this.loadEmailsForFolder("drafts", 0);
+            this.loadEmailsForFolder("drafts", 0)
+            this.selectedEmail.set(null) ;
+            this.router.navigate(['/layout/drafts']);
           }
         },
         error: (err) => console.error('Failed to update draft', err)
@@ -317,11 +321,13 @@ export class EmailService implements OnInit {
       if (this.router.url.includes('/sent')) {
         // this.emailsSignal.update(list => [savedEmail, ...list]);
         this.loadEmailsForFolder("sent", 0);
+        this.selectedEmail.set(null) ;
+        this.router.navigate(['/layout/sent']);
       }
     },
     error: (err) => {
       console.log(err);
-    } 
+    }
     });
   }
 
@@ -330,6 +336,8 @@ export class EmailService implements OnInit {
       next: () => {
         // Remove from local list if present
         this.emailsSignal.update(emails => emails.filter(e => e.id !== id));
+        this.selectedEmail.set(null) ;
+        this.router.navigate(['/layout/drafts']);
       },
       error: (err) => console.error('Failed to delete email', err)
     });
