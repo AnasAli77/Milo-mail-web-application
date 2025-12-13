@@ -1,7 +1,9 @@
 package com.app.milobackend.services;
 
+import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.models.Contact;
 import com.app.milobackend.repositories.ContactRepo;
+import com.app.milobackend.repositories.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,9 @@ public class ContactService {
     @Autowired
     private ContactRepo contactRepo;
 
+    @Autowired
+    private UserRepo userRepo;
+
     public String getCurrentUserEmail() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
@@ -23,6 +28,9 @@ public class ContactService {
     }
 
     public Contact storeContact(Contact contact) {
+        String userEmail = getCurrentUserEmail();
+        ClientUser currentUser = userRepo.findByEmail(userEmail);
+        contact.setUser(currentUser);
         return contactRepo.save(contact);
     }
 
@@ -40,7 +48,7 @@ public class ContactService {
     }
 
     public List<Contact> getAllContacts() {
-        return contactRepo.findAll();
+        return contactRepo.findByUserEmail(getCurrentUserEmail());
     }
 
     public void deleteAllContacts() {

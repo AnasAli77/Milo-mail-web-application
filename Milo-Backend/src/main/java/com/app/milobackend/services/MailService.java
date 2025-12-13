@@ -71,8 +71,9 @@ public class MailService {
         }
     }
 
-    @Cacheable(value = "mails", key = "'all_mails'")
+
     @Transactional(readOnly = true)
+    @Cacheable(value = "mails", key = "'all_mails'")
     public List<Mail> GetAllMails() {
         System.out.println("Fetching from Database..."); // You will only see this once!
         List<Mail> mails =  mailRepo.findAllWithDetails();
@@ -119,8 +120,9 @@ public class MailService {
         mailRepo.save(existingMail);
     }
 
-    @CacheEvict(value = "mails", allEntries = true)
+
     @Transactional
+    @CacheEvict(value = "mails", allEntries = true)
     public void saveMail(MailDTO mailDTO) throws RuntimeException {
         String currentEmail = getCurrentUserEmail();
         ClientUser sender = userRepo.findByEmail(currentEmail);
@@ -166,6 +168,7 @@ public class MailService {
     }
 
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "mails", key = "#folderName + '_' + #root.target.getCurrentUserEmail() + '_' + #pageNumber")
     public Page<MailDTO> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
@@ -198,6 +201,9 @@ public class MailService {
         return mailPage.map(mail -> mailMapper.toDTO(mail));
     }
 
+
+    @Transactional
+    @CacheEvict(value = "mails", allEntries = true)
     public void moveMailsToFolder(Map<String, Object> mailIds_folder) {
         String folderName = (String) mailIds_folder.get("folder");
         List<Long> ids =  (List<Long>) mailIds_folder.get("ids");
@@ -213,6 +219,8 @@ public class MailService {
         }
     }
 
+    @Transactional(readOnly = true)
+    @Cacheable(value = "mails", key = "#sortBy + '_' + #folderName + '_' + #pageNumber + '_' + #root.target.getCurrentUserEmail()")
     public Page<Mail> getSortedMails(String sortBy, String folderName, int pageNumber, int pageSize) {
         SortWorker sortworker = new SortWorker();
         switch(sortBy.toLowerCase()){
@@ -261,6 +269,7 @@ public class MailService {
         return convertListToPage(sortedMails, pageNumber, pageSize);
     }
 
+    @Transactional(readOnly = true)
     public Page<Mail> Filter(FilterDTO request, int pageNumber, int pageSize) {
         String word = request.getWord();
         List<String> selectedCriteria = request.getCriteria();
