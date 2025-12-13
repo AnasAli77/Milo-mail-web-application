@@ -4,6 +4,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import { FormsModule } from '@angular/forms';
 import { ContactService } from '../../Services/contact-service';
 import { Contact } from '../../models/contact';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-contacts',
@@ -14,6 +15,7 @@ import { Contact } from '../../models/contact';
 })
 export class Contacts implements OnInit {
   contactService = inject(ContactService);
+  private router = inject(Router);
   fb = inject(FormBuilder);
 
   // Search & Sort State
@@ -123,6 +125,8 @@ export class Contacts implements OnInit {
         name: formVal.name,
         emails: cleanEmails
       });
+
+      this.selectedContact.set(null);
     } else {
       this.contactService.addContact({
         name: formVal.name,
@@ -131,11 +135,13 @@ export class Contacts implements OnInit {
     }
 
     this.closeModal();
+
   }
 
   deleteContact(id: number) {
     if (confirm('Are you sure you want to delete this contact?')) {
       this.contactService.deleteContact(id);
+      this.selectedContact.set(null);
     }
   }
 }
