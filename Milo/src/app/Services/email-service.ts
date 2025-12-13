@@ -1,9 +1,9 @@
 import {inject, Injectable, OnInit, signal} from '@angular/core';
-import {Email} from '../models/email'
-import {Router} from '@angular/router';
-import {SearchCriteria} from '../models/searchCriteria';
-import {ApiEmailService} from './api-email-service';
-import {UserService} from './user-service';
+import { Email } from '../models/email'
+import { Router } from '@angular/router';
+import { SearchCriteria } from '../models/searchCriteria';
+import { ApiEmailService } from './api-email-service';
+import { UserService } from './user-service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,9 +14,9 @@ export class EmailService implements OnInit{
   private router = inject(Router);
   private user = inject(UserService);
 
-  // readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
+  readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
   // All folders signal
-  folders = signal<string[]>([]);
+  folders = signal<string[]>([...this.systemFolders]);
 
   selectedEmail = signal<Email | null>(null);
 
@@ -71,7 +71,10 @@ export class EmailService implements OnInit{
   loadFolders() {
     this.api.getUserFolders().subscribe({
       next: (folderNames) => {
-        this.folders.set([...(folderNames)]);
+        const uniqueBackendFolders = folderNames
+          .filter(f => !this.systemFolders.includes(f));
+
+        this.folders.set([...this.systemFolders, ...uniqueBackendFolders]);
 
         console.log("LOL" + this.folders);
       },
@@ -132,7 +135,7 @@ export class EmailService implements OnInit{
   }
 
   deleteFolder(folderName: string) {
-    // if (this.systemFolders.includes(folderName)) return;
+    if (this.systemFolders.includes(folderName)) return;
     this.api.removeFolder(folderName).subscribe(() => {
       this.folders.update(list => list.filter(f => f !== folderName));
       this.loadFolders();
@@ -159,9 +162,11 @@ export class EmailService implements OnInit{
       );
 
       // 2. API Call
-      this.api.markAsRead(email.id).subscribe({
-        error: (err) => console.error('Failed to mark as read', err)
-      });
+      if (email.id != null) {
+        this.api.markAsRead(email.id).subscribe({
+          error: (err) => console.error('Failed to mark as read', err)
+        });
+      }
     }
   }
 
@@ -177,6 +182,7 @@ export class EmailService implements OnInit{
     const adjacentIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
 
     if (adjacentIndex >= 0 && adjacentIndex < emailsInFolder.length) {
+      if(emailsInFolder[adjacentIndex].id != null)
       return emailsInFolder[adjacentIndex].id;
     }
 
@@ -190,22 +196,25 @@ export class EmailService implements OnInit{
     );
 
     // 2. API Call
-    this.api.toggleStar(email.id).subscribe({
-      error: (err) => {
-        console.error('Failed to toggle star', err);
-        // Revert on error
-        this.emailsSignal.update(emails =>
-          emails.map(e => e.id === email.id ? { ...e, starred: !e.starred } : e)
-        );
-      }
-    });
+    if (email.id != null) {
+      this.api.toggleStar(email.id).subscribe({
+        error: (err) => {
+          console.error('Failed to toggle star', err);
+          // Revert on error
+          this.emailsSignal.update(emails =>
+            emails.map(e => e.id === email.id ? {...e, starred: !e.starred} : e)
+          );
+        }
+      });
+    }
   }
 
   moveEmails(emailIds: number[], targetFolder: string) { // Updated ID type to string[]
     this.api.moveToFolder(targetFolder, emailIds).subscribe(() => {
       // Optimistic UI update: remove from current view
-      this.emailsSignal.update(emails => emails.filter(e => !emailIds.includes(e.id)));
-      if (this.selectedEmail() && emailIds.includes(this.selectedEmail()!.id)) {
+      this.emailsSignal.update(emails => emails.filter(e => !emailIds.includes(<number>e.id)));
+
+      if (this.selectedEmail()!.id != null && emailIds.includes(<number>this.selectedEmail()!.id) && this.selectedEmail()) {
         this.selectedEmail.set(null);
       }
     });
@@ -221,7 +230,7 @@ export class EmailService implements OnInit{
   saveDraft(data: any) {
     const currentDraft = this.draftToEdit();
     const draftEmail: Email = {
-      id: currentDraft ? currentDraft.id : 0,
+      id: currentDraft ? currentDraft.id : null,
       folder: 'drafts',
       sender: this.user.getName(), // Current user
       senderEmail: this.user.getEmail(),
@@ -282,7 +291,7 @@ export class EmailService implements OnInit{
   sendEmail(data: any) {
     // Map form data to Email model
     const newEmail: Email = {
-      id: 0, // Backend generates ID
+      id: null, // Backend generates ID
       folder: 'sent',
       sender: this.user.getName(), // Current user
       senderEmail: this.user.getEmail(),

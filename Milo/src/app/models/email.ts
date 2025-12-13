@@ -1,7 +1,7 @@
 import { Attachment } from "./attachment";
 
 export interface Email {
-  id: number;
+  id: number | null;
   folder: string;
   sender: string;
   senderEmail: string;
