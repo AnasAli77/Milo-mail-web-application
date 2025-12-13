@@ -48,7 +48,7 @@
       </div>
 
       <div
-        *ngIf="selectionCount > 0 && currentFolder() != 'sent' && currentFolder() != 'starred' && currentFolder() != 'drafts'"
+        *ngIf="selectionCount > 0 && emailService.currentFolder() != 'sent' && emailService.currentFolder() != 'starred' && emailService.currentFolder() != 'drafts'"
         class="toolbar-content selected-mode fade-in">
         <span class="selected-count">{{selectionCount}} selected</span>
         <div class="move-selector-wrapper">
@@ -67,7 +67,7 @@
            [class.active]="email.id === emailService.selectedEmail()?.id" [class.unread]="!email.read"
            [class.checked]="isChecked(email.id)" (click)="selectEmail(email)">
 
-        <div *ngIf="currentFolder() != 'starred' && currentFolder() != 'sent' && currentFolder() != 'drafts'"
+        <div *ngIf="emailService.currentFolder() != 'starred' && emailService.currentFolder() != 'sent' && emailService.currentFolder() != 'drafts'"
              class="checkbox-wrapper" (click)="$event.stopPropagation()">
           <input type="checkbox" [checked]="isChecked(email.id)" (change)="toggleCheck(email.id, $event)"
                  class="custom-checkbox">
@@ -97,7 +97,7 @@
                       d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
               </svg>
             </button>
-            @if (currentFolder() != "trash"){
+            @if (emailService.currentFolder() != "trash"){
             <button class="star-btn" (click)="$event.stopPropagation(); staremail(email)">
               <svg xmlns="http://www.w3.org/2000/svg" [attr.fill]="email.starred ? '#fbbf24' : 'none'"
                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" [class.starred]="email.starred">
@@ -110,7 +110,7 @@
         </div>
       </div>
       <div *ngIf="filteredEmails().length === 0" class="empty-folder">
-        <p style="text-align: center; color: #94a3b8; margin-top: 2rem;">No emails in {{currentFolder()}}</p>
+        <p style="text-align: center; color: #94a3b8; margin-top: 2rem;">No emails in {{emailService.currentFolder()}}</p>
       </div>
 
       <div class="pagination-bar" *ngIf="emailService.totalElements() > 0 && emailService.totalPages() > 1">
