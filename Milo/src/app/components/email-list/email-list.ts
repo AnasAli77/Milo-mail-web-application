@@ -20,7 +20,8 @@ export class EmailList implements OnInit {
   private router = inject(Router);
   public emailService = inject(EmailService);
 
-  currentFolder = signal<string>('inbox');
+
+
   sortBy = signal('Date');
   checkedEmailIds = signal<Set<number>>(new Set());
 
@@ -30,14 +31,14 @@ export class EmailList implements OnInit {
   filteredEmails = this.emailService.emailsSignal;
 
   moveableFolders = computed(() => {
-    const excluded = ['starred', 'sent', 'drafts', this.currentFolder()];
+    const excluded = ['starred', 'sent', 'drafts', this.emailService.currentFolder()];
     return this.emailService.folders().filter(f => !excluded.includes(f));
   });
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       const folderId = params.get('folderId') || 'inbox';
-      this.currentFolder.set(folderId);
+      this.emailService.currentFolder.set(folderId);
       this.checkedEmailIds.set(new Set());
 
       this.emailService.loadEmailsForFolder(folderId, 0);
@@ -47,7 +48,7 @@ export class EmailList implements OnInit {
 
   // NEW: Refresh Action
   loadData() {
-    this.emailService.loadEmailsForFolder(this.currentFolder());
+    this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
     this.emailService.loadFolders();
   }
 
@@ -114,7 +115,7 @@ export class EmailList implements OnInit {
   updateSort(value: string) {
     this.sortBy.set(value);
     // Call the service to fetch sorted emails
-    this.emailService.sortEmails(this.currentFolder(), value);
+    this.emailService.sortEmails(this.emailService.currentFolder(), value);
   }
 
   onRouterActivate() {
@@ -154,13 +155,13 @@ export class EmailList implements OnInit {
 /* --------------PAGINATION OF LISTS ---------*/
   nextPage() {
     const current = this.emailService.currentPage();
-    const folder = this.currentFolder();
+    const folder = this.emailService.currentFolder();
     this.emailService.changePage(folder, current + 1);
   }
 
   prevPage() {
     const current = this.emailService.currentPage();
-    const folder = this.currentFolder();
+    const folder = this.emailService.currentFolder();
     this.emailService.changePage(folder, current - 1);
   }
 

@@ -19,6 +19,8 @@ export class EmailService implements OnInit {
   // All folders signal
   folders = signal<string[]>([...this.systemFolders]);
 
+  currentFolder = signal<string>('inbox');
+
   selectedEmail = signal<Email | null>(null);
 
   draftToEdit = signal<Email | null>(null);
@@ -213,6 +215,7 @@ export class EmailService implements OnInit {
   moveEmails(emailIds: number[], targetFolder: string) { // Updated ID type to string[]
     this.api.moveToFolder(targetFolder, emailIds).subscribe(() => {
       // Optimistic UI update: remove from current view
+      this.loadEmailsForFolder(this.currentFolder() , this.currentPage());
       this.emailsSignal.update(emails => emails.filter(e => !emailIds.includes(<number>e.id)));
 
       if (this.selectedEmail()!.id != null && emailIds.includes(<number>this.selectedEmail()!.id) && this.selectedEmail()) {
