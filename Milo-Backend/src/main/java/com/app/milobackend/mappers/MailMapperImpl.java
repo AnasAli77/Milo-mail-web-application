@@ -46,18 +46,9 @@ public class MailMapperImpl implements MailMapper {
     @Override
     public Mail toEntity(MailDTO mailDTO) {
         if (mailDTO == null) return null;
-//        Mail mail = Mail.builder()
-//                .sender(clientSender)
-//                .subject(mailDTO.getSubject())
-//                .body(mailDTO.getBody())
-//                .read(mailDTO.isRead())
-//                .active(mailDTO.isActive())
-//                .starred(mailDTO.isStarred())
-//                .hasAttachment(mailDTO.isHasAttachment())
-//                .priority(mailDTO.getPriority())
-//                .build();
 
         Mail.MailBuilder mailBuilder = Mail.builder()
+                .id(mailDTO.getId())
                 .subject(mailDTO.getSubject())
                 .body(mailDTO.getBody())
                 .read(mailDTO.isRead())
@@ -95,10 +86,12 @@ public class MailMapperImpl implements MailMapper {
 
         if (folder != null) {
             mail.setFolder(folder);
-
-            List<Mail> folderMails = folder.getMails();
-            folderMails.add(mail);
-            folder.setMails(folderMails);
+            
+            if (mailDTO.getId() == null) {
+                List<Mail> folderMails = folder.getMails();
+                folderMails.add(mail);
+                folder.setMails(folderMails);
+            }
         }
         
         // Note: Sender relationship (addSentMail) is handled in MailService.saveMail()

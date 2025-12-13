@@ -24,6 +24,7 @@ export class ApiEmailService {
   }
 
   sendEmail(email: Email): Observable<Email> {
+    console.log("FROM SEND EMAIL")
     return this.httpClient.post<Email>(`${environment.baseUrl}/mail/send`, email);
   }
 
@@ -50,10 +51,12 @@ export class ApiEmailService {
     return this.httpClient.get<Email[]>(`${environment.baseUrl}/mail`);
   }
 
+  // discard draft
   removeEmail(id: number): Observable<void> {
     return this.httpClient.delete<void>(`${environment.baseUrl}/mail/delete/${id}`);
   }
 
+  // update draft
   updateEmail(email: Email): Observable<Email> {
     return this.httpClient.put<Email>(`${environment.baseUrl}/mail/update`, email);
   }

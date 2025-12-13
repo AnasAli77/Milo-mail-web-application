@@ -1,4 +1,4 @@
-import {inject, Injectable, OnInit, signal} from '@angular/core';
+import { inject, Injectable, OnInit, signal, NgZone } from '@angular/core';
 import { Email } from '../models/email'
 import { Router } from '@angular/router';
 import { SearchCriteria } from '../models/searchCriteria';
@@ -8,11 +8,12 @@ import { UserService } from './user-service';
 @Injectable({
   providedIn: 'root'
 })
-export class EmailService implements OnInit{
+export class EmailService implements OnInit {
 
   private api = inject(ApiEmailService);
   private router = inject(Router);
   private user = inject(UserService);
+  private zone = inject(NgZone);
 
   readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
   // All folders signal
@@ -182,8 +183,8 @@ export class EmailService implements OnInit{
     const adjacentIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
 
     if (adjacentIndex >= 0 && adjacentIndex < emailsInFolder.length) {
-      if(emailsInFolder[adjacentIndex].id != null)
-      return emailsInFolder[adjacentIndex].id;
+      if (emailsInFolder[adjacentIndex].id != null)
+        return emailsInFolder[adjacentIndex].id;
     }
 
     return null;
@@ -202,7 +203,7 @@ export class EmailService implements OnInit{
           console.error('Failed to toggle star', err);
           // Revert on error
           this.emailsSignal.update(emails =>
-            emails.map(e => e.id === email.id ? {...e, starred: !e.starred} : e)
+            emails.map(e => e.id === email.id ? { ...e, starred: !e.starred } : e)
           );
         }
       });
@@ -230,7 +231,7 @@ export class EmailService implements OnInit{
   saveDraft(data: any) {
     const currentDraft = this.draftToEdit();
     const draftEmail: Email = {
-      id: currentDraft ? currentDraft.id : null,
+      id: currentDraft ? currentDraft.id : 0,
       folder: 'drafts',
       sender: this.user.getName(), // Current user
       senderEmail: this.user.getEmail(),
@@ -250,19 +251,20 @@ export class EmailService implements OnInit{
     // hna ana lma bdoos (x) w elback 3ndo eldraft da be3ml draft gded elmafrood elback
     // DONE NEED TO TESTED
 
-    if (draftEmail.id == null) {
+    if (draftEmail.id == 0) {
       this.api.sendEmail(draftEmail).subscribe({
         next: (savedEmail) => {
           this.draftToEdit.set(null);
           // If we are currently viewing Drafts, update the list
           if (this.router.url.includes('/drafts')) {
             // If it was an edit, update it; if new, add it
-            this.emailsSignal.update(list => {
-              const exists = list.find(e => e.id === savedEmail.id);
-              return exists
-                ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
-                : [savedEmail, ...list];
-            });
+            // this.emailsSignal.update(list => {
+            //   const exists = list.find(e => e.id === savedEmail.id);
+            //   return exists
+            //     ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
+            //     : [savedEmail, ...list];
+            // });
+            this.loadEmailsForFolder("drafts", 0);
           }
         },
         error: (err) => console.error('Failed to save draft', err)
@@ -274,12 +276,13 @@ export class EmailService implements OnInit{
           // If we are currently viewing Drafts, update the list
           if (this.router.url.includes('/drafts')) {
             // If it was an edit, update it; if new, add it
-            this.emailsSignal.update(list => {
-              const exists = list.find(e => e.id === savedEmail.id);
-              return exists
-                ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
-                : [savedEmail, ...list];
-            });
+            // this.emailsSignal.update(list => {
+            //   const exists = list.find(e => e.id === savedEmail.id);
+            //   return exists
+            //     ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
+            //     : [savedEmail, ...list];
+            // });
+            this.loadEmailsForFolder("drafts", 0);
           }
         },
         error: (err) => console.error('Failed to update draft', err)
@@ -291,7 +294,7 @@ export class EmailService implements OnInit{
   sendEmail(data: any) {
     // Map form data to Email model
     const newEmail: Email = {
-      id: null, // Backend generates ID
+      id: 0, // Backend generates ID
       folder: 'sent',
       sender: this.user.getName(), // Current user
       senderEmail: this.user.getEmail(),
@@ -303,16 +306,25 @@ export class EmailService implements OnInit{
       read: true,
       active: false,
       starred: false,
-      hasAttachment: false,
+      hasAttachment: data.attachments && data.attachments.length > 0,
       priority: data.priority || 3
     };
 
-    this.api.sendEmail(newEmail).subscribe(savedEmail => {
+    this.api.sendEmail(newEmail).subscribe({
+      next: (savedEmail) => {
       this.draftToEdit.set(null);
+      console.log("btngaaaan")
       // If we are in 'sent' folder, add to list, otherwise just navigate
       if (this.router.url.includes('/sent')) {
-        this.emailsSignal.update(list => [savedEmail, ...list]);
+        console.log("btngaaaaaaaaaaan2")
+        // this.emailsSignal.update(list => [savedEmail, ...list]);
+        this.loadEmailsForFolder("sent", 0);
       }
+    },
+    error: (err) => {
+      console.log("ERRORRRRRRR")
+      console.log(err);
+    } 
     });
   }
 

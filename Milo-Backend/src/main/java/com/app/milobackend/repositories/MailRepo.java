@@ -23,7 +23,8 @@ public interface MailRepo extends JpaRepository<Mail, Long> {
     @Query("select distinct m from Mail m")
     List<Mail> findAllWithDetails();
 
-    List<Mail> findAllById( Long[] ids);
+    @EntityGraph(attributePaths = {"folder", "sender", "receiver", "attachments"})
+    List<Mail> findByIdIn(List<Long> ids);
 
     // Check if User is (Sender OR Receiver) AND Mail is Starred
     @Query("SELECT DISTINCT m FROM Mail m WHERE m.starred = true AND (m.sender.email = :email OR m.receiver.email = :email)")

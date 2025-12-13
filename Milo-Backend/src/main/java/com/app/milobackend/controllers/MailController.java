@@ -31,7 +31,12 @@ public class MailController {
     public void deleteMail (@PathVariable Long id)
     {
         mailService.deleteMail(id);
+    }
 
+    @PutMapping("/update")
+    public void updateMail(@RequestBody MailDTO mailDTO)
+    {
+        mailService.updateMail(mailDTO);
     }
 
     @PostMapping("/send")

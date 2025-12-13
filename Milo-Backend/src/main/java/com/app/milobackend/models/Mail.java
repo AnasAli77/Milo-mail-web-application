@@ -102,6 +102,7 @@ public class Mail {
                     newAtt.getContent().setAttachment(newAtt);
                 }
                 this.addAttachment(newAtt);
+                newAtt.setMail(this);
             }
         }
     }
@@ -110,6 +111,29 @@ public class Mail {
     public Mail(Mail source, ClientUser receiver) {
         this(source); // Call the base copy constructor
         this.receiver = receiver;
+    }
+
+    public void update(Mail source) {
+        this.subject = source.getSubject();
+        this.body = source.getBody();
+        this.priority = source.getPriority();
+        this.sender = source.getSender(); // Shallow copy is fine for User
+        this.sentAt = LocalDateTime.now();
+        this.read = source.isRead();
+        this.starred = source.isStarred();
+        this.hasAttachment = source.isHasAttachment();
+
+        // Deep Copy Attachments
+//        this.attachments = new HashSet<>();
+        this.attachments.clear();
+        if (source.getAttachments() != null && !source.getAttachments().isEmpty()) {
+            List<Attachment> newAttachments = new ArrayList<>(source.getAttachments());
+            for (Attachment att : newAttachments) {
+//
+                this.addAttachment(att);
+                att.setMail(this);
+            }
+        }
     }
 
     public void addAttachment(Attachment a) {

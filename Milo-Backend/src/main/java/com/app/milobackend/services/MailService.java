@@ -5,9 +5,7 @@ import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
 import com.app.milobackend.mappers.MailMapperImpl;
-import com.app.milobackend.models.ClientUser;
-import com.app.milobackend.models.Folder;
-import com.app.milobackend.models.Mail;
+import com.app.milobackend.models.*;
 import com.app.milobackend.repositories.AttachmentRepository;
 import com.app.milobackend.repositories.FolderRepo;
 import com.app.milobackend.repositories.MailRepo;
@@ -88,6 +86,8 @@ public class MailService {
         return mails;
     }
 
+    @Transactional
+    @CacheEvict(value = "mails", allEntries = true)
     public void deleteMail(Long id) {
         if (mailRepo.findById(id).isPresent()) {
             mailRepo.deleteById(id);
@@ -98,9 +98,25 @@ public class MailService {
         return mailRepo.findById(id).orElse(null);
     }
 
+    @Transactional
     @CacheEvict(value = "mails", allEntries = true)
-    public Mail UpdateMail(Mail mail) {
-        return mailRepo.save(mail);
+    public void updateMail(MailDTO mailDTO) {
+        if (mailDTO.getId() == null) {
+            throw new RuntimeException("Cannot update incomingMail without ID");
+//            this.saveMail(mailDTO);
+        }
+
+        System.out.println("Updating incomingMail...");
+        System.out.println("mailDTO coming with update: " + mailDTO.toString());
+
+        Mail incomingMail = mailMapper.toEntity(mailDTO);
+        System.out.println("incomingMail after update (Mail object): " + incomingMail.toString());
+
+        Mail existingMail = mailRepo.findById(incomingMail.getId())
+                .orElseThrow(() -> new RuntimeException("Mail not found with ID: " + mailDTO.getId()));
+
+        existingMail.update(incomingMail);
+        mailRepo.save(existingMail);
     }
 
     @CacheEvict(value = "mails", allEntries = true)
@@ -116,6 +132,7 @@ public class MailService {
         
         // The folder is already set by the mapper based on mailDTO.getFolder() 
         // (e.g., "sent" for sending, "drafts" for saving draft)
+        senderMail.setId(null);
         mailRepo.save(senderMail);
 
         // Step 2: Process the queue of receivers - each gets their own copy in their inbox
@@ -183,9 +200,17 @@ public class MailService {
 
     public void moveMailsToFolder(Map<String, Object> mailIds_folder) {
         String folderName = (String) mailIds_folder.get("folder");
-        Long[] ids =  (Long[]) mailIds_folder.get("ids");
+        List<Long> ids =  (List<Long>) mailIds_folder.get("ids");
         String userEmail = getCurrentUserEmail();
-        List<Mail> mails = mailRepo.findAllbyId(ids)
+        List<Mail> mails = mailRepo.findByIdIn(ids);
+        Folder folder = folderRepo.findByNameAndUserEmail(folderName, userEmail);
+        for (Mail mail : mails) {
+            mail.setFolder(folder);
+            mailRepo.save(mail);
+
+            folder.addMail(mail);
+            folderRepo.save(folder);
+        }
     }
 
     public Page<Mail> getSortedMails(String sortBy, String folderName, int pageNumber, int pageSize) {
