@@ -42,4 +42,6 @@ public interface MailRepo extends JpaRepository<Mail, Long> {
     @Query("SELECT DISTINCT m FROM Mail m WHERE m.folder.name = :folderName AND (m.sender.email = :email OR m.receiver.email = :email)")
     Page<Mail> findMailsByFolderAndUserInvolvement(@Param("folderName") String folderName, @Param("email") String email, Pageable pageable);
 
+    @Query("SELECT DISTINCT m FROM Mail m WHERE (m.sender.email = :email OR m.receiver.email = :email)")
+    Page<Mail> findMailsByUserInvolvement(@Param("email") String email, Pageable pageable);
 }

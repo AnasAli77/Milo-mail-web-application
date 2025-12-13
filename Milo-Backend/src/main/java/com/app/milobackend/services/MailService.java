@@ -169,7 +169,7 @@ public class MailService {
 
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "mails", key = "#folderName + '_' + #root.target.getCurrentUserEmail() + '_' + #pageNumber")
+    @Cacheable(value = "mails", key = "#folderName + '_' + #root.target.getCurrentUserEmail() + '_' + #pageNumber + '_' + #pageSize")
     public Page<MailDTO> getMailsByFolder(String folderName, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
         String userEmail = getCurrentUserEmail();
@@ -220,7 +220,7 @@ public class MailService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "mails", key = "#sortBy + '_' + #folderName + '_' + #pageNumber + '_' + #root.target.getCurrentUserEmail()")
+    @Cacheable(value = "mails", key = "#sortBy + '_' + #folderName + '_' + #pageNumber + '_' + #pageSize + '_'+ #root.target.getCurrentUserEmail()")
     public Page<Mail> getSortedMails(String sortBy, String folderName, int pageNumber, int pageSize) {
         SortWorker sortworker = new SortWorker();
         switch(sortBy.toLowerCase()){
@@ -289,6 +289,7 @@ public class MailService {
     }
 
 
+    @Transactional
     @CacheEvict(value = "mails", allEntries = true)
     public void toggleStarredMail(Long mailId) {
         Mail mail = mailRepo.findById(mailId).orElse(null);
