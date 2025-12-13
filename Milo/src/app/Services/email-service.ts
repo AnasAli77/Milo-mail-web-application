@@ -313,16 +313,13 @@ export class EmailService implements OnInit {
     this.api.sendEmail(newEmail).subscribe({
       next: (savedEmail) => {
       this.draftToEdit.set(null);
-      console.log("btngaaaan")
       // If we are in 'sent' folder, add to list, otherwise just navigate
       if (this.router.url.includes('/sent')) {
-        console.log("btngaaaaaaaaaaan2")
         // this.emailsSignal.update(list => [savedEmail, ...list]);
         this.loadEmailsForFolder("sent", 0);
       }
     },
     error: (err) => {
-      console.log("ERRORRRRRRR")
       console.log(err);
     } 
     });
