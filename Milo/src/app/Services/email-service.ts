@@ -250,7 +250,7 @@ export class EmailService implements OnInit{
     // hna ana lma bdoos (x) w elback 3ndo eldraft da be3ml draft gded elmafrood elback
     // DONE NEED TO TESTED
 
-    if (draftEmail.id == 0) {
+    if (draftEmail.id == null) {
       this.api.sendEmail(draftEmail).subscribe({
         next: (savedEmail) => {
           this.draftToEdit.set(null);
