@@ -64,13 +64,13 @@ public class MailController {
     public Page<MailDTO> getFilteredMails(@RequestParam("filter") FilterDTO filterDTO, @RequestParam("pageNumber") Integer pageNumber, @RequestParam("pageSize") Integer pageSize){
         return mailService.Filter(filterDTO, pageNumber, pageSize);
     }
-    @PostMapping("/search/{searchBy}")
+    @GetMapping("/search/{searchBy}")
     public Page<MailDTO> searchEmails(@PathVariable("searchBy") String searchBy, @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
         FilterDTO filterDTO = new FilterDTO();
-        filterDTO.setCriteria(List.of("body", "subject", "day","hour","month","priority","receiver"));
+        filterDTO.setCriteria(List.of("body", "subject","receiver"));
         filterDTO.setWord(searchBy);
         return mailService.Filter(filterDTO,pageNumber,pageSize);
-        
+
     }
 
 

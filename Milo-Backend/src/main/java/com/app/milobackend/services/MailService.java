@@ -249,7 +249,17 @@ public class MailService {
                 throw new IllegalArgumentException("Invalid sort by");
         }
         Pageable pageable= PageRequest.of(pageNumber, pageSize);
-        List<Mail> mailsToSort = mailRepo.findMailsByUserInvolvement(getCurrentUserEmail(), pageable);
+        List<Mail> mailsToSort;
+        if(folderName.equalsIgnoreCase("inbox")){
+             mailsToSort = mailRepo.findReceivedMailsByFolder(folderName,getCurrentUserEmail(), pageable).stream().toList();
+        }
+        else if(folderName.equalsIgnoreCase("sent")){
+             mailsToSort = mailRepo.findSentMailsByFolder(folderName,getCurrentUserEmail(), pageable).stream().toList();
+        }
+        else{
+            mailsToSort = mailRepo.findMailsByFolderAndUserInvolvement(folderName,getCurrentUserEmail(), pageable).stream().toList();
+        }
+
         for (Mail mail : mailsToSort) {
             System.out.println(mail.toString());
         }
@@ -261,7 +271,7 @@ public class MailService {
                     .toList();
         } else {
             filtered = mailsToSort.stream()
-                    .filter(mail -> mail != null && mail.getFolder() != null && folderName.equals(mail.getFolder().getName()))
+                    .filter(mail -> mail != null && mail.getFolder() != null && folderName.equalsIgnoreCase(mail.getFolder().getName()))
                     .toList();
         }
         List<Mail> sortedMails =  sortworker.sort(filtered);
@@ -279,7 +289,7 @@ public class MailService {
             selectedCriteria = CriteriaFactory.allCriteriaNames();
         }
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
-        List<Mail> sourceMails = mailRepo.findMailsByUserInvolvement(getCurrentUserEmail(),pageable);
+        List<Mail> sourceMails = mailRepo.findMailsByUserInvolvement(getCurrentUserEmail(),pageable).stream().toList();
 
         List<Mail> filteredMails = new ArrayList<>();
         for(String name : selectedCriteria){
