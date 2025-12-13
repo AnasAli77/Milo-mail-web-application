@@ -144,7 +144,6 @@ export class EmailList implements OnInit {
       this.checkedEmailIds.set(new Set());
       select.value = "";
     }
-    this.loadData();
   }
 
   get selectionCount() {
