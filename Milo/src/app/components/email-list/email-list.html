@@ -55,7 +55,9 @@
           <select (change)="onBulkMove($event)" class="move-select">
             <option value="" disabled selected>Move to...</option>
             <option *ngFor="let folder of moveableFolders()" [value]="folder">
+              @if (currentFolder() != folder){
               {{ folder | titlecase }}
+              }
             </option>
           </select>
         </div>
