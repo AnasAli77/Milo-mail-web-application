@@ -71,7 +71,7 @@ public class MailController {
     }
 
     @PutMapping("/move")
-    public void moveMails(@RequestBody List<MailDTO> mailDTO){
-
+    public void moveMails(@RequestBody Map<String, Object> mailIds_folder){
+        mailService.moveMailsToFolder(mailIds_folder);
     }
 }

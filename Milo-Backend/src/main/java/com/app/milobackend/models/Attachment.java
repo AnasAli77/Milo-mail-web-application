@@ -30,8 +30,9 @@ public class Attachment{
     // cascade = ALL: Saving this Attachment automatically saves the Content
     // fetch = LAZY: Loading this Attachment DOES NOT load the Content (Speed!)
     // optional = false: Every attachment must have content
-    @OneToOne(mappedBy = "attachment", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
-    @JsonIgnore // Important: Don't send the heavy content to the frontend in the list
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "content_id", nullable = false, unique = true)
+    @JsonIgnore // (affects serialization, not persistence)
     private AttachmentContent content;
 
     // Many Attachments belong to one Mail.

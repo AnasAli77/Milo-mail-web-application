@@ -24,11 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 @Service
 public class MailService {
@@ -183,6 +179,13 @@ public class MailService {
         }
 
         return mailPage.map(mail -> mailMapper.toDTO(mail));
+    }
+
+    public void moveMailsToFolder(Map<String, Object> mailIds_folder) {
+        String folderName = (String) mailIds_folder.get("folder");
+        Long[] ids =  (Long[]) mailIds_folder.get("ids");
+        String userEmail = getCurrentUserEmail();
+        List<Mail> mails = mailRepo.findAllbyId(ids)
     }
 
     public Page<Mail> getSortedMails(String sortBy, String folderName, int pageNumber, int pageSize) {

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class FolderService {
 
@@ -23,6 +25,15 @@ public class FolderService {
             return authentication.getName();
         }
         return null; // Or throw an exception
+    }
+
+    public String[] getFolderNames() {
+        List<Folder> folders = folderRepo.findAllByUserEmail(getCurrentUserEmail());
+        String[] folderNames = new String[folders.size()];
+        for (int i = 0; i < folders.size(); i++) {
+            folderNames[i] = folders.get(i).getName();
+        }
+        return folderNames;
     }
 
     public Folder createFolder(String folderName) {

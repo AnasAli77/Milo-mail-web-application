@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -16,6 +17,11 @@ public class FolderController {
 
     @Autowired
     private FolderService folderService;
+
+    @GetMapping
+    public ResponseEntity<String[]> getAllFolders() {
+        return ResponseEntity.ok(folderService.getFolderNames());
+    }
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> createFolder(@RequestBody Map<String, String> folderName) {
