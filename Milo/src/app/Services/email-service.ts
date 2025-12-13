@@ -216,7 +216,7 @@ export class EmailService implements OnInit {
     this.api.moveToFolder(targetFolder, emailIds).subscribe(() => {
       // Optimistic UI update: remove from current view
       this.loadEmailsForFolder(this.currentFolder() , this.currentPage());
-      this.emailsSignal.update(emails => emails.filter(e => !emailIds.includes(<number>e.id)));
+      // this.emailsSignal.update(emails => emails.filter(e => !emailIds.includes(<number>e.id)));
 
       if (this.selectedEmail()!.id != null && emailIds.includes(<number>this.selectedEmail()!.id) && this.selectedEmail()) {
         this.selectedEmail.set(null);
