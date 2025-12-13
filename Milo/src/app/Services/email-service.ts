@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import {inject, Injectable, OnInit, signal} from '@angular/core';
 import { Email } from '../models/email'
 import { Router } from '@angular/router';
 import { SearchCriteria } from '../models/searchCriteria';
@@ -8,7 +8,7 @@ import { UserService } from './user-service';
 @Injectable({
   providedIn: 'root'
 })
-export class EmailService {
+export class EmailService implements OnInit{
 
   private api = inject(ApiEmailService);
   private router = inject(Router);
@@ -39,7 +39,8 @@ export class EmailService {
   readonly pageSize = 9;
 
   constructor() {
-    // Automatically load folders when service is created
+  }
+  ngOnInit() {
     this.loadFolders();
   }
 
@@ -72,7 +73,7 @@ export class EmailService {
         const uniqueBackendFolders = folderNames
           .map(f => f.toLowerCase())
           .filter(f => !this.systemFolders.includes(f));
-        
+
         this.folders.set([...this.systemFolders, ...uniqueBackendFolders]);
       },
       error: (err) => console.error('Failed to load user folders', err)
