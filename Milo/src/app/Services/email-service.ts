@@ -42,7 +42,6 @@ export class EmailService implements OnInit{
   }
   ngOnInit() {
     this.loadFolders();
-    console.log("LOL ON INIT" + this.folders);
   }
 
   // LOAD DATA FROM BACKEND

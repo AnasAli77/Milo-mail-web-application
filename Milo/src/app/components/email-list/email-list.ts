@@ -47,10 +47,12 @@ export class EmailList implements OnInit {
   // NEW: Refresh Action
   loadData() {
     this.emailService.loadEmailsForFolder(this.currentFolder());
+    this.emailService.loadFolders();
   }
 
   refresh() {
     this.loadData();
+
   }
 
   // Helper for Priority Color
