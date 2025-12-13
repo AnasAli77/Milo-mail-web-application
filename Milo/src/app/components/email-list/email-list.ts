@@ -30,7 +30,7 @@ export class EmailList implements OnInit {
   filteredEmails = this.emailService.emailsSignal;
 
   moveableFolders = computed(() => {
-    const excluded = ['starred', 'sent', 'drafts'];
+    const excluded = ['starred', 'sent', 'drafts', this.currentFolder()];
     return this.emailService.folders().filter(f => !excluded.includes(f));
   });
 
