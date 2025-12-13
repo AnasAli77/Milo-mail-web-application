@@ -52,7 +52,7 @@ public class MailService {
     private MailMapperImpl mailMapper;
 
     @Autowired
-    @Lazy // <--- CRITICAL: Prevents application crash on startup
+    @Lazy
     private MailService self;
 
     public String getCurrentUserEmail() {
@@ -77,9 +77,6 @@ public class MailService {
         }
     }
 
-    // 1. READ (The Cache)
-    // The result of this method is stored in Redis under the key "user_mails"
-    // Note: You should ideally cache by User ID (e.g., "mails_user_1")
     @Cacheable(value = "mails", key = "'all_mails'")
     @Transactional(readOnly = true)
     public List<Mail> GetAllMails() {
@@ -110,16 +107,6 @@ public class MailService {
         return mailRepo.save(mail);
     }
 
-    /**
-     * Saves a mail using Queue-based processing for multiple receivers.
-     * 
-     * Flow:
-     * 1. Create sender's copy in their "sent" folder (or "drafts" if saving draft)
-     * 2. For each receiver in the queue, create a copy in their "inbox" folder
-     * 
-     * @param mailDTO The mail data transfer object containing the mail info and receiver queue
-     * @throws RuntimeException if a receiver is not found
-     */
     @CacheEvict(value = "mails", allEntries = true)
     @Transactional
     public void saveMail(MailDTO mailDTO) throws RuntimeException {
@@ -182,15 +169,12 @@ public class MailService {
             mailPage = mailRepo.findStarredMailsForUser(userEmail, pageable);
         }
         else if ("inbox".equalsIgnoreCase(folderName)) {
-            // "check for the mails receivers field"
-            ClientUser receiver = userRepo.findByEmail(userEmail);
-            mailPage = convertListToPage(receiver.getReceivedMails(), pageNumber, pageSize);
-//            mailPage = mailRepo.findReceivedMailsByFolder(folderName, userEmail, pageable);
+            // "check for the mails receivers field" - only mails in inbox folder where user is receiver
+            mailPage = mailRepo.findReceivedMailsByFolder("inbox", userEmail, pageable);
         }
-        else if ("sent".equalsIgnoreCase(folderName) || "draft".equalsIgnoreCase(folderName)) {
-            // "check for the mails sender field"
-            ClientUser sender = userRepo.findByEmail(userEmail);
-            mailPage = convertListToPage(sender.getSentMails(), pageNumber, pageSize);
+        else if ("sent".equalsIgnoreCase(folderName) || "drafts".equalsIgnoreCase(folderName)) {
+            // "check for the mails sender field" - only mails in sent/drafts folder where user is sender
+            mailPage = mailRepo.findSentMailsByFolder(folderName, userEmail, pageable);
 //            mailPage = mailRepo.findSentMailsByFolder(folderName, userEmail, pageable);
         }
         else {
