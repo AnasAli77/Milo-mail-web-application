@@ -52,7 +52,6 @@ export class EmailList implements OnInit , OnDestroy {
     this.refreshsub = interval(30000)
       .pipe(startWith(0))
       .subscribe(() => {
-        console.log("A7A YA SHEXY")
         this.loadData()});
   }
 
