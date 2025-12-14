@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ClientUser } from '../../models/ClientUser';
 import { UserService } from '../../Services/user-service';
 import { ApiAuthService } from '../../Services/api-auth-service';
+import { Alert } from '../../Services/alert';
 
 @Component({
   selector: 'app-signup',
@@ -19,6 +20,8 @@ export class SignUpComponent {
 
   authSignUpForm: FormGroup;
   private fb = inject(FormBuilder);
+  alert = inject(Alert);
+
 
   constructor(private _ApiAuthService: ApiAuthService) {
     this.authSignUpForm = this.fb.group({
@@ -70,12 +73,16 @@ export class SignUpComponent {
             sessionStorage.setItem('email', responseBody.email);
           }
           this.route.navigateByUrl('/layout');
+          this.alert.signupSuccess();
         }
         else {
-          alert("5555555555555555555555");
+          this.alert.signupFail();
         }
       },
-      error: (err) => console.error('Register failed', err)
+      error: (err) => {
+        console.error('Register failed', err)
+        this.alert.signupFail();
+      }
     });
   }
 }

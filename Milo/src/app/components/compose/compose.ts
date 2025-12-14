@@ -7,7 +7,8 @@ import { EmailService } from '../../Services/email-service';
 import { Attachment } from '../../models/attachment';
 import { FileToBase64Service } from '../../Services/file-to-base64-service';
 import { UserService } from '../../Services/user-service';
-import {ApiEmailService} from '../../Services/api-email-service';
+import { ApiEmailService } from '../../Services/api-email-service';
+import { Alert } from '../../Services/alert';
 
 interface ReceiverInput {
   email: string;
@@ -37,7 +38,7 @@ export class Compose {
     private location: Location,
     private emailService: EmailService,
     private fileService: FileToBase64Service,
-    private apiemailservice : ApiEmailService,
+    private apiemailservice: ApiEmailService,
   ) { }
 
   // Load draft data if we are editing one
@@ -170,7 +171,6 @@ export class Compose {
   send() {
     if (this.isFormValid) {
       const emailList = this.receivers.map(r => r.email);
-
       const emailData = {
         to: emailList.join(', '),
         email: emailList,

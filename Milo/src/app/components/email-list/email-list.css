@@ -136,6 +136,7 @@
 
 .checkbox-wrapper {
   padding: 0.125rem 0.75rem 0 0.5rem;
+  align-self: center;
 }
 
 .custom-checkbox {
@@ -155,6 +156,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.25rem;
+}
+
+.draft-indicator {
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
 }
 
 .sender-name {
@@ -267,17 +275,21 @@
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  color: #64748b; /* Slate 500 */
+  color: #64748b;
+  /* Slate 500 */
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  margin-right: -4px; /* Pull slightly closer to star if needed */
+  margin-right: -4px;
+  /* Pull slightly closer to star if needed */
 }
 
 .continue-btn:hover {
-  background-color: #f1f5f9; /* Slate 100 */
-  color: #2563eb; /* Blue 600 */
+  background-color: #f1f5f9;
+  /* Slate 100 */
+  color: #2563eb;
+  /* Blue 600 */
 }
 
 .continue-btn svg {
@@ -291,7 +303,8 @@
   border: none;
   cursor: pointer;
   color: #cbd5e1;
-  padding: 4px; /* Match padding of edit button */
+  padding: 4px;
+  /* Match padding of edit button */
   border-radius: 4px;
   display: flex;
   align-items: center;

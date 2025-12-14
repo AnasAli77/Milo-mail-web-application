@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ApiAuthService } from '../../Services/api-auth-service';
 import { ClientUser } from '../../models/ClientUser';
 import { UserService } from '../../Services/user-service';
+import { Alert } from '../../Services/alert';
 
 
 @Component({
@@ -19,7 +20,8 @@ export class loginComponent {
   route = inject(Router);
   authLoginForm: FormGroup;
   private fb = inject(FormBuilder);
-  
+  alert = inject(Alert);
+
   constructor(private _ApiAuthService: ApiAuthService) {
     this.authLoginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -55,12 +57,16 @@ export class loginComponent {
             sessionStorage.setItem('email', responseBody.email);
           }
           this.route.navigateByUrl('/layout');
+          this.alert.loginSuccess();
         }
         else {
-          alert("5555555555555555555555");
+          this.alert.loginFail();
         }
       },
-      error: (err) => console.error('Login failed', err)
+      error: (err) => {
+        console.error('Login failed', err)
+        this.alert.loginFail();
+      }
     });
   }
 }

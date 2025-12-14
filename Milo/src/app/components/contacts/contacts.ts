@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ContactService } from '../../Services/contact-service';
 import { Contact } from '../../models/contact';
 import {Router} from '@angular/router';
+import { Alert } from '../../Services/alert';
 
 @Component({
   selector: 'app-contacts',
@@ -17,6 +18,7 @@ export class Contacts implements OnInit {
   contactService = inject(ContactService);
   private router = inject(Router);
   fb = inject(FormBuilder);
+  private alert = inject(Alert);
 
   // Search & Sort State
   searchTerm = '';
