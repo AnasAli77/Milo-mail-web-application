@@ -1,10 +1,11 @@
-import { Component, computed, EventEmitter, inject, OnInit, Output, signal } from '@angular/core';
+import {Component, computed, EventEmitter, inject, OnDestroy, OnInit, Output, signal} from '@angular/core';
 import { Email } from '../../models/email';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { EmailService } from '../../Services/email-service';
 import { EmailViewComponent } from '../email-viewer/email-viewer';
+import {interval, startWith, Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-email-list',
@@ -14,12 +15,14 @@ import { EmailViewComponent } from '../email-viewer/email-viewer';
 })
 
 
-export class EmailList implements OnInit {
+export class EmailList implements OnInit , OnDestroy {
+
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   public emailService = inject(EmailService);
 
+  private refreshsub? : Subscription ;
 
 
   sortBy = signal('Date');
@@ -44,6 +47,15 @@ export class EmailList implements OnInit {
       this.emailService.loadEmailsForFolder(folderId, 0);
       this.emailService.loadFolders();
     });
+
+
+    this.refreshsub = interval(60000)
+      .pipe(startWith(0))
+      .subscribe(() => this.loadData());
+  }
+
+  ngOnDestroy() {
+    this.refreshsub?.unsubscribe();
   }
 
   // NEW: Refresh Action
