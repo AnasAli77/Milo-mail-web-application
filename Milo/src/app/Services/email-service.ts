@@ -168,21 +168,23 @@ export class EmailService implements OnInit {
   }
 
 
-  setSelectedEmail(email: Email) {
+  setSelectedEmail(email: Email | null) {
     this.selectedEmail.set(email);
 
     // Logic: If unread, mark as read locally AND on backend
-    if (!email.read) {
-      // 1. Optimistic Update (UI updates immediately)
-      this.emailsSignal.update(all =>
-        all.map(e => e.id === email.id ? { ...e, read: true } : e)
-      );
+    if( email != null) {
+      if (!email.read) {
+        // 1. Optimistic Update (UI updates immediately)
+        this.emailsSignal.update(all =>
+          all.map(e => e.id === email.id ? {...e, read: true} : e)
+        );
 
-      // 2. API Call
-      if (email.id != null) {
-        this.api.markAsRead(email.id).subscribe({
-          error: (err) => console.error('Failed to mark as read', err)
-        });
+        // 2. API Call
+        if (email.id != null) {
+          this.api.markAsRead(email.id).subscribe({
+            error: (err) => console.error('Failed to mark as read', err)
+          });
+        }
       }
     }
   }

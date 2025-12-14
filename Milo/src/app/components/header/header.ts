@@ -57,7 +57,7 @@ export class Header implements OnInit{
   }
 
   signOut() {
-    this.emailService.selectedEmail.set(null);
+    this.emailService.setSelectedEmail(null);
     sessionStorage.clear();
     this.route.navigateByUrl("");
   }
