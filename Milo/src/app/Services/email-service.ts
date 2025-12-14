@@ -187,6 +187,9 @@ export class EmailService implements OnInit {
         }
       }
     }
+    else{
+      this.selectedEmail.set(null);
+    }
   }
 
   getAdjacentEmailId(currentId: number, folder: string, direction: 'next' | 'prev'): number | null {
