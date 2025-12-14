@@ -21,6 +21,8 @@ import java.util.Set;
 @Builder(toBuilder = true)
 @Entity
 public class Mail {
+//    @Transient
+    private LocalDateTime trashedAt;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

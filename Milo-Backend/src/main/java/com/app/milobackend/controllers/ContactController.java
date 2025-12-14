@@ -20,6 +20,21 @@ public class ContactController {
     @Autowired
     private ContactService contactService;
 
+    @GetMapping("/get")
+    public ResponseEntity<List<Contact>> getAllContacts() {
+        return ResponseEntity.ok(contactService.getAllContacts());
+    }
+
+    @GetMapping("/sort/{sortBy}")
+    public List<ContactDTO> getSortedContacts(@PathVariable String sortBy) {
+        return contactService.getSortedContacts(sortBy);
+    }
+
+    @GetMapping("/sort/{search}")
+    public List<ContactDTO> getSearchResults(@PathVariable String search) {
+        return contactService.searchContacts(search);
+    }
+
     @PostMapping("/add")
     public ResponseEntity<Contact> save(@RequestBody ContactDTO contact) {
         System.out.println("Received Contact: " + contact.toString());
@@ -31,24 +46,6 @@ public class ContactController {
         Contact newContact = contactService.storeContact(incomingContact);
 
         return ResponseEntity.ok(newContact);
-    }
-
-    @DeleteMapping("/delete/all")
-    public ResponseEntity<Void> deleteAll() {
-        contactService.deleteAllContacts();
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/delete/{contact_id}")
-    public ResponseEntity<Void> delete(@PathVariable("contact_id") Long contact_id) {
-        contactService.deleteContact(contact_id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/get")
-    public ResponseEntity<List<Contact>> getAllContacts() {
-        return ResponseEntity.ok(contactService.getAllContacts());
     }
 
     @PutMapping("/update/{id}")
@@ -70,5 +67,18 @@ public class ContactController {
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
+    }
+
+    @DeleteMapping("/delete/{contact_id}")
+    public ResponseEntity<Void> delete(@PathVariable("contact_id") Long contact_id) {
+        contactService.deleteContact(contact_id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/delete/all")
+    public ResponseEntity<Void> deleteAll() {
+        contactService.deleteAllContacts();
+        return ResponseEntity.noContent().build();
     }
 }

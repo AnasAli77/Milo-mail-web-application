@@ -23,6 +23,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -212,6 +214,12 @@ public class MailService {
         List<Mail> mails = mailRepo.findByIdIn(ids);
         Folder folder = folderRepo.findByNameAndUserEmail(folderName, userEmail);
         for (Mail mail : mails) {
+            if (folderName.equalsIgnoreCase("trash")) {
+                mail.setTrashedAt(LocalDateTime.now(ZoneId.of("Africa/Cairo")));
+            }
+            else {
+                mail.setTrashedAt(null);
+            }
             mail.setFolder(folder);
             mailRepo.save(mail);
 
