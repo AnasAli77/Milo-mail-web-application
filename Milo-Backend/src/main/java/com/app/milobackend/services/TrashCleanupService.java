@@ -19,9 +19,9 @@ public class TrashCleanupService {
     @Value("${app.trash.retention-minutes}")
     private int retentionMinutes;
 
-    // Run this task every 60000ms (1 minute)
+    // Run this task every 10000ms (10 seconds)
     // You can change 'fixedRate' if you want it to run less often
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 10000)
     @CacheEvict(value = "mails", allEntries = true) // Clear cache so deleted mails disappear from UI
     public void cleanupTrash() {
         // Calculate the cutoff date (Now - Retention Period)
