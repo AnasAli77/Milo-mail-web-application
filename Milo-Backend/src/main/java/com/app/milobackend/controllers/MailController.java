@@ -24,18 +24,6 @@ public class MailController {
     @Autowired
     private MailMapper mailMapper;
 
-    @DeleteMapping("/delete/{id}")
-    public void deleteMail (@PathVariable Long id)
-    {
-        mailService.deleteMail(id);
-    }
-
-    @PutMapping("/update")
-    public void updateMail(@RequestBody MailDTO mailDTO)
-    {
-        mailService.updateMail(mailDTO);
-    }
-
     @PostMapping("/send")
     public Map<String, Object> addMail (@RequestBody MailDTO dto)
     {
@@ -52,11 +40,39 @@ public class MailController {
         response.put("message", message);
         return response;
     }
-    @GetMapping("/sort/{folderName}/{sortBy}")
-    public Page<MailDTO> getSortedMails(@PathVariable("sortBy") String  sortBy,@PathVariable("folderName") String folderName , @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
-        return mailService.getSortedMails(sortBy, folderName, pageNumber, pageSize);
+
+    @GetMapping("/{folderName}")
+    public Page<MailDTO> getMails(@PathVariable String folderName, @RequestParam("page") Integer page, @RequestParam("size") Integer size) {
+        Page<MailDTO> mails = mailService.getMailsByFolder(folderName, page, size);
+        return mails;
     }
-    @GetMapping("/filter") // 8ayar deeh ya 3m markeb
+
+    @DeleteMapping("/delete/{id}")
+    public void deleteMail (@PathVariable Long id) {
+        mailService.deleteMail(id);
+    }
+
+    @PutMapping("/update")
+    public void updateMail(@RequestBody MailDTO mailDTO) {
+        mailService.updateMail(mailDTO);
+    }
+
+    @PutMapping("/read/{mailId}")
+    public void readMail (@PathVariable Long mailId){
+        mailService.markMailAsRead(mailId);
+    }
+
+    @PutMapping("/star/{mailId}")
+    public void toggleStarredMail(@PathVariable Long mailId){
+        mailService.toggleStarredMail(mailId);
+    }
+
+    @PutMapping("/move")
+    public void moveMails(@RequestBody Map<String, Object> mailIds_folder){
+        mailService.moveMailsToFolder(mailIds_folder);
+    }
+
+    @GetMapping("/filter")
     public Page<MailDTO> getFilteredMails(@RequestParam(required = false) String body,
                                           @RequestParam(required = false) String sender,
                                           @RequestParam(required = false) String subject,
@@ -91,20 +107,8 @@ public class MailController {
 
     }
 
-
-    @PutMapping("/star/{mailId}")
-    public void toggleStarredMail(@PathVariable Long mailId){
-        mailService.toggleStarredMail(mailId);
-    }
-
-    @GetMapping("/{folderName}")
-    public Page<MailDTO> getMails(@PathVariable String folderName, @RequestParam("page") Integer page, @RequestParam("size") Integer size) {
-        Page<MailDTO> mails = mailService.getMailsByFolder(folderName, page, size);
-        return mails;
-    }
-
-    @PutMapping("/move")
-    public void moveMails(@RequestBody Map<String, Object> mailIds_folder){
-        mailService.moveMailsToFolder(mailIds_folder);
+    @GetMapping("/sort/{folderName}/{sortBy}")
+    public Page<MailDTO> getSortedMails(@PathVariable("sortBy") String  sortBy,@PathVariable("folderName") String folderName , @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
+        return mailService.getSortedMails(sortBy, folderName, pageNumber, pageSize);
     }
 }

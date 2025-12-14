@@ -373,6 +373,16 @@ public class MailService {
         System.out.println("mail to toggle star (after): " + mail);
     }
 
+    @Transactional
+    @CacheEvict(value = "mails", allEntries = true)
+    public void markMailAsRead(Long mailId) {
+        Mail mail = mailRepo.findById(mailId).orElse(null);
+        if (mail != null) {
+            mail.setRead(true);
+            mailRepo.save(mail);
+        }
+    }
+
     private <T> Page<T> convertListToPage(List<T> list, int pageNumber, int pageSize) {
         // 1. Create Pageable
         Pageable pageable = PageRequest.of(pageNumber, pageSize);

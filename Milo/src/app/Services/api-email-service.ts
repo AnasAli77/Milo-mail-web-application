@@ -28,15 +28,6 @@ export class ApiEmailService {
     return this.httpClient.post<Email>(`${environment.baseUrl}/mail/send`, email);
   }
 
-  // 23melo elsorting 4abah el getEmails w 5alloha t4t8l m3 elfunction deh
-  /*
-    @GetMapping("/sort/{folderName}/{sortBy}")
-    public Page<Mail> getSortedMails(@PathVariable("sortBy") String  sortBy,@PathVariable("folderName")   String folderName , @RequestParam Integer pageNumber, @RequestParam Integer pageSize){
-      return mailService.getSortedMails(sortBy, folderName, pageNumber, pageSize);
-    }
-  */
-
-
   // Fetch emails by folder (e.g., /mail/folder/inbox)
   getEmails(folderName: string, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
     let params = new HttpParams()
@@ -55,12 +46,10 @@ export class ApiEmailService {
     return this.httpClient.put<Email>(`${environment.baseUrl}/mail/update`, email);
   }
 
-  // NEW: Mark as read
   markAsRead(id: number): Observable<void> {
     return this.httpClient.put<void>(`${environment.baseUrl}/mail/read/${id}`, {});
   }
 
-  // NEW: Toggle Star
   toggleStar(id: number): Observable<void> {
     return this.httpClient.put<void>(`${environment.baseUrl}/mail/star/${id}`, {});
   }
@@ -87,7 +76,6 @@ export class ApiEmailService {
     return this.httpClient.put<void>(`${environment.baseUrl}/folders/${oldName}`, { newName });
   }
 
-  // Kamel elfilter ya beeh 2nt w howa + 7otto elpageNumber w elpageSize
   // Search/Filter
   filterEmails(criteria: SearchCriteria, page: number = 0, size: number = 9): Observable<PageResponse<any>> {
     let params = new HttpParams();
