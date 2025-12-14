@@ -49,9 +49,11 @@ export class EmailList implements OnInit , OnDestroy {
     });
 
 
-    this.refreshsub = interval(60000)
+    this.refreshsub = interval(30000)
       .pipe(startWith(0))
-      .subscribe(() => this.loadData());
+      .subscribe(() => {
+        console.log("A7A YA SHEXY")
+        this.loadData()});
   }
 
   ngOnDestroy() {
