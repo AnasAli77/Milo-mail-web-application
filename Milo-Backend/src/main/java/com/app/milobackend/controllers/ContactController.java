@@ -30,7 +30,7 @@ public class ContactController {
         return contactService.getSortedContacts(sortBy);
     }
 
-    @GetMapping("/sort/{search}")
+    @GetMapping("/search/{search}")
     public List<ContactDTO> getSearchResults(@PathVariable String search) {
         return contactService.searchContacts(search);
     }

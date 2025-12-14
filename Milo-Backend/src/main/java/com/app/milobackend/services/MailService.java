@@ -184,7 +184,7 @@ public class MailService {
         Page<Mail> mailPage;
         // Logic breakdown based on your requirements:
         if ("starred".equalsIgnoreCase(folderName)) {
-            // "check both the Mail sender field and recievers" + starred
+            // check both the Mail sender field and receivers + starred
             mailPage = mailRepo.findStarredMailsForUser(userEmail, pageable);
         }
         else if ("inbox".equalsIgnoreCase(folderName)) {
@@ -194,7 +194,6 @@ public class MailService {
         else if ("sent".equalsIgnoreCase(folderName) || "drafts".equalsIgnoreCase(folderName)) {
             // "check for the mails sender field" - only mails in sent/drafts folder where user is sender
             mailPage = mailRepo.findSentMailsByFolder(folderName, userEmail, pageable);
-//            mailPage = mailRepo.findSentMailsByFolder(folderName, userEmail, pageable);
         }
         else {
             // "something else... check for both the sender field and receivers field"

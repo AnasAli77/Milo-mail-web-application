@@ -20,7 +20,7 @@ export class Contacts implements OnInit {
 
   // Search & Sort State
   searchTerm = '';
-  sortBy = 'name'; // 'name' or 'email'
+  sortBy = ''; // '' = no sort selected, 'name' or 'email'
 
   // Selection State
   selectedContact = signal<Contact | null>(null);

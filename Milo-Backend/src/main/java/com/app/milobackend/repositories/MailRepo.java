@@ -45,6 +45,6 @@ public interface MailRepo extends JpaRepository<Mail, Long> {
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM Mail m WHERE m.folder.name = 'Trash' AND m.trashedAt < :cutoffDate")
-    void deleteExpiredTrashMails(@Param("cutoffDate") LocalDateTime cutoffDate);
+    @Query("DELETE FROM Mail m WHERE LOWER(m.folder.name) = 'trash' AND m.trashedAt < :cutoffDate")
+    int deleteExpiredTrashMails(@Param("cutoffDate") LocalDateTime cutoffDate);
 }

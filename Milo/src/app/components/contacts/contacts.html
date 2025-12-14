@@ -33,6 +33,7 @@
       </button>
 
       <select [(ngModel)]="sortBy" (change)="onSortChange()" class="sort-select">
+        <option value="" disabled>Sort by</option>
         <option value="name">Name</option>
         <option value="email">Email</option>
       </select>

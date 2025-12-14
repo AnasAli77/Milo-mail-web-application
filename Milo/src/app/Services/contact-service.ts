@@ -13,14 +13,16 @@ export class ContactService {
   contacts = signal<Contact[]>([]);
 
   /**
-   * Simulates fetching sorted/searched data from backend
+   * Fetches sorted/searched data from backend
    */
-  refreshContacts(searchQuery: string = '', sortBy: string = 'name') {
+  refreshContacts(searchQuery: string = '', sortBy: string = '') {
     if (searchQuery.trim()) {
       this.api.searchContacts(searchQuery).subscribe(data => this.contacts.set(data));
-    } else if (sortBy !== 'name') { // 'name' is default
+    } else if (sortBy) {
+      // Always call sort API when a sort option is selected
       this.api.sortContacts(sortBy).subscribe(data => this.contacts.set(data));
     } else {
+      // No sort selected - get unsorted contacts
       this.api.getContacts().subscribe(data => this.contacts.set(data));
     }
   }

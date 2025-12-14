@@ -25,11 +25,14 @@ public class TrashCleanupService {
     @CacheEvict(value = "mails", allEntries = true) // Clear cache so deleted mails disappear from UI
     public void cleanupTrash() {
         // Calculate the cutoff date (Now - Retention Period)
-        LocalDateTime cutoffDate = LocalDateTime.now().minusMinutes(retentionMinutes);
+        // Use same timezone as when trashedAt is set in MailService
+        LocalDateTime cutoffDate = LocalDateTime.now(java.time.ZoneId.of("Africa/Cairo")).minusMinutes(retentionMinutes);
 
         System.out.println("----- Running Trash Cleanup -----");
-        System.out.println("Deleting Trash mails older than: " + cutoffDate);
+        System.out.println("Retention minutes: " + retentionMinutes);
+        System.out.println("Cutoff date (delete mails trashed before): " + cutoffDate);
 
-        mailRepo.deleteExpiredTrashMails(cutoffDate);
+        int deleted = mailRepo.deleteExpiredTrashMails(cutoffDate);
+        System.out.println("Deleted " + deleted + " expired trash mails");
     }
 }
