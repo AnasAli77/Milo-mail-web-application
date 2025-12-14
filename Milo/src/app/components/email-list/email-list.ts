@@ -59,7 +59,6 @@ export class EmailList implements OnInit , OnDestroy {
     this.refreshsub?.unsubscribe();
   }
 
-  // NEW: Refresh Action
   loadData() {
     this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
     this.emailService.loadFolders();

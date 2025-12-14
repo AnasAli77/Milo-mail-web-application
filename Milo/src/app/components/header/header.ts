@@ -30,13 +30,11 @@ export class Header implements OnInit{
   searchTo = '';
   searchSubject = '';
   searchHasAttachment = false;
-  searchPriority = ''; // NEW: Bind to string for <select>
-  // NEW: Separate date fields
+  searchPriority = '';
   searchDay = '';
   searchMonth = '';
   searchYear = '';
 
-  // NEW: Subject to handle debounce
   private searchDebouncer = new Subject<string>();
 
   ngOnInit() {
@@ -51,7 +49,6 @@ export class Header implements OnInit{
     });
   }
 
-  // NEW: Triggered on every keystroke via (ngModelChange)
   onSearchInput(value: string) {
     this.searchDebouncer.next(value);
   }
