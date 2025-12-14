@@ -59,6 +59,7 @@ export class Header implements OnInit{
   signOut() {
     sessionStorage.clear();
     this.route.navigateByUrl("");
+    this.emailService.selectedEmail.set(null);
   }
 
   toggleProfile() {
