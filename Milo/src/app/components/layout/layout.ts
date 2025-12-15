@@ -1,16 +1,13 @@
 import {Component, EventEmitter, inject, Output, signal} from '@angular/core';
-import { Email } from '../../models/email';
 import { CommonModule } from '@angular/common';
 import { Header } from '../header/header';
 import { Sidebar } from '../sidebar/sidebar';
-import { EmailList } from '../email-list/email-list';
-import {EmailViewComponent} from '../email-viewer/email-viewer';
 import {RouterOutlet} from '@angular/router';
 import {EmailService} from '../../Services/email-service';
 
 @Component({
   selector: 'app-main-layout',
-  imports: [CommonModule, Header, Sidebar, EmailList, EmailViewComponent, RouterOutlet],
+  imports: [CommonModule, Header, Sidebar, RouterOutlet],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
