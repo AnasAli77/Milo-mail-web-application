@@ -10,7 +10,7 @@ import { Alert } from '../../Services/alert';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, JsonPipe, RouterModule, CommonModule],
+  imports: [ReactiveFormsModule, RouterModule, CommonModule],
   templateUrl: './loginComponent.html',
   styleUrl: './loginComponent.css',
 })
