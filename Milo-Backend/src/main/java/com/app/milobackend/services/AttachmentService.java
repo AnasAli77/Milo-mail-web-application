@@ -6,6 +6,7 @@ import com.app.milobackend.models.AttachmentContent;
 import com.app.milobackend.repositories.AttachmentContentRepo;
 import com.app.milobackend.repositories.AttachmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,6 +28,7 @@ public class AttachmentService {
     private AttachmentContentRepo contentRepo;
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "attachment", key = "_#id")
     public String getAttachmentData(Long id) throws RuntimeException {
         Attachment attachment = attachmentrepo.findById(id).orElse(null);
         if (attachment == null) {
