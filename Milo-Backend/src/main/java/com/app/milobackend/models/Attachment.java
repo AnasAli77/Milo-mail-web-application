@@ -19,6 +19,7 @@ public class Attachment{
 
     private String name;
     private String type;
+    private Long size; // File size in bytes - stored to avoid lazy-loading content just for size
 
 //    @Column(name = "data", columnDefinition="BYTEA")
 //    private byte[] data;
@@ -42,6 +43,7 @@ public class Attachment{
     public Attachment(String fileName, String fileType, byte[] data) {
         this.name = fileName;
         this.type = fileType;
+        this.size = data != null ? (long) data.length : 0L; // Store size at creation time
 
         // Create the content object and link them
         this.content = new AttachmentContent(data);

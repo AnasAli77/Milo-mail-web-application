@@ -61,7 +61,7 @@
 
           <div class="file-info">
             <span class="file-name">{{file.fileName}}</span>
-            <!-- <span class="file-size" *ngIf="file.size">{{file.size}}</span> -->
+            <span class="file-size" *ngIf="file.size">{{formatFileSize(file.size)}}</span>
           </div>
 
           <!-- Download Button -->

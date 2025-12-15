@@ -38,11 +38,15 @@ public class AttachmentMapperImpl implements AttachmentMapper {
         if (entity == null) return null;
 
         AttachmentDTO dto = new AttachmentDTO();
+        dto.setId(entity.getId());
         dto.setFileName(entity.getName());
         dto.setFileType(entity.getType());
         // IMPORTANT: We do NOT map the content back to DTO here.
         // We want the list to be light. Content is fetched only via specific download endpoint.
         dto.setBase64Content(null);
+        
+        // Use the cached size field (avoids lazy-loading the heavy content blob)
+        dto.setSize(entity.getSize());
 
         return dto;
     }
