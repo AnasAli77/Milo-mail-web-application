@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CriteriaSender implements Criteria {
-    private String word;
+    private final String word;
     public CriteriaSender(String word) {
         this.word = word.toLowerCase();
     }

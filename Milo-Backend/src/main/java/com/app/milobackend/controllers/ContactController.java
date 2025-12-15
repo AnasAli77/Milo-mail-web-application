@@ -3,7 +3,6 @@ package com.app.milobackend.controllers;
 import com.app.milobackend.dtos.ContactDTO;
 import com.app.milobackend.models.Contact;
 import com.app.milobackend.services.ContactService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,11 @@ import java.util.Map;
 @RequestMapping("/contact")
 public class ContactController {
 
-    @Autowired
-    private ContactService contactService;
+    private final ContactService contactService;
+
+    public ContactController(ContactService contactService) {
+        this.contactService = contactService;
+    }
 
     @GetMapping("/get")
     public ResponseEntity<List<Contact>> getAllContacts() {

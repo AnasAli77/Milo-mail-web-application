@@ -20,7 +20,7 @@ export class Alert {
     timerProgressBar: true,
     background: this.darkBackground,
     color: this.darkText,
-    didOpen: (toast) => {
+    didOpen: (toast: HTMLElement) => {
       toast.addEventListener('mouseenter', Swal.stopTimer);
       toast.addEventListener('mouseleave', Swal.resumeTimer);
     }

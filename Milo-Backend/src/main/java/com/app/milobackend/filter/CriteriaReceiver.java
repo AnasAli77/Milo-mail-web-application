@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CriteriaReceiver implements Criteria {
-    private String word;
+    private final String word;
     public CriteriaReceiver(String word) {
         this.word = word.toLowerCase();
     }

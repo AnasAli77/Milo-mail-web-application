@@ -2,13 +2,11 @@ package com.app.milobackend.filter;
 
 import com.app.milobackend.models.Mail;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CriteriaHour implements Criteria{
-    private int hour;
+    private final int hour;
     public CriteriaHour(String hour)
     {
         this.hour=Integer.parseInt(hour);

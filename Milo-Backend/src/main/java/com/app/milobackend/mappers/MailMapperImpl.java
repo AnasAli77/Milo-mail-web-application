@@ -9,31 +9,33 @@ import com.app.milobackend.models.Mail;
 import com.app.milobackend.repositories.FolderRepo;
 import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.services.AttachmentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.stream.Collectors;
 
 @Component
 public class MailMapperImpl implements MailMapper {
 
-    @Autowired
+    final
     UserRepo userRepo;
 
-    @Autowired
+    final
     AttachmentService attachmentService;
 
-    @Autowired
+    final
     FolderRepo folderRepo;
 
-    @Autowired
-    private AttachmentMapper attachmentMapper;
+    private final AttachmentMapper attachmentMapper;
+
+    public MailMapperImpl(UserRepo userRepo, AttachmentService attachmentService, FolderRepo folderRepo, AttachmentMapper attachmentMapper) {
+        this.userRepo = userRepo;
+        this.attachmentService = attachmentService;
+        this.folderRepo = folderRepo;
+        this.attachmentMapper = attachmentMapper;
+    }
 
     public String getCurrentUserEmail() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -127,7 +129,7 @@ public class MailMapperImpl implements MailMapper {
 
         List<Attachment> attachments = entity.getAttachments().stream().toList();
         List<AttachmentDTO> attachmentDTOs = attachments.stream().map(
-                (attachment -> attachmentMapper.toDTO(attachment))).toList();
+                (attachmentMapper::toDTO)).toList();
 
         dto.setAttachments(attachmentDTOs);
         dto.setFolder(entity.getFolder().getName());

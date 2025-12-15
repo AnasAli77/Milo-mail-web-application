@@ -3,8 +3,6 @@ package com.app.milobackend.controllers;
 import com.app.milobackend.dtos.UserDTO;
 import com.app.milobackend.models.ClientUser;
 import com.app.milobackend.services.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +14,11 @@ import java.util.Map;
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @GetMapping("/hello")
     public String hello() {
@@ -59,8 +60,6 @@ public class AuthController {
             response.put("status", 200);
             response.put("body", returnedUser);
             return ResponseEntity.status(HttpStatus.OK).body(response);
-//            return ResponseEntity.status(200).body(returnedUser);
-//            return ResponseEntity.ok(returnedUser);
         }
         else
             return ResponseEntity.badRequest().build();

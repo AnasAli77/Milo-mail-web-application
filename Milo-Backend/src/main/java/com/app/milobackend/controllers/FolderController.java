@@ -2,21 +2,22 @@ package com.app.milobackend.controllers;
 
 import com.app.milobackend.models.Folder;
 import com.app.milobackend.services.FolderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/folders")
 public class FolderController {
 
-    @Autowired
-    private FolderService folderService;
+    private final FolderService folderService;
+
+    public FolderController(FolderService folderService) {
+        this.folderService = folderService;
+    }
 
     @GetMapping
     public ResponseEntity<String[]> getAllFolders() {

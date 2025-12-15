@@ -3,9 +3,7 @@ package com.app.milobackend.controllers;
 import com.app.milobackend.dtos.FilterDTO;
 import com.app.milobackend.dtos.SearchDTO;
 import com.app.milobackend.dtos.MailDTO;
-import com.app.milobackend.mappers.MailMapper;
 import com.app.milobackend.services.MailService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -17,18 +15,19 @@ import java.util.Map;
 @CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/mail")
-@RequiredArgsConstructor
 public class MailController {
-    @Autowired
     private final MailService mailService;
+
     @Autowired
-    private MailMapper mailMapper;
+    public MailController(MailService mailService) {
+        this.mailService = mailService;
+    }
 
     @PostMapping("/send")
     public Map<String, Object> addMail (@RequestBody MailDTO dto)
     {
         System.out.println("Mail received: " + dto.toString());
-        String message = "";
+        String message;
         try {
             mailService.saveMail(dto);
             message = "Mail has been saved successfully";
@@ -43,8 +42,7 @@ public class MailController {
 
     @GetMapping("/{folderName}")
     public Page<MailDTO> getMails(@PathVariable String folderName, @RequestParam("page") Integer page, @RequestParam("size") Integer size) {
-        Page<MailDTO> mails = mailService.getMailsByFolder(folderName, page, size);
-        return mails;
+        return mailService.getMailsByFolder(folderName, page, size);
     }
 
     @DeleteMapping("/delete/{id}")

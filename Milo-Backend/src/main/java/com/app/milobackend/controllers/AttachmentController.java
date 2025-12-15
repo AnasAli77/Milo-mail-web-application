@@ -1,7 +1,6 @@
 package com.app.milobackend.controllers;
 
 import com.app.milobackend.services.AttachmentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/attachment")
 public class AttachmentController {
 
-    @Autowired
-    private AttachmentService attachmentService;
+    private final AttachmentService attachmentService;
+
+    public AttachmentController(AttachmentService attachmentService) {
+        this.attachmentService = attachmentService;
+    }
 
     @GetMapping("/hello")
     public String hello() {
@@ -29,13 +31,4 @@ public class AttachmentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=file_"+name)
                 .body(data);
     }
-
-//    @PostMapping("/upload")
-//    public ResponseEntity<Attachment> upload(@RequestParam("file") MultipartFile file) throws IOException {
-//        System.out.println("============== File uploaded: " + file.getOriginalFilename());
-//        Attachment attachment = attachmentService.storeFile(file);
-//
-//        return ResponseEntity.status(HttpStatus.CREATED).body(attachment);
-//    }
-
 }

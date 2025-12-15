@@ -7,42 +7,20 @@ public class CriteriaFactory {
     public static Criteria create(String name, String word) {
         if (name == null) return null;
 
-        switch (name.toLowerCase()) {
-            case "body":
-                return new CriteriaBody(word);
-
-            case "subject":
-                return new CriteriaSubject(word);
-
-            case "sender":
-                return new CriteriaSender(word);
-
-           case "receiver":
-                return new CriteriaReceiver(word);
-
-            case "priority":
-                return new CriteriaPriority(word);
-
-            case "day":
-                return new CriteriaDay(word);
-
-            case "month":
-                return new CriteriaMonth(word);
-
-            case "year":
-                return new CriteriaYear(word);
-
-            case "hour":
-                return new CriteriaHour(word);
-
-            case "minute":
-                return new CriteriaMinute(word);
-            case "hasattachment":
-                return new CrteriaHasAttachment();
-
-            default:
-                return null;
-        }
+        return switch (name.toLowerCase()) {
+            case "body" -> new CriteriaBody(word);
+            case "subject" -> new CriteriaSubject(word);
+            case "sender" -> new CriteriaSender(word);
+            case "receiver" -> new CriteriaReceiver(word);
+            case "priority" -> new CriteriaPriority(word);
+            case "day" -> new CriteriaDay(word);
+            case "month" -> new CriteriaMonth(word);
+            case "year" -> new CriteriaYear(word);
+            case "hour" -> new CriteriaHour(word);
+            case "minute" -> new CriteriaMinute(word);
+            case "hasattachment" -> new CriteriaHasAttachment();
+            default -> null;
+        };
     }
 
     public static List<String> allCriteriaNames() {

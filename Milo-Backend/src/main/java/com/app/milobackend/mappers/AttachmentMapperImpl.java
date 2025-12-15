@@ -20,8 +20,6 @@ public class AttachmentMapperImpl implements AttachmentMapper {
         if (dto.getBase64Content() != null && !dto.getBase64Content().isEmpty()) {
             try {
                 // Decode Base64 -> Byte[]
-                // In Angular, files often come as "data:image/png;base64,iVBOR..."
-                // You might need to split the string if it contains the header.
                 String cleanBase64 = dto.getBase64Content();
                 if (cleanBase64.contains(",")) {
                     cleanBase64 = cleanBase64.split(",")[1];
