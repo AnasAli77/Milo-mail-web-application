@@ -18,6 +18,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @Entity
+@Table(name = "mails")
 public class Mail {
 //    @Transient
     private LocalDateTime trashedAt;
@@ -91,6 +92,7 @@ public class Mail {
                 Attachment newAtt = new Attachment();
                 newAtt.setName(att.getName());
                 newAtt.setType(att.getType());
+                newAtt.setSize(att.getSize());
 
                 // IMPORTANT: Point to the same heavy content ID or Path
                 // If using the Split Table approach:

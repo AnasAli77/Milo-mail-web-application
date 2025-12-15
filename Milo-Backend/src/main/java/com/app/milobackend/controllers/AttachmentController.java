@@ -6,6 +6,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/attachment")
@@ -22,13 +25,14 @@ public class AttachmentController {
         return "Hello from attachment";
     }
 
-    @GetMapping("/download/{attachmentName}")
-    public ResponseEntity<byte[]> downloadAttachment(@PathVariable("attachmentName") String name) {
-        byte[] data = attachmentService.getAttachmentData(name);
+    @GetMapping("/download/{attachmentId}")
+    public Map<String, Object> downloadAttachment(@PathVariable("attachmentId") Long id) {
+        String data = attachmentService.getAttachmentData(id);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=file_"+name)
-                .body(data);
+        System.out.println(data);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", data);
+
+        return response;
     }
 }

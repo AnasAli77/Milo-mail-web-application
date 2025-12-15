@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { SearchCriteria } from '../models/searchCriteria';
 import { ApiEmailService } from './api-email-service';
 import { UserService } from './user-service';
+import { HttpResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +30,7 @@ export class EmailService implements OnInit {
   // Current Search State
   searchCriteria = signal<SearchCriteria>({});
 
-  // NEW: State for Simple String Search
+  // State for Simple String Search
   currentSearchTerm = signal<string>('');
 
   // Sorting State (Default: Date)
@@ -48,7 +50,7 @@ export class EmailService implements OnInit {
     this.loadFolders();
   }
 
-  // UPDATED: Now handles pagination for Search and Filter as well
+  // Now handles pagination for Search and Filter as well
   loadEmailsForFolder(folder: string , page : number = 0) {
     this.currentSortBy.set('');
 
@@ -367,6 +369,17 @@ export class EmailService implements OnInit {
     this.currentSearchTerm.set('');
     this.router.navigate(['/layout/search']);
     this.loadEmailsForFolder('search', 0); // Load page 0
+  }
+
+  // Convert Observable to Promise so we can use async/await
+  async getAttachmentData(id: number): Promise<string> {
+    try {
+      const response = await firstValueFrom(this.api.getAttachmentContent(id));
+      return response.data;
+    } catch (err) {
+      console.error('Failed to get attachment data', err);
+      return '';
+    }
   }
 
 }

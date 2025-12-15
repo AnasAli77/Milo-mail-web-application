@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Email } from '../models/email';
 import { SearchCriteria } from '../models/searchCriteria';
@@ -107,5 +107,9 @@ export class ApiEmailService {
       .set('pageSize', size);
 
     return this.httpClient.get<PageResponse<any>>(`${environment.baseUrl}/mail/sort/${folderName}/${sortBy}`, { params });
+  }
+
+  getAttachmentContent(id: number): Observable<{data : string}> {
+    return this.httpClient.get<{data : string}>(`${environment.baseUrl}/attachment/download/${id}`)
   }
 }

@@ -53,8 +53,11 @@ export class EmailViewComponent implements OnInit {
   }
 
   // --- Download Logic (Restored) ---
-  downloadFile(attachment: Attachment) {
+  async downloadFile(attachment: Attachment) {
+    
     try {
+      //get the attachment data from the backend
+      attachment.base64Content = await this.emailService.getAttachmentData(attachment?.id?? 0)
       // 1. Convert Base64 string back to binary data
       const byteCharacters = atob(attachment.base64Content);
       const byteNumbers = new Array(byteCharacters.length);
@@ -85,5 +88,25 @@ export class EmailViewComponent implements OnInit {
     } catch (e) {
       console.error('Download failed', e);
     }
+  }
+
+  getFileSizeFromBase64(base64: string): number {
+    // Remove data URL prefix if present (e.g., "data:image/png;base64,")
+    const base64String = base64.includes(',') ? base64.split(',')[1] : base64;
+
+    // Count padding characters
+    let padding = 0;
+    if (base64String.endsWith('==')) padding = 2;
+    else if (base64String.endsWith('=')) padding = 1;
+
+    // Calculate original size in bytes
+    return (base64String.length * 3) / 4 - padding;
+  }
+
+  // Format for display
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   }
 }

@@ -26,32 +26,17 @@ public class AttachmentService {
     @Autowired
     private AttachmentContentRepo contentRepo;
 
-    public Attachment createAttachmentEntity(MultipartFile file) throws IOException {
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-
-        // Just create the object in memory. Do NOT save it yet.
-        return new Attachment(
-                fileName,
-                file.getContentType(),
-                file.getBytes()
-        );
-    }
-
-    public Attachment getFile(Long fileId) {
-        return attachmentrepo.findById(fileId)
-                .orElseThrow(() -> new RuntimeException("File not found with id: " + fileId));
-    }
-
     @Transactional(readOnly = true)
-    public byte[] getAttachmentData(String attachmentName) throws RuntimeException {
-        Attachment attachment = attachmentrepo.findByName(attachmentName);
+    public String getAttachmentData(Long id) throws RuntimeException {
+        Attachment attachment = attachmentrepo.findById(id).orElse(null);
         if (attachment == null) {
-            throw new RuntimeException("Attachment with name" +attachmentName+ "is not found");
+            throw new RuntimeException("Attachment with id" + id + "is not found");
         }
 
         AttachmentContent content = attachment.getContent();
 
-        return content.getData();
+        byte[] data =  content.getData();
+        return Base64.getEncoder().encodeToString(data);
     }
 
     public List<Attachment> convertDTOsToAttachments(List<AttachmentDTO> attachmentDTOs) {
