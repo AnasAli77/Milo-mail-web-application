@@ -6,8 +6,11 @@ import com.app.milobackend.dtos.MailDTO;
 import com.app.milobackend.services.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,20 +26,30 @@ public class MailController {
         this.mailService = mailService;
     }
 
-    @PostMapping("/send")
-    public Map<String, Object> addMail (@RequestBody MailDTO dto)
+    @PostMapping(value = "/send", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Map<String, Object> addMail (
+            @RequestPart("mail") MailDTO dto,
+            @RequestPart(value="files", required = false) List<MultipartFile> files
+    )
     {
-        System.out.println("Mail received: " + dto.toString());
-        String message;
+//        System.out.println("=== /mail/send endpoint hit ===");
+        System.err.println("Mail to save received: " + dto.toString());
+//        System.out.println("Files received: " + (files != null ? files.size() : 0));
+        
+        Map<String, Object> response = new HashMap<>();
         try {
-            mailService.saveMail(dto);
-            message = "Mail has been saved successfully";
-        } catch (RuntimeException e) {
-            message = e.getMessage();
+            mailService.saveMail(dto, files);
+            response.put("success", true);
+            response.put("message", "Mail has been saved successfully");
+//            System.out.println("=== Mail saved successfully ===");
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+//            System.err.println("=== Error saving mail ===");
+//            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", message);
         return response;
     }
 
@@ -50,9 +63,18 @@ public class MailController {
         mailService.deleteMail(id);
     }
 
-    @PutMapping("/update")
-    public void updateMail(@RequestBody MailDTO mailDTO) {
-        mailService.updateMail(mailDTO);
+    @PutMapping(value="/update", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void updateMail(
+            @RequestPart("mail") MailDTO mailDTO,
+            @RequestPart(value="files" , required = false) List<MultipartFile> files
+    )
+    {
+        System.err.println("Mail to update received: " +  mailDTO.toString());
+        try {
+            mailService.updateMail(mailDTO, files);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @PutMapping("/read/{mailId}")

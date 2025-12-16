@@ -80,8 +80,23 @@ export class SignUpComponent {
         }
       },
       error: (err) => {
-        console.error('Register failed', err)
-        this.alert.signupFail();
+        console.error('Register failed', err);
+        let msg = 'Something went wrong';
+
+        // Case 1: Backend not running (Connection Refused usually returns status 0)
+        if (err.status === 0) {
+          msg = 'Unable to connect to the server. Please check if the backend is running.';
+        }
+        // Case 2: Email already exists (Assuming 409 Conflict or checking error message)
+        // Adjust status code based on actual backend implementation if needed (often 409 or 400 for duplicate)
+        else if (err.status === 409 || (err.error && typeof err.error === 'string' && err.error.toLowerCase().includes('exist'))) {
+          msg = 'This email is already registered. Please login or use a different email.';
+        }
+        else if (err.error && typeof err.error === 'string') {
+          msg = err.error;
+        }
+
+        this.alert.signupFail(msg);
       }
     });
   }

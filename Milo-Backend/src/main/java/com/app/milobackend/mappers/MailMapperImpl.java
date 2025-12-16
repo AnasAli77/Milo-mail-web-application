@@ -11,10 +11,14 @@ import com.app.milobackend.repositories.UserRepo;
 import com.app.milobackend.services.AttachmentService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 @Component
 public class MailMapperImpl implements MailMapper {
@@ -46,7 +50,7 @@ public class MailMapperImpl implements MailMapper {
     }
 
     @Override
-    public Mail toEntity(MailDTO mailDTO) {
+    public Mail toEntity(MailDTO mailDTO, List<MultipartFile> files) throws IOException {
         if (mailDTO == null) return null;
 
         Mail.MailBuilder mailBuilder = Mail.builder()
@@ -67,16 +71,30 @@ public class MailMapperImpl implements MailMapper {
 
         Mail mail = mailBuilder.build();
 
-        // 2. Convert Files to Attachment Entities (In Memory)
-        if (mailDTO.getAttachments() != null) {
-            List<Attachment> attachments = attachmentService.convertDTOsToAttachments(mailDTO.getAttachments());
+        // Handle attachments:
+        // 1. Collect IDs of existing attachments that should be kept
+//        Set<Long> existingAttachmentIds = new HashSet<>();
+//        if (mailDTO.getAttachments() != null) {
+//            for (var attachmentDTO : mailDTO.getAttachments()) {
+//                if (attachmentDTO.getId() != null) {
+//                    existingAttachmentIds.add(attachmentDTO.getId());
+//                }
+//            }
+//        }
+        // Store these IDs for MailService to use when preserving attachments
+//        mail.setExistingAttachmentIds(existingAttachmentIds);
 
-            // 3. Link them together
+        // 2. Convert new Files to Attachment Entities
+        System.err.println("####################################################################################");
+        if (!(files == null || files.isEmpty()) || !(mailDTO.getAttachments() == null || mailDTO.getAttachments().isEmpty())) {
+            List<Attachment> attachments = attachmentService.convertDTOsToAttachments(mailDTO.getAttachments(), files);
             for (Attachment attachment : attachments) {
+                System.err.println("Attachment printed: " + attachment.toString());
                 attachment.setMail(mail);
                 mail.addAttachment(attachment);
             }
         }
+        System.err.println("####################################################################################");
 
         String folderName = mailDTO.getFolder();
         String email = getCurrentUserEmail();
@@ -84,7 +102,6 @@ public class MailMapperImpl implements MailMapper {
             throw new RuntimeException("User not Authenticated");
         }
         Folder folder = folderRepo.findByNameAndUserEmail(folderName, email);
-//        System.out.println(STR."folderName: \{folder.getName()} from the database");
 
         if (folder != null) {
             mail.setFolder(folder);

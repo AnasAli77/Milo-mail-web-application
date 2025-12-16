@@ -25,21 +25,26 @@ public interface MailRepo extends JpaRepository<Mail, Long> {
     List<Mail> findByIdIn(List<Long> ids);
 
     // Check if User is (Sender OR Receiver) AND Mail is Starred
+    @EntityGraph(attributePaths = {"folder", "sender", "receiver", "attachments"})
     @Query("SELECT DISTINCT m FROM Mail m WHERE m.starred = true AND (m.sender.email = :email OR m.receiver.email = :email)")
     Page<Mail> findStarredMailsForUser(@Param("email") String email, Pageable pageable);
 
     // Check if User is a Receiver AND Folder is correct for inbox
+    @EntityGraph(attributePaths = {"folder", "sender", "receiver", "attachments"})
     @Query("SELECT DISTINCT m FROM Mail m WHERE m.folder.name = :folderName AND m.receiver.email = :email")
     Page<Mail> findReceivedMailsByFolder(@Param("folderName") String folderName, @Param("email") String email, Pageable pageable);
 
     // Check if User is the Sender AND Folder is correct for sent/drafts
+    @EntityGraph(attributePaths = {"folder", "sender", "receiver", "attachments"})
     @Query("SELECT m FROM Mail m WHERE m.folder.name = :folderName AND m.sender.email = :email")
     Page<Mail> findSentMailsByFolder(@Param("folderName") String folderName, @Param("email") String email, Pageable pageable);
 
     // Check if User is (Sender OR Receiver) AND Folder is correct for Other/Generic
+    @EntityGraph(attributePaths = {"folder", "sender", "receiver", "attachments"})
     @Query("SELECT DISTINCT m FROM Mail m WHERE m.folder.name = :folderName AND (m.sender.email = :email OR m.receiver.email = :email)")
     Page<Mail> findMailsByFolderAndUserInvolvement(@Param("folderName") String folderName, @Param("email") String email, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"folder", "sender", "receiver", "attachments"})
     @Query("SELECT DISTINCT m FROM Mail m WHERE (m.sender.email = :email OR m.receiver.email = :email)")
     Page<Mail> findMailsByUserInvolvement(@Param("email") String email, Pageable pageable);
 

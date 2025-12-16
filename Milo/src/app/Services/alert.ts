@@ -52,14 +52,10 @@ export class Alert {
   // --- SIGNUP ALERTS ---
 
   signupSuccess() {
-    Swal.fire({
+    this.Toast.fire({
       icon: 'success',
-      title: 'Account Created!',
-      text: 'You have successfully signed up. Please log in.',
-      background: this.darkBackground,
-      color: this.darkText,
-      confirmButtonColor: this.confirmBtnColor,
-      confirmButtonText: 'Go to Login',
+      title: 'Registration Successful',
+      text: 'Welcome to Milo!',
       iconColor: '#4ade80'
     });
   }
