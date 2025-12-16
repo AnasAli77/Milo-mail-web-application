@@ -14,23 +14,23 @@ public class AttachmentMapperImpl implements AttachmentMapper {
 
     @Override
     public Attachment toEntity(AttachmentDTO dto) {
-        if (dto == null) return null;
+//        if (dto == null) return null;
 
-        byte[] decodedBytes = null;
-        if (dto.getBase64Content() != null && !dto.getBase64Content().isEmpty()) {
-            try {
-                // Decode Base64 -> Byte[]
-                String cleanBase64 = dto.getBase64Content();
-                if (cleanBase64.contains(",")) {
-                    cleanBase64 = cleanBase64.split(",")[1];
-                }
-                decodedBytes = Base64.getDecoder().decode(cleanBase64);
-            } catch (IllegalArgumentException e) {
-                System.err.println("Failed to decode attachment: " + dto.getFileName());
-            }
-        }
+//        byte[] decodedBytes = null;
+//        if (dto.getBase64Content() != null && !dto.getBase64Content().isEmpty()) {
+//            try {
+//                // Decode Base64 -> Byte[]
+//                String cleanBase64 = dto.getBase64Content();
+//                if (cleanBase64.contains(",")) {
+//                    cleanBase64 = cleanBase64.split(",")[1];
+//                }
+//                decodedBytes = Base64.getDecoder().decode(cleanBase64);
+//            } catch (IllegalArgumentException e) {
+//                System.err.println("Failed to decode attachment: " + dto.getFileName());
+//            }
+//        }
 
-        return new Attachment(dto.getFileName(), dto.getFileType(), decodedBytes);
+        return new Attachment(dto.getFileName(), dto.getFileType());
     }
 
     @Override
@@ -43,23 +43,11 @@ public class AttachmentMapperImpl implements AttachmentMapper {
         dto.setFileType(entity.getType());
         // IMPORTANT: We do NOT map the content back to DTO here.
         // We want the list to be light. Content is fetched only via specific download endpoint.
-        dto.setBase64Content(null);
+//        dto.setBase64Content(null);
         
         // Use the cached size field (avoids lazy-loading the heavy content blob)
         dto.setSize(entity.getSize());
 
         return dto;
-    }
-
-    @Override
-    public List<Attachment> toEntityList(List<AttachmentDTO> dtos) {
-        if (dtos == null) return new ArrayList<>();
-        return dtos.stream().map(this::toEntity).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<AttachmentDTO> toDTOList(List<Attachment> entities) { // Changed input from Set to List if needed, or convert
-        if (entities == null) return new ArrayList<>();
-        return entities.stream().map(this::toDTO).collect(Collectors.toList());
     }
 }

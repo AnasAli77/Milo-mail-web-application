@@ -29,7 +29,10 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> register(@RequestBody UserDTO user) {
 
         if (authService.exists(user.getEmail())) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 409);
+            errorResponse.put("message", "Email already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
 
         ClientUser clientUser = new ClientUser();
@@ -39,9 +42,9 @@ public class AuthController {
 
         UserDTO returnedUser = authService.register(clientUser);
 
-        Map<String,Object> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("status", 201);
-        response.put("message","Registered successfully");
+        response.put("message", "Registered successfully");
         response.put("body", returnedUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -60,8 +63,7 @@ public class AuthController {
             response.put("status", 200);
             response.put("body", returnedUser);
             return ResponseEntity.status(HttpStatus.OK).body(response);
-        }
-        else
+        } else
             return ResponseEntity.badRequest().build();
     }
 }

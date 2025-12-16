@@ -22,7 +22,9 @@ import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -74,20 +76,17 @@ public class MailService {
         }
     }
 
-
     @Transactional(readOnly = true)
     @Cacheable(value = "mails", key = "'all_mails'")
-    public List<Mail> GetAllMails() {
+    public void GetAllMails() {
         System.out.println("Fetching from Database..."); // You will only see this once!
-        List<Mail> mails =  mailRepo.findAllWithDetails();
+        List<Mail> mails = mailRepo.findAllWithDetails();
 
         for (Mail m : mails) {
             if (m.getAttachments() != null) {
                 m.setAttachments(new HashSet<>(m.getAttachments()));
             }
         }
-
-        return mails;
     }
 
     @Transactional
@@ -98,22 +97,18 @@ public class MailService {
         }
     }
 
-    public Mail GetMailById(long id) {
-        return mailRepo.findById(id).orElse(null);
-    }
-
     @Transactional
     @CacheEvict(value = "mails", allEntries = true)
-    public void updateMail(MailDTO mailDTO) {
+    public void updateMail(MailDTO mailDTO, List<MultipartFile> files) throws IOException {
         if (mailDTO.getId() == null) {
             throw new RuntimeException("Cannot update incomingMail without ID");
-//            this.saveMail(mailDTO);
+            // this.saveMail(mailDTO);
         }
 
         System.out.println("Updating incomingMail...");
         System.out.println("mailDTO coming with update: " + mailDTO.toString());
 
-        Mail incomingMail = mailMapper.toEntity(mailDTO);
+        Mail incomingMail = mailMapper.toEntity(mailDTO, files);
         System.out.println("incomingMail after update (Mail object): " + incomingMail.toString());
 
         Mail existingMail = mailRepo.findById(incomingMail.getId())
@@ -123,53 +118,70 @@ public class MailService {
         mailRepo.save(existingMail);
     }
 
-
     @Transactional
     @CacheEvict(value = "mails", allEntries = true)
-    public void saveMail(MailDTO mailDTO) throws RuntimeException {
+    public void saveMail(MailDTO mailDTO, List<MultipartFile> files) throws RuntimeException, IOException {
+        System.out.println("=== Starting saveMail ===");
         String currentEmail = getCurrentUserEmail();
+        System.out.println("Current user email: " + currentEmail);
+
         ClientUser sender = userRepo.findByEmail(currentEmail);
+        if (sender == null) {
+            throw new RuntimeException("Sender not found: " + currentEmail);
+        }
+        System.out.println("Sender found: " + sender.getName());
 
         // Step 1: Create the sender's copy (goes to their sent/drafts folder)
-        Mail senderMail = mailMapper.toEntity(mailDTO);
+        Mail mappedMail = mailMapper.toEntity(mailDTO, files);
+        Mail senderMail = new Mail(mappedMail);
+        senderMail.setFolder(mappedMail.getFolder());
+
+        System.out.println("Mail entity created, folder: "
+                + (senderMail.getFolder() != null ? senderMail.getFolder().getName() : "NULL"));
+        System.out.println(
+                "Attachments count: " + (senderMail.getAttachments() != null ? senderMail.getAttachments().size() : 0));
+
         senderMail.setSender(sender);
         sender.addSentMail(senderMail);
-        
-        // The folder is already set by the mapper based on mailDTO.getFolder() 
+
+        // The folder is already set by the mapper based on mailDTO.getFolder()
         // (e.g., "sent" for sending, "drafts" for saving draft)
         senderMail.setId(null);
-        mailRepo.save(senderMail);
 
-        // Step 2: Process the queue of receivers - each gets their own copy in their inbox
+        System.out.println("About to save sender mail...");
+        Mail savedMail = mailRepo.save(senderMail);
+        System.out.println("Sender mail saved with ID: " + savedMail.getId());
+
+        // Step 2: Process the queue of receivers - each gets their own copy in their
+        // inbox
         // Only create receiver copies if this is NOT a draft (folder != "drafts")
         if (!"drafts".equalsIgnoreCase(mailDTO.getFolder())) {
             Queue<String> receiverQueue = mailDTO.getReceiverEmails();
-            
+
             while (receiverQueue != null && !receiverQueue.isEmpty()) {
                 String receiverEmail = receiverQueue.remove();
                 ClientUser receiver = userRepo.findByEmail(receiverEmail);
-                
+
                 if (receiver == null) {
                     throw new RuntimeException("Receiver not found: " + receiverEmail);
                 }
-                
+
                 // Create a copy for this receiver using the copy constructor
                 Mail receiverMail = new Mail(senderMail, receiver);
                 receiverMail.setRead(false); // New mail is unread for receiver
-                
+
                 // Add to receiver's inbox folder
                 Folder receiverInbox = folderRepo.findByNameAndUserEmail("inbox", receiver.getEmail());
                 if (receiverInbox != null) {
                     receiverInbox.addMail(receiverMail);
                     receiverMail.setFolder(receiverInbox);
                 }
-                
+
                 receiver.addReceivedMail(receiverMail);
                 mailRepo.save(receiverMail);
             }
         }
     }
-
 
     @Transactional(readOnly = true)
     @Cacheable(value = "mails", key = "#folderName + '_' + #root.target.getCurrentUserEmail() + '_' + #pageNumber + '_' + #pageSize")
@@ -186,37 +198,34 @@ public class MailService {
         if ("starred".equalsIgnoreCase(folderName)) {
             // check both the Mail sender field and receivers + starred
             mailPage = mailRepo.findStarredMailsForUser(userEmail, pageable);
-        }
-        else if ("inbox".equalsIgnoreCase(folderName)) {
-            // "check for the mails receivers field" - only mails in inbox folder where user is receiver
+        } else if ("inbox".equalsIgnoreCase(folderName)) {
+            // "check for the mails receivers field" - only mails in inbox folder where user
+            // is receiver
             mailPage = mailRepo.findReceivedMailsByFolder("inbox", userEmail, pageable);
-        }
-        else if ("sent".equalsIgnoreCase(folderName) || "drafts".equalsIgnoreCase(folderName)) {
-            // "check for the mails sender field" - only mails in sent/drafts folder where user is sender
+        } else if ("sent".equalsIgnoreCase(folderName) || "drafts".equalsIgnoreCase(folderName)) {
+            // "check for the mails sender field" - only mails in sent/drafts folder where
+            // user is sender
             mailPage = mailRepo.findSentMailsByFolder(folderName, userEmail, pageable);
-        }
-        else {
+        } else {
             // "something else... check for both the sender field and receivers field"
             mailPage = mailRepo.findMailsByFolderAndUserInvolvement(folderName, userEmail, pageable);
         }
 
-        return mailPage.map(mail -> mailMapper.toDTO(mail));
+        return mailPage.map(mailMapper::toDTO);
     }
-
 
     @Transactional
     @CacheEvict(value = "mails", allEntries = true)
     public void moveMailsToFolder(Map<String, Object> mailIds_folder) {
         String folderName = (String) mailIds_folder.get("folder");
-        List<Long> ids =  (List<Long>) mailIds_folder.get("ids");
+        List<Long> ids = (List<Long>) mailIds_folder.get("ids");
         String userEmail = getCurrentUserEmail();
         List<Mail> mails = mailRepo.findByIdIn(ids);
         Folder folder = folderRepo.findByNameAndUserEmail(folderName, userEmail);
         for (Mail mail : mails) {
             if (folderName.equalsIgnoreCase("trash")) {
                 mail.setTrashedAt(LocalDateTime.now(ZoneId.of("Africa/Cairo")));
-            }
-            else {
+            } else {
                 mail.setTrashedAt(null);
             }
             mail.setFolder(folder);
@@ -231,7 +240,7 @@ public class MailService {
     @Cacheable(value = "mails", key = "#sortBy + '_' + #folderName + '_' + #pageNumber + '_' + #pageSize + '_'+ #root.target.getCurrentUserEmail()")
     public Page<MailDTO> getSortedMails(String sortBy, String folderName, int pageNumber, int pageSize) {
         SortWorker sortworker = new SortWorker();
-        switch(sortBy.toLowerCase()){
+        switch (sortBy.toLowerCase()) {
             case "subject":
                 sortworker.setStrategy(new SortBySubject());
                 break;
@@ -256,16 +265,16 @@ public class MailService {
             default:
                 throw new IllegalArgumentException("Invalid sort by");
         }
-        Pageable pageable= PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         List<Mail> mailsToSort;
-        if(folderName.equalsIgnoreCase("inbox")){
-             mailsToSort = mailRepo.findReceivedMailsByFolder(folderName,getCurrentUserEmail(), pageable).stream().toList();
-        }
-        else if(folderName.equalsIgnoreCase("sent")){
-             mailsToSort = mailRepo.findSentMailsByFolder(folderName,getCurrentUserEmail(), pageable).stream().toList();
-        }
-        else{
-            mailsToSort = mailRepo.findMailsByFolderAndUserInvolvement(folderName,getCurrentUserEmail(), pageable).stream().toList();
+        if (folderName.equalsIgnoreCase("inbox")) {
+            mailsToSort = mailRepo.findReceivedMailsByFolder(folderName, getCurrentUserEmail(), pageable).stream()
+                    .toList();
+        } else if (folderName.equalsIgnoreCase("sent")) {
+            mailsToSort = mailRepo.findSentMailsByFolder(folderName, getCurrentUserEmail(), pageable).stream().toList();
+        } else {
+            mailsToSort = mailRepo.findMailsByFolderAndUserInvolvement(folderName, getCurrentUserEmail(), pageable)
+                    .stream().toList();
         }
 
         for (Mail mail : mailsToSort) {
@@ -279,36 +288,38 @@ public class MailService {
                     .toList();
         } else {
             filtered = mailsToSort.stream()
-                    .filter(mail -> mail != null && mail.getFolder() != null && folderName.equalsIgnoreCase(mail.getFolder().getName()))
+                    .filter(mail -> mail != null && mail.getFolder() != null
+                            && folderName.equalsIgnoreCase(mail.getFolder().getName()))
                     .toList();
         }
-        List<Mail> sortedMails =  sortworker.sort(filtered);
+        List<Mail> sortedMails = sortworker.sort(filtered);
         Long endTime = System.currentTimeMillis();
         System.out.println("Time taken in sort: " + (endTime - startTime) + " ms");
-        Page<Mail> mails= convertListToPage(sortedMails, pageNumber, pageSize);
-        return  mails.map(mail -> mailMapper.toDTO(mail));
+        Page<Mail> mails = convertListToPage(sortedMails, pageNumber, pageSize);
+        return mails.map(mailMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
     public Page<MailDTO> Search(SearchDTO request, int pageNumber, int pageSize) {
         String word = request.getWord();
         List<String> selectedCriteria = request.getCriteria();
-        if(selectedCriteria == null || selectedCriteria.isEmpty()){
+        if (selectedCriteria == null || selectedCriteria.isEmpty()) {
             selectedCriteria = CriteriaFactory.allCriteriaNames();
         }
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
-        List<Mail> sourceMails = mailRepo.findMailsByUserInvolvement(getCurrentUserEmail(),pageable).stream().toList();
+        List<Mail> sourceMails = mailRepo.findMailsByUserInvolvement(getCurrentUserEmail(), pageable).stream().toList();
 
         List<Mail> filteredMails = new ArrayList<>();
-        for(String name : selectedCriteria){
+        for (String name : selectedCriteria) {
             Criteria criteria = CriteriaFactory.create(name, word);
-            if(criteria != null){
+            if (criteria != null) {
                 filteredMails.addAll(criteria.filter(sourceMails));
             }
         }
-        Page<Mail> mails= convertListToPage(filteredMails.stream().distinct().toList(), pageNumber, pageSize);
-        return  mails.map(mail -> mailMapper.toDTO(mail));
+        Page<Mail> mails = convertListToPage(filteredMails.stream().distinct().toList(), pageNumber, pageSize);
+        return mails.map(mailMapper::toDTO);
     }
+
     @Transactional(readOnly = true)
     public Page<MailDTO> Filter(FilterDTO request, int pageNumber, int pageSize) {
 
@@ -318,14 +329,11 @@ public class MailService {
             return Page.empty();
         }
 
-        Pageable pageable =
-                PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("sentAt").descending());
 
-        List<Mail> sourceMails =
-                mailRepo.findMailsByUserInvolvement(
-                        getCurrentUserEmail(),
-                        pageable
-                ).getContent();
+        List<Mail> sourceMails = mailRepo.findMailsByUserInvolvement(
+                getCurrentUserEmail(),
+                pageable).getContent();
 
         List<Mail> filteredMails = new ArrayList<>(sourceMails);
 
@@ -338,8 +346,7 @@ public class MailService {
                 continue;
             }
 
-            Criteria criteria =
-                    CriteriaFactory.create(criteriaName, criteriaValue);
+            Criteria criteria = CriteriaFactory.create(criteriaName, criteriaValue);
 
             if (criteria != null) {
                 filteredMails = criteria.filter(filteredMails);
@@ -350,13 +357,10 @@ public class MailService {
             }
         }
 
-        Page<Mail> resultPage =
-                convertListToPage(filteredMails, pageNumber, pageSize);
+        Page<Mail> resultPage = convertListToPage(filteredMails, pageNumber, pageSize);
 
         return resultPage.map(mailMapper::toDTO);
     }
-
-
 
     @Transactional
     @CacheEvict(value = "mails", allEntries = true)

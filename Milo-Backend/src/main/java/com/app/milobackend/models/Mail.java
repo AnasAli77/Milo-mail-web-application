@@ -71,6 +71,12 @@ public class Mail {
     @ToString.Exclude
     private Set<Attachment> attachments = new HashSet<>();
 
+//    // Transient field to store IDs of existing attachments that should be preserved
+//    // Used when updating a draft - not persisted to database
+//    @Transient
+//    @Builder.Default
+//    private Set<Long> existingAttachmentIds = new HashSet<>();
+
     // Copy Constructor
     public Mail(Mail source) {
         // never copy the ID nor the receiver

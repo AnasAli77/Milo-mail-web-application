@@ -23,9 +23,27 @@ export class ApiEmailService {
   constructor(private httpClient: HttpClient) {
   }
 
-  sendEmail(email: Email): Observable<Email> {
-    console.log("FROM SEND EMAIL")
-    return this.httpClient.post<Email>(`${environment.baseUrl}/mail/send`, email);
+  sendEmail(email: Email, files: File[]): Observable<Email> {
+    const formData  = new FormData();
+
+    // Strip the 'file' property from attachments before JSON serialization
+    // (File objects can't be serialized to JSON, they're sent separately via FormData)
+    const emailToSend = {
+      ...email,
+      attachments: (email.attachments || []).map(att => ({
+        id: att.id,
+        fileName: att.fileName,
+        fileType: att.fileType,
+        size: att.size
+      }))
+    };
+
+    const emailBlob = new Blob([JSON.stringify(emailToSend)], { type: 'application/json' });
+    formData.append("mail", emailBlob);
+
+    files.forEach(file => formData.append("files", file))
+
+    return this.httpClient.post<Email>(`${environment.baseUrl}/mail/send`, formData);
   }
 
   // Fetch emails by folder (e.g., /mail/folder/inbox)
@@ -42,8 +60,26 @@ export class ApiEmailService {
   }
 
   // update draft
-  updateEmail(email: Email): Observable<Email> {
-    return this.httpClient.put<Email>(`${environment.baseUrl}/mail/update`, email);
+  updateEmail(email: Email, files: File[]): Observable<Email> {
+    const formData  = new FormData();
+
+    // Strip the 'file' property from attachments before JSON serialization
+    const emailToSend = {
+      ...email,
+      attachments: (email.attachments || []).map(att => ({
+        id: att.id,
+        fileName: att.fileName,
+        fileType: att.fileType,
+        size: att.size
+      }))
+    };
+
+    const emailBlob = new Blob([JSON.stringify(emailToSend)], { type: 'application/json' });
+    formData.append("mail", emailBlob);
+
+    files.forEach(file => formData.append("files", file))
+
+    return this.httpClient.put<Email>(`${environment.baseUrl}/mail/update`, formData);
   }
 
   markAsRead(id: number): Observable<void> {
@@ -112,4 +148,10 @@ export class ApiEmailService {
   getAttachmentContent(id: number): Observable<{data : string}> {
     return this.httpClient.get<{data : string}>(`${environment.baseUrl}/attachment/download/${id}`)
   }
+
+  downloadAttachment(id: number): Observable<Blob> {
+  return this.httpClient.get(`${environment.baseUrl}/attachment/download/${id}`, {
+    responseType: 'blob'
+  });
+}
 }

@@ -29,14 +29,14 @@ export class Compose {
   message: string = '';
   priority: number = 3;
 
-  // Array to store attached files
+  // Array to store attached files (each attachment holds its own file if it's new)
   attachments: Attachment[] = [];
 
   private emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$/;
 
   constructor(
     private location: Location,
-    private emailService: EmailService,
+    public emailService: EmailService,
     private fileService: FileToBase64Service,
     private apiemailservice: ApiEmailService,
   ) { }
@@ -73,12 +73,17 @@ export class Compose {
     if (files) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        console.log(file);
 
         try {
-          // Convert to Attachment object
-          const attachment: Attachment = await this.fileService.fileToAttachment(file);
+          // Create Attachment object with the file embedded
+          const attachment: Attachment = {
+            fileName: file.name,
+            fileType: file.type,
+            size: file.size,
+            file: file  // Store the actual File object for new attachments
+          };
 
-          // Push to your attachments array (ensure your array accepts Attachment objects now)
           console.log(attachment);
           this.attachments.push(attachment);
 
@@ -132,7 +137,7 @@ export class Compose {
   // GO TO DRAFTS
   close() {
     // Only save if there is content to save
-    const hasContent = this.subject || this.message || this.receivers.some(r => r.email) || this.attachments.length > 0;;
+    const hasContent = this.subject || this.message || this.receivers.some(r => r.email) || this.attachments.length > 0;
 
     if (hasContent) {
       const emailList = this.receivers.map(r => r.email).filter(e => !!e);
@@ -145,13 +150,17 @@ export class Compose {
         priority: this.priority
       };
 
-      this.emailService.saveDraft(emailData);
+      console.log("emailData from draft:")
+      console.log(emailData)
+
+      this.emailService.saveDraft(emailData, () => {
+        this.location.back();
+      });
     } else {
       // If empty, just clear any draft ref
       this.emailService.draftToEdit.set(null);
+      this.location.back();
     }
-
-    this.location.back();
   }
 
   // Discard Button - Does NOT Save
@@ -180,8 +189,9 @@ export class Compose {
         priority: this.priority
       };
 
-      this.emailService.sendEmail(emailData);
-      this.discard(); // NOT CLOSE BECAUSE CLOSE REDIRECT EMAIL TO DRAFTS
+      this.emailService.sendEmail(emailData, () => {
+        this.discard(); // NOT CLOSE BECAUSE CLOSE REDIRECT EMAIL TO DRAFTS
+      });
     }
   }
 }

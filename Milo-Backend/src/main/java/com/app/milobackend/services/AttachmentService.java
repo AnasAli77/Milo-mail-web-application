@@ -5,13 +5,16 @@ import com.app.milobackend.models.Attachment;
 import com.app.milobackend.models.AttachmentContent;
 import com.app.milobackend.repositories.AttachmentContentRepo;
 import com.app.milobackend.repositories.AttachmentRepository;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -22,41 +25,51 @@ public class AttachmentService {
 
 
     @Autowired
-    private AttachmentRepository attachmentrepo;
+    private AttachmentRepository attachmentRepo;
 
     @Autowired
     private AttachmentContentRepo contentRepo;
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "attachment", key = "_#id")
-    public String getAttachmentData(Long id) throws RuntimeException {
-        Attachment attachment = attachmentrepo.findById(id).orElse(null);
+//    @Cacheable(value = "attachment", key = "#id")
+    public Attachment getAttachmentData(Long id) throws RuntimeException {
+        Attachment attachment = attachmentRepo.findById(id).orElse(null);
         if (attachment == null) {
-            throw new RuntimeException("Attachment with id" + id + "is not found");
+            throw new RuntimeException("Attachment with id " + id + " is not found");
         }
 
-        AttachmentContent content = attachment.getContent();
-
-        byte[] data =  content.getData();
-        return Base64.getEncoder().encodeToString(data);
+        return attachment;
     }
 
-    public List<Attachment> convertDTOsToAttachments(List<AttachmentDTO> attachmentDTOs) {
+    public List<Attachment> convertDTOsToAttachments(List<AttachmentDTO> attachmentDTOs, List<MultipartFile> files) throws IOException {
+
+        for (AttachmentDTO attachmentDTO : attachmentDTOs) {
+            System.out.println("AttachmentDTO: " + attachmentDTO.toString());
+        }
+
         List<Attachment> attachments = new ArrayList<>();
 
-        if (attachmentDTOs == null || attachmentDTOs.isEmpty()) return attachments;
+        // Return empty list if no files provided
+        if ((files == null || files.isEmpty()) && (attachmentDTOs == null || attachmentDTOs.isEmpty())) return attachments;
 
-        for (AttachmentDTO dto : attachmentDTOs) {
-            // 1. Decode the Base64 String back to raw bytes
-            byte[] decodedBytes = Base64.getDecoder().decode(dto.getBase64Content());
-
-            // 2. Create the entity
-            Attachment attachment = new Attachment(
-                    dto.getFileName(),
-                    dto.getFileType(),
-                    decodedBytes
-            );
-            attachments.add(attachment);
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                // Create the entity from the MultipartFile
+                Attachment attachment = new Attachment(
+                        file.getOriginalFilename(),
+                        file.getContentType(),
+                        file.getBytes()
+                );
+                attachments.add(attachment);
+            }
+        }
+        for  (AttachmentDTO attachmentDTO : attachmentDTOs) {
+            if (attachmentDTO.getId() != null) {
+                Attachment attachment = attachmentRepo.findById(attachmentDTO.getId()).orElse(null);
+                if (attachment != null) {
+                    attachments.add(attachment);
+                }
+            }
         }
         return attachments;
     }

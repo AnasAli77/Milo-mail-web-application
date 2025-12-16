@@ -1,7 +1,7 @@
 export interface Attachment {
-    id?: number,
-    fileName: string,
-    fileType: string,
-    base64Content: string;   // Base64 is just a string in TS
-    size?: number;           // File size in bytes (from backend)
+    id?: number;           // ID from database (present for existing attachments)
+    fileName: string;
+    fileType: string;
+    size?: number;         // File size in bytes (from backend or File object)
+    file?: File;           // The actual File object (present for new attachments to upload)
 }

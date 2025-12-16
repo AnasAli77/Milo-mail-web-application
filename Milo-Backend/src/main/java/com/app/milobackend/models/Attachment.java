@@ -11,6 +11,7 @@ import lombok.*;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class Attachment{
 
     @Id
@@ -47,6 +48,16 @@ public class Attachment{
 
         // Create the content object and link them
         this.content = new AttachmentContent(data);
+        this.content.setAttachment(this);
+    }
+
+    public Attachment(String fileName, String fileType) {
+        this.name = fileName;
+        this.type = fileType;
+        this.size = 0L; // Store size at creation time
+
+        // Create the content object and link them
+        this.content = new AttachmentContent();
         this.content.setAttachment(this);
     }
 }

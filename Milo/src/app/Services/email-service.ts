@@ -1,4 +1,5 @@
 import { inject, Injectable, OnInit, signal, NgZone } from '@angular/core';
+import { Alert } from './alert';
 import { Email } from '../models/email'
 import { Router } from '@angular/router';
 import { SearchCriteria } from '../models/searchCriteria';
@@ -16,6 +17,9 @@ export class EmailService implements OnInit {
   private router = inject(Router);
   private user = inject(UserService);
   private zone = inject(NgZone);
+  private alert = inject(Alert);
+
+  isLoading = signal<boolean>(false);
 
   readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
   // All folders signal
@@ -51,7 +55,7 @@ export class EmailService implements OnInit {
   }
 
   // Now handles pagination for Search and Filter as well
-  loadEmailsForFolder(folder: string , page : number = 0) {
+  loadEmailsForFolder(folder: string, page: number = 0) {
     this.currentSortBy.set('');
 
     if (folder === 'search') {
@@ -92,7 +96,7 @@ export class EmailService implements OnInit {
     }
   }
 
-  // UPDATED: Now processes string[] directly
+  // process string[] directly
   loadFolders() {
     this.api.getUserFolders().subscribe({
       next: (folderNames) => {
@@ -107,7 +111,7 @@ export class EmailService implements OnInit {
     });
   }
 
-  // NEW: Sort Action
+  // Sort Action
   sortEmails(folder: string, sortBy: string, page: number = 0) {
     this.currentSortBy.set(sortBy);
 
@@ -174,11 +178,11 @@ export class EmailService implements OnInit {
     this.selectedEmail.set(email);
 
     // Logic: If unread, mark as read locally AND on backend
-    if( email != null) {
+    if (email != null) {
       if (!email.read) {
         // 1. Optimistic Update (UI updates immediately)
         this.emailsSignal.update(all =>
-          all.map(e => e.id === email.id ? {...e, read: true} : e)
+          all.map(e => e.id === email.id ? { ...e, read: true } : e)
         );
 
         // 2. API Call
@@ -230,10 +234,10 @@ export class EmailService implements OnInit {
     }
   }
 
-  moveEmails(emailIds: number[], targetFolder: string) { // Updated ID type to string[]
+  moveEmails(emailIds: number[], targetFolder: string) {
     this.api.moveToFolder(targetFolder, emailIds).subscribe(() => {
       // Optimistic UI update: remove from current view
-      this.loadEmailsForFolder(this.currentFolder() , this.currentPage());
+      this.loadEmailsForFolder(this.currentFolder(), this.currentPage());
       this.emailsSignal.update(emails => emails.filter(e => !emailIds.includes(<number>e.id)));
 
       if (this.selectedEmail()!.id != null && emailIds.includes(<number>this.selectedEmail()!.id) && this.selectedEmail()) {
@@ -249,18 +253,21 @@ export class EmailService implements OnInit {
   }
 
 
-  saveDraft(data: any) {
+  saveDraft(data: any, onSuccess?: () => void) {
+    if (this.isLoading()) return;
+    this.isLoading.set(true);
+
     const currentDraft = this.draftToEdit();
     const draftEmail: Email = {
       id: currentDraft ? currentDraft.id : 0,
       folder: 'drafts',
       sender: this.user.getName(), // Current user
       senderEmail: this.user.getEmail(),
-      receiverEmails: data.email, // Array that backend converts to Queue
+      receiverEmails: data.email,
       time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',
       body: data.body,
-      attachments: data.attachments, // Handle attachments upload separately if needed
+      attachments: data.attachments || [],
       read: true,
       active: false,
       starred: false,
@@ -268,66 +275,77 @@ export class EmailService implements OnInit {
       priority: data.priority || 3
     };
 
+    console.log("email sent: ")
+    console.log(draftEmail)
 
+    const files: File[] = (data.attachments || [])
+      .filter((a: any) => a.file)
+      .map((a: any) => a.file);
     // hna ana lma bdoos (x) w elback 3ndo eldraft da be3ml draft gded elmafrood elback
     // DONE NEED TO TESTED
 
     if (draftEmail.id == 0) {
-      this.api.sendEmail(draftEmail).subscribe({
+      this.api.sendEmail(draftEmail, files).subscribe({
         next: (savedEmail) => {
+          this.isLoading.set(false);
+          this.alert.draftSaved();
           this.draftToEdit.set(null);
           // If we are currently viewing Drafts, update the list
           if (this.router.url.includes('/drafts')) {
-            // If it was an edit, update it; if new, add it
-            // this.emailsSignal.update(list => {
-            //   const exists = list.find(e => e.id === savedEmail.id);
-            //   return exists
-            //     ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
-            //     : [savedEmail, ...list];
-            // });
             this.loadEmailsForFolder("drafts", 0);
-            this.selectedEmail.set(null) ;
+            this.selectedEmail.set(null);
             this.router.navigate(['/layout/drafts']);
           }
+          if (onSuccess) onSuccess();
         },
-        error: (err) => console.error('Failed to save draft', err)
+        error: (err) => {
+          this.isLoading.set(false);
+          console.error('Failed to save draft', err);
+          this.alert.error('Failed to save draft');
+        }
       });
     } else {
-      this.api.updateEmail(draftEmail).subscribe({
+      this.api.updateEmail(draftEmail, files).subscribe({
         next: (savedEmail) => {
+          this.isLoading.set(false);
+          this.alert.draftSaved();
           this.draftToEdit.set(null);
           // If we are currently viewing Drafts, update the list
           if (this.router.url.includes('/drafts')) {
-            // If it was an edit, update it; if new, add it
-            // this.emailsSignal.update(list => {
-            //   const exists = list.find(e => e.id === savedEmail.id);
-            //   return exists
-            //     ? list.map(e => e.id === savedEmail.id ? savedEmail : e)
-            //     : [savedEmail, ...list];
-            // });
             this.loadEmailsForFolder("drafts", 0)
-            this.selectedEmail.set(null) ;
+            this.selectedEmail.set(null);
             this.router.navigate(['/layout/drafts']);
           }
+          if (onSuccess) onSuccess();
         },
-        error: (err) => console.error('Failed to update draft', err)
+        error: (err) => {
+          this.isLoading.set(false);
+          console.error('Failed to update draft', err);
+          this.alert.error('Failed to update draft');
+        }
       })
     }
   }
 
 
-  sendEmail(data: any) {
+  sendEmail(data: any, onSuccess?: () => void) {
+    if (this.isLoading()) return;
+    this.isLoading.set(true);
+
+    const currentDraft = this.draftToEdit();
+
     // Map form data to Email model
-    const newEmail: Email = {
-      id: 0, // Backend generates ID
+    // If editing a draft, include its ID so backend updates instead of creates
+    const emailToSend: Email = {
+      id: currentDraft ? currentDraft.id : 0,
       folder: 'sent',
       sender: this.user.getName(), // Current user
       senderEmail: this.user.getEmail(),
-      receiverEmails: data.email, // Array that backend converts to Queue
+      receiverEmails: data.email,
       time: new Date().toISOString(),
       subject: data.subject || '(No Subject)',
       body: data.body,
-      attachments: data.attachments, // Handle attachments upload separately if needed
+      attachments: data.attachments || [],
       read: true,
       active: false,
       starred: false,
@@ -335,20 +353,33 @@ export class EmailService implements OnInit {
       priority: data.priority || 3
     };
 
-    this.api.sendEmail(newEmail).subscribe({
+    console.log("emailToSend: ")
+    console.log(emailToSend)
+    // Extract files from attachments that have embedded File objects (new attachments)
+    const files: File[] = (data.attachments || [])
+      .filter((a: any) => a.file)
+      .map((a: any) => a.file);
+
+    // Always use sendEmail - backend saveMail handles both new and existing mails
+    this.api.sendEmail(emailToSend, files).subscribe({
       next: (savedEmail) => {
-      this.draftToEdit.set(null);
-      // If we are in 'sent' folder, add to list, otherwise just navigate
-      if (this.router.url.includes('/sent')) {
-        // this.emailsSignal.update(list => [savedEmail, ...list]);
-        this.loadEmailsForFolder("sent", 0);
-        this.selectedEmail.set(null) ;
-        this.router.navigate(['/layout/sent']);
+        this.isLoading.set(false);
+        this.alert.emailSent();
+
+        this.draftToEdit.set(null);
+        // If we are in 'sent' folder, add to list, otherwise just navigate
+        if (this.router.url.includes('/sent')) {
+          this.loadEmailsForFolder("sent", 0);
+          this.selectedEmail.set(null);
+          this.router.navigate(['/layout/sent']);
+        }
+        if (onSuccess) onSuccess();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        console.log(err);
+        this.alert.emailSendFail();
       }
-    },
-    error: (err) => {
-      console.log(err);
-    }
     });
   }
 
@@ -357,7 +388,7 @@ export class EmailService implements OnInit {
       next: () => {
         // Remove from local list if present
         this.emailsSignal.update(emails => emails.filter(e => e.id !== id));
-        this.selectedEmail.set(null) ;
+        this.selectedEmail.set(null);
         this.router.navigate(['/layout/drafts']);
       },
       error: (err) => console.error('Failed to delete email', err)
@@ -372,13 +403,20 @@ export class EmailService implements OnInit {
   }
 
   // Convert Observable to Promise so we can use async/await
-  async getAttachmentData(id: number): Promise<string> {
+  downloadAttachment(id: number, fileName: string) {
     try {
-      const response = await firstValueFrom(this.api.getAttachmentContent(id));
-      return response.data;
+      this.api.downloadAttachment(id).subscribe(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      // const response = await firstValueFrom(this.api.getAttachmentContent(id));
+      // return response.data;
     } catch (err) {
       console.error('Failed to get attachment data', err);
-      return '';
     }
   }
 

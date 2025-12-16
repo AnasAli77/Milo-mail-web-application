@@ -56,34 +56,37 @@ export class EmailViewComponent implements OnInit {
   async downloadFile(attachment: Attachment) {
     
     try {
+
+      this.emailService.downloadAttachment(attachment.id?? 0, attachment.fileName);
+
       //get the attachment data from the backend
-      attachment.base64Content = await this.emailService.getAttachmentData(attachment?.id?? 0)
+      // const content = await this.emailService.getAttachmentData(attachment?.id?? 0)
       // 1. Convert Base64 string back to binary data
-      const byteCharacters = atob(attachment.base64Content);
-      const byteNumbers = new Array(byteCharacters.length);
+      // const byteCharacters = atob(content);
+      // const byteNumbers = new Array(byteCharacters.length);
 
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
+      // for (let i = 0; i < byteCharacters.length; i++) {
+      //   byteNumbers[i] = byteCharacters.charCodeAt(i);
+      // }
 
-      const byteArray = new Uint8Array(byteNumbers);
+      // const byteArray = new Uint8Array(byteNumbers);
 
-      // 2. Create a Blob from the binary data
-      const blob = new Blob([byteArray], { type: attachment.fileType });
+      // // 2. Create a Blob from the binary data
+      // const blob = new Blob([byteArray], { type: attachment.fileType });
 
-      // 3. Create a temporary URL for the Blob
-      const url = window.URL.createObjectURL(blob);
+      // // 3. Create a temporary URL for the Blob
+      // const url = window.URL.createObjectURL(blob);
 
-      // 4. Trigger Download
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = attachment.fileName;
-      document.body.appendChild(a);
-      a.click();
+      // // 4. Trigger Download
+      // const a = document.createElement('a');
+      // a.href = url;
+      // a.download = attachment.fileName;
+      // document.body.appendChild(a);
+      // a.click();
 
-      // 5. Cleanup
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      // // 5. Cleanup
+      // document.body.removeChild(a);
+      // window.URL.revokeObjectURL(url);
 
     } catch (e) {
       console.error('Download failed', e);

@@ -3,12 +3,19 @@
   <div class="compose-modal" (click)="$event.stopPropagation()">
     <div class="compose-header">
       <h2>New Message</h2>
-      <button type="button" (click)="close()" class="close-btn" title="Save & Close">
+      <button type="button" (click)="close()" class="close-btn" title="Save & Close"
+        [disabled]="emailService.isLoading()">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
           stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" *ngIf="emailService.isLoading()">
+      <span class="spinner"></span>
+      <span class="loading-text">Processing...</span>
     </div>
 
     <div class="compose-body">
@@ -77,8 +84,12 @@
     <input type="file" #fileInput multiple style="display: none;" (change)="onFilesSelected($event)">
     <div class="compose-footer">
       <div class="left-actions">
-        <button type="button" class="send-btn" (click)="send()" [disabled]="!isFormValid">Send</button>
-        <button type="button" class="attach-btn" (click)="fileInput.click()" title="Attach files">
+        <button type="button" class="send-btn" (click)="send()" [disabled]="!isFormValid || emailService.isLoading()">
+          <span *ngIf="!emailService.isLoading()">Send</span>
+          <span *ngIf="emailService.isLoading()">Sending...</span>
+        </button>
+        <button type="button" class="attach-btn" (click)="fileInput.click()" title="Attach files"
+          [disabled]="emailService.isLoading()">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -86,7 +97,8 @@
           </svg>
         </button>
       </div>
-      <button type="button" class="discard-btn" (click)="discard()">Discard</button>
+      <button type="button" class="discard-btn" (click)="discard()"
+        [disabled]="emailService.isLoading()">Discard</button>
     </div>
   </div>
 </div>
