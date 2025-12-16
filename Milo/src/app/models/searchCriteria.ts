@@ -1,11 +1,10 @@
-// Definition for search criteria
 export interface SearchCriteria {
-  query?: string;       // General "Includes words"
+  query?: string;
   from?: string;
   to?: string;
   subject?: string;
   hasAttachment?: boolean;
-  priority?: number; // Added
+  priority?: number;
   day?: string;
   month?: string;
   year?: string;

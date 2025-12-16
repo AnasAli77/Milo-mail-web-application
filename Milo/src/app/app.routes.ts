@@ -10,6 +10,7 @@ import { Compose } from './components/compose/compose';
 import { EmailViewComponent } from './components/email-viewer/email-viewer';
 import { Contacts } from './components/contacts/contacts';
 import { isNotLoginGuard } from './guards/is-not-login-guard';
+import {FiltersComponent} from './components/filters/filters';
 
 
 export const routes: Routes = [
@@ -24,6 +25,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'inbox', pathMatch: 'full' },
       { path: 'contacts', component: Contacts },
+      { path: 'filters', component: FiltersComponent},
       {
         path: ':folderId',
         component: EmailList,

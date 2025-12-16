@@ -1,0 +1,88 @@
+<div class="container">
+  <div class="header">
+    <h2>Filters</h2>
+  </div>
+
+  <!-- Input Section -->
+  <div class="add-section">
+    <div class="input-group">
+      <label>If</label>
+      <select [(ngModel)]="criteriaType">
+        <option value="SUBJECT">Subject</option>
+        <option value="SENDER">Sender</option>
+      </select>
+    </div>
+
+    <div class="input-group grow">
+      <label>Contains</label>
+      <input type="text" placeholder="e.g. 'Urgent'" [(ngModel)]="criteriaValue">
+    </div>
+
+    <div class="input-group">
+      <label>Do this</label>
+      <select [(ngModel)]="actionType">
+        <option value="STAR">Star It</option>
+        <option value="MARK_READ">Mark as Read</option>
+        <option value="MOVE_TO_FOLDER">Move to Folder</option>
+      </select>
+    </div>
+
+    <!-- CONDITIONAL FOLDER DROPDOWN -->
+    <div class="input-group" *ngIf="actionType === 'MOVE_TO_FOLDER'">
+      <label>Select Folder</label>
+      <select [(ngModel)]="actionTarget" class="folder-select">
+        @for (folder of userFolders ; track $index){
+        <option *ngIf="folder!= 'starred' && folder != 'drafts' && folder != 'sent'" [value]="folder">
+          📁 {{ folder }}
+        </option>
+        }
+      </select>
+    </div>
+
+    <div class="input-group btn-group">
+      <label>&nbsp;</label>
+      <button (click)="onAdd()" [disabled]="!criteriaValue">Create</button>
+    </div>
+  </div>
+
+  <!-- List Section -->
+  <div class="list-container">
+    <div class="list-item" *ngFor="let rule of filters()">
+      <!-- Avatar Icon based on Action -->
+      <div class="avatar" [ngClass]="{'move': rule.actionType === 'MOVE_TO_FOLDER'}">
+        <i *ngIf="rule.actionType === 'STAR'">★</i>
+        <i *ngIf="rule.actionType === 'MARK_READ'">✓</i>
+        <i *ngIf="rule.actionType === 'MOVE_TO_FOLDER'">➜</i>
+      </div>
+
+      <div class="info">
+        <!-- READABLE SENTENCE CONSTRUCTION -->
+        <div class="condition">
+          <span class="badge">{{ rule.criteriaType }}</span>
+          contains
+          <strong>"{{ rule.criteriaValue }}"</strong>
+        </div>
+
+        <div class="action-text">
+          <span *ngIf="rule.actionType === 'STAR'">Star this message</span>
+          <span *ngIf="rule.actionType === 'MARK_READ'">Mark as Read</span>
+          <span *ngIf="rule.actionType === 'MOVE_TO_FOLDER'">
+                        Move to
+                        <span class="folder-badge">📁 {{ rule.actionTarget }}</span>
+
+                    </span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="delete-btn" (click)="onDelete(rule.id)">
+          Delete
+        </button>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filters().length === 0">
+      No rules created yet.
+    </div>
+  </div>
+</div>
