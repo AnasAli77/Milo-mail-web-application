@@ -164,7 +164,7 @@ export class Compose implements OnInit {
 
       console.log("emailData from draft:")
       console.log(emailData)
-      this.emailService.selectedEmail.set(null);
+
       this.emailService.saveDraft(emailData, () => {
         this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
         this.emailService.loadFolders();
@@ -204,7 +204,9 @@ export class Compose implements OnInit {
         priority: this.priority
       };
 
-      this.emailService.selectedEmail.set(null);
+
+
+
       this.emailService.sendEmail(emailData, () => {
         this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
         this.emailService.loadFolders();

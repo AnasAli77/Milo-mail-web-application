@@ -278,6 +278,8 @@ export class EmailService implements OnInit {
       priority: data.priority || 3
     };
 
+    this.selectedEmail.set(null);
+
     console.log("email sent: ")
     console.log(draftEmail)
 
@@ -355,6 +357,8 @@ export class EmailService implements OnInit {
       hasAttachment: data.attachments && data.attachments.length > 0,
       priority: data.priority || 3
     };
+
+    this.selectedEmail.set(null);
 
     console.log("emailToSend: ")
     console.log(emailToSend)
