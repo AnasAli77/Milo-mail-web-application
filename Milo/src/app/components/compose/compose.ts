@@ -165,13 +165,14 @@ export class Compose implements OnInit {
 
       console.log("emailData from draft:")
       console.log(emailData)
-      this.emailService.selectedEmail.set(null);
-      this.router.navigate(['/layout/drafts']);
+     
       this.emailService.saveDraft(emailData, () => {
         this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
         this.emailService.loadFolders();
 
-        this.location.back();
+        // this.location.back();
+        this.emailService.selectedEmail.set(null);
+        this.router.navigate(['/layout/drafts']);
       });
     } else {
       // If empty, just clear any draft ref
@@ -206,15 +207,19 @@ export class Compose implements OnInit {
         priority: this.priority
       };
 
-      this.emailService.selectedEmail.set(null);
-      this.router.navigate(['/layout/drafts']);
+      
 
 
       this.emailService.sendEmail(emailData, () => {
         this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
         this.emailService.loadFolders();
 
-        this.discard();
+        this.emailService.selectedEmail.set(null);
+        this.router.navigate(['/layout/drafts']);
+
+        this.emailService.draftToEdit.set(null);
+
+        // this.discard();
       });
     }
   }
