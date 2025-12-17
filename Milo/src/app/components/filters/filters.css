@@ -45,9 +45,9 @@
   color: var(--color-text-dark, #0f172a);
 }
 
-/* Add Button - Simple text + */
+/* Add Button - Using primary dark color like Compose button */
 .add-btn {
-  background: var(--color-blue-accent, #2563eb);
+  background: var(--color-primary, #2d2d2d);
   color: white;
   border: none;
   border-radius: 8px;
@@ -64,7 +64,7 @@
 }
 
 .add-btn:hover {
-  background: #1d4ed8;
+  background: var(--color-primary-hover, #000000);
   transform: scale(1.05);
 }
 
@@ -105,8 +105,8 @@
 }
 
 .list-item.active {
-  background: #eff6ff;
-  border-color: var(--color-blue-accent, #2563eb);
+  background: var(--color-active-bg, #e2e8f0);
+  border-color: var(--color-primary, #2d2d2d);
 }
 
 .item-content {
@@ -148,8 +148,8 @@
 }
 
 .badge.read {
-  background: #dbeafe;
-  color: #2563eb;
+  background: var(--color-active-bg, #e2e8f0);
+  color: var(--color-text-main, #334155);
 }
 
 .delete-icon {
@@ -211,7 +211,6 @@
   flex: 1;
   overflow-y: auto;
   padding: 32px 40px 100px 40px;
-  /* Extra bottom padding for button */
 }
 
 .form-header-row {
@@ -295,8 +294,8 @@
 
 .form-group input:focus,
 .form-group select:focus {
-  border-color: var(--color-blue-accent, #2563eb);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--color-primary, #2d2d2d);
+  box-shadow: 0 0 0 3px rgba(45, 45, 45, 0.1);
   background-color: white;
 }
 
@@ -348,11 +347,11 @@
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: var(--color-blue-accent, #2563eb);
+  accent-color: var(--color-primary, #2d2d2d);
   cursor: pointer;
 }
 
-/* Action Buttons - Fixed position within scroll area */
+/* Action Buttons */
 .form-actions-row {
   margin-top: 32px;
   padding-top: 20px;
@@ -362,8 +361,9 @@ input[type="checkbox"] {
   gap: 12px;
 }
 
+/* Primary Button - matches Compose/Send styling */
 .btn-save {
-  background: var(--color-blue-accent, #2563eb);
+  background: var(--color-primary, #2d2d2d);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -375,7 +375,7 @@ input[type="checkbox"] {
 }
 
 .btn-save:hover {
-  background: #1d4ed8;
+  background: var(--color-primary-hover, #000000);
 }
 
 .btn-delete {
