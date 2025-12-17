@@ -6,10 +6,13 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 /* Email Header */
-.view-header { margin-bottom: 32px; }
+.view-header {
+  margin-bottom: 32px;
+}
 
 .subject-row {
   display: flex;
@@ -32,14 +35,33 @@
   gap: 16px;
 }
 
-.bg-blue-500 { background-color: #3b82f6; }
-.bg-green-500 { background-color: #22c55e; }
-.bg-purple-500 { background-color: #a855f7; }
-.bg-yellow-500 { background-color: #eab308; }
-.bg-red-500 { background-color: #ef4444; }
-.bg-gray-500 { background-color: #64748b; }
+.bg-blue-500 {
+  background-color: #3b82f6;
+}
 
-.meta { flex: 1; }
+.bg-green-500 {
+  background-color: #22c55e;
+}
+
+.bg-purple-500 {
+  background-color: #a855f7;
+}
+
+.bg-yellow-500 {
+  background-color: #eab308;
+}
+
+.bg-red-500 {
+  background-color: #ef4444;
+}
+
+.bg-gray-500 {
+  background-color: #64748b;
+}
+
+.meta {
+  flex: 1;
+}
 
 .meta-top {
   display: flex;
@@ -92,7 +114,8 @@
 }
 
 .attachments-title svg {
-  width: 18px; height: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .attachments-list {
@@ -121,7 +144,8 @@
 
 .file-icon {
   background-color: #f1f5f9;
-  width: 36px; height: 36px;
+  width: 36px;
+  height: 36px;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -130,7 +154,10 @@
   flex-shrink: 0;
 }
 
-.file-icon svg { width: 20px; height: 20px; }
+.file-icon svg {
+  width: 20px;
+  height: 20px;
+}
 
 .file-info {
   flex: 1;
@@ -177,7 +204,10 @@
   color: #0ea5e9;
 }
 
-.download-btn svg { width: 18px; height: 18px; }
+.download-btn svg {
+  width: 18px;
+  height: 18px;
+}
 
 /* Empty State */
 .empty-state {
@@ -192,7 +222,8 @@
 }
 
 .empty-icon-circle {
-  width: 80px; height: 80px;
+  width: 80px;
+  height: 80px;
   background-color: #f1f5f9;
   border-radius: 50%;
   display: flex;
@@ -201,4 +232,8 @@
   margin-bottom: 24px;
 }
 
-.empty-icon-circle svg { width: 40px; height: 40px; color: #cbd5e1; }
+.empty-icon-circle svg {
+  width: 40px;
+  height: 40px;
+  color: #cbd5e1;
+}
