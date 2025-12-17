@@ -166,6 +166,11 @@ export class Compose implements OnInit {
       console.log(emailData)
 
       this.emailService.saveDraft(emailData, () => {
+        this.emailService.selectedEmail.set(null);
+
+        this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
+        this.emailService.loadFolders();
+
         this.location.back();
       });
     } else {
@@ -202,10 +207,12 @@ export class Compose implements OnInit {
       };
 
       this.emailService.sendEmail(emailData, () => {
-        this.discard(); // NOT CLOSE BECAUSE CLOSE REDIRECT EMAIL TO DRAFTS
+        this.emailService.selectedEmail.set(null);
+
         this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
         this.emailService.loadFolders();
-        this.emailService.selectedEmail.set(null);
+
+        this.discard();
       });
     }
   }
