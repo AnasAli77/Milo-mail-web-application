@@ -4,6 +4,7 @@
 \usepackage{hyperref}
 \usepackage{color}
 \usepackage{float}
+\usepackage{enumitem}
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -35,7 +36,7 @@
 \maketitle
 
 \section{Introduction}
-This report documents the design and implementation of the Milo Mail System, a scalable web-based email application. The system is built using \textbf{Spring Boot (Java 21/25)} for the backend and \textbf{Angular} for the frontend, using a \textbf{PostgreSQL} database for persistence. The application conforms to Object-Oriented Programming principles and utilizes several GoF design patterns to ensure maintainability and extensibility.
+This report documents the design and implementation of the Milo Mail System, a scalable web-based email application. The system is built using \textbf{Spring Boot (Java 21/25)} for the backend and \textbf{Angular 19} for the frontend, using a \textbf{PostgreSQL} database for persistence. The application conforms to Object-Oriented Programming principles and utilizes several GoF design patterns to ensure maintainability and extensibility.
 
 \section{Steps to Run the Code}
 \subsection{Prerequisites}
@@ -95,47 +96,50 @@ The Sequence Diagram depicts the workflow of a user filtering and sorting emails
 
 \section{Design Patterns Applied}
 
-\subsection{Strategy Pattern (Behavioral)}
-\textbf{Usage:} Used for sorting emails dynamically.
+\subsection{Backend Design Patterns}
+
+\subsubsection{Strategy Pattern (Behavioral)}
+\textbf{Usage:} Used for sorting emails and contacts dynamically.
 \newline
 \textbf{Implementation:}
 \begin{itemize}
-    \item \textbf{Context:} \texttt{SortWorker} classes.
-    \item \textbf{Interface:} \texttt{MailSortingStrategy}.
-    \item \textbf{Concrete Strategies:} \texttt{SortByDate}, \texttt{SortBySubject}, \texttt{SortByPriority}, etc.
+    \item \textbf{Mail Sorting:} \texttt{MailSortingStrategy} interface with concrete implementations: \texttt{SortByDate}, \texttt{SortBySubject}, \texttt{SortByPriority}, \texttt{SortBySender}, \texttt{SortByReceiver}, \texttt{SortByBody}, \texttt{SortByAttachment}.
+    \item \textbf{Contact Sorting:} \texttt{ContactSortingStrategy} interface with: \texttt{ContactSortByName}, \texttt{ContactSortByEmails}.
+    \item \textbf{Context:} \texttt{SortWorker} and \texttt{ContactSortWorker} classes.
 \end{itemize}
 This allows the sorting algorithm to be switched at runtime without modifying the client code in the Service.
 
-\subsection{Criteria / Filter Pattern (Structural)}
-\textbf{Usage:} Used to filter emails based on multiple conditions (Sender, Subject, Date, etc.).
+\subsubsection{Criteria / Filter Pattern (Structural)}
+\textbf{Usage:} Used to filter emails based on multiple conditions.
 \newline
 \textbf{Implementation:}
 \begin{itemize}
-    \item \textbf{Interface:} \texttt{Criteria} (defines \texttt{meetCriteria()}).
-    \item \textbf{Concrete Criteria:} \texttt{CriteriaSender}, \texttt{CriteriaSubject}, etc.
+    \item \textbf{Interface:} \texttt{Criteria} (defines \texttt{filter(List<Mail>)} method).
+    \item \textbf{Concrete Criteria:} \texttt{CriteriaSender}, \texttt{CriteriaReceiver}, \texttt{CriteriaSubject}, \texttt{CriteriaBody}, \texttt{CriteriaPriority}, \texttt{CriteriaDay}, \texttt{CriteriaMonth}, \texttt{CriteriaYear}, \texttt{CriteriaHour}, \texttt{CriteriaMinute}, \texttt{CriteriaHasAttachment}.
 \end{itemize}
 This pattern decouples the filtering logic from the Mail entity and the Service.
 
-\subsection{Factory Pattern (Creational)}
-\textbf{Usage:} Used to instantiate the correct Filter/Criteria object based on user input.
+\subsubsection{Factory Pattern (Creational)}
+\textbf{Usage:} Used to instantiate the correct Filter/Criteria and Action objects based on user input.
 \newline
 \textbf{Implementation:}
 \begin{itemize}
-    \item \texttt{CriteriaFactory}: Takes a string (e.g., "subject") and returns a \texttt{CriteriaSubject} instance.
+    \item \texttt{CriteriaFactory}: Takes a string (e.g., ``subject'') and returns a \texttt{CriteriaSubject} instance.
+    \item \texttt{ActionFactory}: Takes an action type string (e.g., ``move'', ``star'', ``markasread'') and returns the corresponding \texttt{FilterRuleAction} implementation.
 \end{itemize}
 This encapsulates object creation logic, simplifying the Service layer.
 
-\subsection{Builder Pattern (Creational)}
+\subsubsection{Builder Pattern (Creational)}
 \textbf{Usage:} Used for constructing complex \texttt{Mail} objects.
 \newline
-\textbf{Implementation:} annotated with \texttt{@Builder} (Lombok) in the \texttt{Mail} class. This provides a fluent API for object construction (\texttt{Mail.builder().subject(...).build()}), making the code more readable and reducing constructor complexity.
+\textbf{Implementation:} Annotated with \texttt{@Builder} (Lombok) in the \texttt{Mail} class. This provides a fluent API for object construction (\texttt{Mail.builder().subject(...).build()}), making the code more readable and reducing constructor complexity.
 
-\subsection{Prototype Pattern (Creational)}
+\subsubsection{Prototype Pattern (Creational)}
 \textbf{Usage:} Used for deep-copying drafts when they are sent.
 \newline
-\textbf{Implementation:} The \texttt{Mail} class includes a Copy Constructor (\texttt{public Mail(Mail source)}) that creates a deep copy of the mail and its attachments, ensuring that the new "Sent" mail is a distinct entity from the original "Draft".
+\textbf{Implementation:} The \texttt{Mail} class includes a Copy Constructor (\texttt{public Mail(Mail source)}) that creates a deep copy of the mail and its attachments, ensuring that the new ``Sent'' mail is a distinct entity from the original ``Draft''.
 
-\subsection{Command Pattern (Behavioral)}
+\subsubsection{Command Pattern (Behavioral)}
 \textbf{Usage:} Used for executing filter rule actions on incoming emails.
 \newline
 \textbf{Implementation:}
@@ -145,7 +149,47 @@ This encapsulates object creation logic, simplifying the Service layer.
     \item \textbf{Invoker:} \texttt{FilterRule} checks criteria and invokes actions.
     \item \textbf{Factory:} \texttt{ActionFactory} creates the appropriate action based on action type.
 \end{itemize}
-This pattern decouples the action execution from the filter rule logic, making it easy to add new actions without modifying existing code.
+
+\subsubsection{Facade Pattern (Structural)}
+\textbf{Usage:} Used to provide a simplified interface to complex subsystems.
+\newline
+\textbf{Implementation:} \texttt{MailService} acts as a facade, coordinating multiple repositories (\texttt{MailRepo}, \texttt{UserRepo}, \texttt{FolderRepo}), mappers, and the \texttt{ActionFactory} to provide high-level operations like \texttt{saveMail()}, \texttt{Search()}, and \texttt{Filter()}.
+
+\subsubsection{Singleton Pattern (Creational)}
+\textbf{Usage:} Ensures a class has only one instance.
+\newline
+\textbf{Implementation:} All Spring \texttt{@Service}, \texttt{@Repository}, and \texttt{@Component} annotated classes are managed as singletons by the Spring IoC container by default.
+
+\subsubsection{Chain of Responsibility Pattern (Behavioral)}
+\textbf{Usage:} Used for processing HTTP requests through security filters.
+\newline
+\textbf{Implementation:} \texttt{JWTFilter} extends \texttt{OncePerRequestFilter} and participates in Spring Security's filter chain, processing JWT tokens and passing requests to the next handler via \texttt{filterChain.doFilter()}.
+
+\subsubsection{Mapper Pattern (Structural)}
+\textbf{Usage:} Used to convert between DTOs and Entity objects.
+\newline
+\textbf{Implementation:}
+\begin{itemize}
+    \item \texttt{MailMapper} / \texttt{MailMapperImpl}: Converts \texttt{MailDTO} to \texttt{Mail} entity.
+    \item \texttt{AttachmentMapper} / \texttt{AttachmentMapperImpl}: Converts attachment DTOs to \texttt{Attachment} entities.
+\end{itemize}
+
+\subsection{Frontend Design Patterns}
+
+\subsubsection{Observer Pattern (Reactive Programming)}
+\textbf{Usage:} Used for reactive state management and component communication.
+\newline
+\textbf{Implementation:}
+\begin{itemize}
+    \item \textbf{Angular Signals:} Used for reactive local state (e.g., \texttt{currentFolder}, \texttt{selectedEmail}, \texttt{filters}).
+    \item \textbf{RxJS Observables:} Used for HTTP communication and async data streams.
+    \item \textbf{Computed Signals:} Derived state that automatically updates when dependencies change.
+\end{itemize}
+
+\subsubsection{Interceptor Pattern}
+\textbf{Usage:} Used to intercept and modify HTTP requests globally.
+\newline
+\textbf{Implementation:} \texttt{AuthInterceptor} adds JWT Bearer tokens to all outgoing HTTP requests automatically.
 
 \section{Design Decisions}
 \begin{enumerate}
@@ -153,10 +197,24 @@ This pattern decouples the action execution from the filter rule logic, making i
     \item \textbf{Database:} PostgreSQL was selected for its reliability and advanced SQL features, running on port 5432.
     \item \textbf{Handling Concurrency:} To prevent issues where a user edits a draft while it is being autosaved, we implemented specific backend logic to always treat sent mails as new entities (via Prototype pattern), avoiding Optimistic Locking exceptions.
     \item \textbf{Asynchronous UI:} The Frontend uses Angular Signals and Observables to handle asynchronous file uploads (for large attachments), providing a non-blocking UI with a global loading overlay for better user experience.
+    \item \textbf{Filter Rule Architecture:} Filter rules are applied on the receiver side when mail is being delivered, not on the sender side. This ensures each user's custom filters are applied to their incoming mail independently.
+    \item \textbf{Defensive Null Handling:} All Criteria classes implement null-safe checks to prevent NPE during filter evaluation, with try-catch wrapper in mail delivery to ensure filter errors don't break mail sending.
+\end{enumerate}
+
+\section{Assumptions}
+\begin{enumerate}
+    \item \textbf{Email Composition:} When composing an email, the subject, body, and at least one valid receiver email are required. Empty fields are not permitted to ensure meaningful communication.
+    \item \textbf{Email Validation:} Receiver email addresses must match the pattern \texttt{user@domain.com}. Invalid formats are rejected on the frontend before submission.
+    \item \textbf{Priority Levels:} Emails support 5 priority levels: 1 (Very Low), 2 (Low), 3 (Normal - default), 4 (High), 5 (Extreme).
+    \item \textbf{Folder Structure:} System folders (Inbox, Sent, Drafts, Trash, Starred) are created automatically for each user. Users can create custom folders.
+    \item \textbf{Filter Actions:} Only one action can be applied per filter rule. Priority order: Move To Folder > Star > Mark as Read.
+    \item \textbf{Authentication:} JWT tokens are stored in \texttt{sessionStorage} and automatically attached to all API requests via the interceptor.
+    \item \textbf{Attachment Handling:} Attachments are deep-copied when sending drafts to ensure sender and receiver have independent copies in the database.
+    \item \textbf{Trash Cleanup:} A scheduled service (\texttt{TrashCleanupService}) periodically cleans old emails from trash folders.
 \end{enumerate}
 
 \section{User Guide}
-\subsection{Registration & Login}
+\subsection{Registration \& Login}
 Users can sign up with a unique email. The system checks against the database and alerts if the email is taken.
 \begin{figure}[H]
     \centering
@@ -164,7 +222,7 @@ Users can sign up with a unique email. The system checks against the database an
     \caption{Login Page}
 \end{figure}
 
-\subsection{Inbox & Filtering}
+\subsection{Inbox \& Filtering}
 Users can view their inbox and apply filters (e.g., by Sender or Subject) and sort the results.
 \begin{figure}[H]
     \centering
@@ -173,7 +231,7 @@ Users can view their inbox and apply filters (e.g., by Sender or Subject) and so
 \end{figure}
 
 \subsection{Composing Emails}
-The Compose window allows sending emails with priority and attachments.
+The Compose window allows sending emails with priority and attachments. Subject, body, and receivers are mandatory fields.
 \begin{figure}[H]
     \centering
     \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Compose Window Screenshot] \vspace{2cm}}}
@@ -190,12 +248,12 @@ Users can create custom filter rules to automatically organize incoming emails. 
 
 \textbf{Available Criteria:}
 \begin{itemize}
-    \item From (sender email)
+    \item From (sender email/name)
     \item To (recipient email)
     \item Subject contains
     \item Body contains keywords
-    \item Priority level
-    \item Date
+    \item Priority level (1-5)
+    \item Date (Year, Month, Day)
     \item Has attachments
 \end{itemize}
 

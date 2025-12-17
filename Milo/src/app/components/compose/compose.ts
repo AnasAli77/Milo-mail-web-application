@@ -1,7 +1,7 @@
-import {ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {ActivatedRoute, Router} from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { EmailService } from '../../Services/email-service';
 import { Attachment } from '../../models/attachment';
@@ -139,6 +139,8 @@ export class Compose implements OnInit {
   }
 
   get isFormValid(): boolean {
+    // Subject, body (message), and receivers are all required
+    if (!this.subject || this.subject.trim() === '') return false;
     if (!this.message || this.message.trim() === '') return false;
     if (this.receivers.length === 0) return false;
 
@@ -165,7 +167,7 @@ export class Compose implements OnInit {
 
       console.log("emailData from draft:")
       console.log(emailData)
-     
+
       this.emailService.saveDraft(emailData, () => {
         this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
         this.emailService.loadFolders();
@@ -207,7 +209,7 @@ export class Compose implements OnInit {
         priority: this.priority
       };
 
-      
+
 
 
       this.emailService.sendEmail(emailData, () => {

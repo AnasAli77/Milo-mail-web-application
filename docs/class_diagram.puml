@@ -6,14 +6,17 @@ skinparam ranksep 50
 
 title Milo Mail System - Architecture & Design Patterns
 
-package "Controllers (Facade Pattern)" {
-    class MailController {
+package "Controllers" {
+    class MailController <<Facade>> {
         + getMails(String filter, String val)
         + sendMail(MultipartFile[], String mailDTO)
+        + getSortedMails(String sortBy, String folder)
+        + moveMails(List<Long>, String folder)
     }
     class ContactController {
         + getContacts(String sort)
         + addContact(Contact)
+        + deleteContact(Long)
     }
     class AuthController {
         + register(UserDTO)
@@ -36,51 +39,76 @@ package "Controllers (Facade Pattern)" {
 }
 
 package "Services (Singleton Pattern)" {
-    class MailService {
+    class MailService <<Facade>> <<Singleton>> {
         + GetAllMails()
         + saveMail(MailDTO, MultipartFile[])
         + updateMail(MailDTO, MultipartFile[])
-        + deleteMail(Long id) 
+        + deleteMail(Long id)
+        + getMailsByFolder(String, int, int)
+        + getSortedMails(String, String, int, int)
+        + Search(SearchDTO, int, int)
+        + Filter(FilterDTO, int, int)
     }
-    class TrashCleanupService {
+    class TrashCleanupService <<Singleton>> {
         + cleanOldMails()
         + deleteOldMails()
     }
-    class ContactService {
+    class ContactService <<Singleton>> {
         + getContacts()
         + addContact(Contact)
+        + getSortedContacts(String)
     }
-    class AuthService {
+    class AuthService <<Singleton>> {
         + register(ClientUser)
         + verify(ClientUser)
         + exists(String)
     }
-    class FolderService {
+    class FolderService <<Singleton>> {
         + getFolderNames()
         + createFolder(String)
         + removeFolder(String)
         + renameFolder(String, String)
     }
-    class AttachmentService {
+    class AttachmentService <<Singleton>> {
         + getAttachmentData(Long)
         + convertDTOsToAttachments(List, List)
     }
-    class JWTService {
+    class JWTService <<Singleton>> {
         + generateToken(String)
-        + validateToken(String)
+        + validateToken(String, UserDetails)
+        + extractEmail(String)
     }
-    class FilterRuleService {
+    class FilterRuleService <<Singleton>> {
         + getFilters()
         + addFilter(FilterRuleDTO)
         + deleteFilter(Long)
     }
 }
 
-package "Mappers (Architectural Pattern)" {
-    class MailMapperImpl {
-        + toDto(Mail) : MailDTO
-        + toEntity(MailDTO) : Mail
+package "Security (Chain of Responsibility)" {
+    abstract class OncePerRequestFilter {
+        + doFilterInternal(req, res, chain)
     }
+    class JWTFilter extends OncePerRequestFilter {
+        + doFilterInternal(req, res, chain)
+    }
+    class SecurityConfig {
+        + filterChain(HttpSecurity)
+    }
+}
+
+package "Mappers (Mapper Pattern)" {
+    interface MailMapper <<Interface>> {
+        + toDto(Mail) : MailDTO
+        + toEntity(MailDTO, List<MultipartFile>) : Mail
+    }
+    class MailMapperImpl implements MailMapper
+    
+    interface AttachmentMapper <<Interface>> {
+        + toDto(Attachment) : AttachmentDTO
+        + toEntity(AttachmentDTO) : Attachment
+    }
+    class AttachmentMapperImpl implements AttachmentMapper
 }
 
 package "Data Transfer Objects" {
@@ -89,7 +117,8 @@ package "Data Transfer Objects" {
         + String body
         + int priority
         + String senderEmail
-        + List<String> receiverEmails
+        + Queue<String> receiverEmails
+        + List<AttachmentDTO> attachments
     }
     class UserDTO {
         + String name
@@ -100,6 +129,14 @@ package "Data Transfer Objects" {
         + Map<String, String> criteriaTypesValues
         + String actionType
         + String actionTarget
+    }
+    class FilterDTO {
+        + String folder
+        + Map<String, String> keys
+    }
+    class SearchDTO {
+        + String folder
+        + String word
     }
 }
 
@@ -113,18 +150,18 @@ package "Repositories (Repository Pattern)" {
 }
 
 package "Models (Builder & Prototype Pattern)" {
-    class Mail {
+    class Mail <<Builder>> <<Prototype>> {
         - Long id
         - String subject
         - String body
         - LocalDateTime sentAt
         - boolean read
-        - boolean active
         - boolean starred
         - boolean hasAttachment
         - int priority
         + static MailBuilder builder()
         + Mail(Mail source)
+        + Mail(Mail source, ClientUser receiver)
         + update(Mail source)
     }
     class Attachment {
@@ -133,14 +170,19 @@ package "Models (Builder & Prototype Pattern)" {
         - String type
         - long size
     }
+    class AttachmentContent {
+        - byte[] data
+    }
     class Contact {
         - Long id
         - String name
+        - List<String> emails
     }
     class ClientUser {
         - Long id
         - String name
         - String email
+        - String password
     }
     class Folder {
         - Long id
@@ -156,22 +198,32 @@ package "Models (Builder & Prototype Pattern)" {
     }
 
     Mail "1" *-- "*" Attachment : contains
+    Attachment "1" -- "1" AttachmentContent : has content
     Mail "*" -- "1" ClientUser : sender
+    Mail "*" -- "1" ClientUser : receiver
     Mail "*" -- "1" Folder : belongs to
-    ClientUser "1" *-- "*" Contact : has
-    ClientUser "1" *-- "*" FilterRule : owns
+    ClientUser "1" *-- "*" Contact : has contacts
+    ClientUser "1" *-- "*" FilterRule : owns rules
+    ClientUser "1" *-- "*" Folder : has folders
 }
 
 package "Commands (Command Pattern)" {
     interface FilterRuleAction <<Interface>> {
         + execute(Mail, String)
     }
-    class ActionFactory <<Factory>> {
+    class ActionFactory <<Factory>> <<Singleton>> {
+        - Map<String, FilterRuleAction> actionMap
         + getAction(String): FilterRuleAction
     }
-    class MoveToAction implements FilterRuleAction
-    class StarAction implements FilterRuleAction
-    class MarkAsReadAction implements FilterRuleAction
+    class MoveToAction implements FilterRuleAction {
+        + execute(Mail, String)
+    }
+    class StarAction implements FilterRuleAction {
+        + execute(Mail, String)
+    }
+    class MarkAsReadAction implements FilterRuleAction {
+        + execute(Mail, String)
+    }
 }
 
 package "Strategies (Strategy Pattern)" {
@@ -180,7 +232,7 @@ package "Strategies (Strategy Pattern)" {
         + setStrategy(MailSortingStrategy)
         + sort(List<Mail>) : List<Mail>
     }
-    interface MailSortingStrategy {
+    interface MailSortingStrategy <<Interface>> {
         + SortingMails(List<Mail>) : List<Mail>
     }
     class SortByDate implements MailSortingStrategy
@@ -195,7 +247,7 @@ package "Strategies (Strategy Pattern)" {
         - ContactSortingStrategy strategy
         + sort(List<Contact>)
     }
-    interface ContactSortingStrategy {
+    interface ContactSortingStrategy <<Interface>> {
         + sort(List<Contact>)
     }
     class ContactSortByName implements ContactSortingStrategy
@@ -203,11 +255,11 @@ package "Strategies (Strategy Pattern)" {
 }
 
 package "Filters (Criteria Pattern)" {
-    interface Criteria {
-        + meetCriteria(List<Mail>) : List<Mail>
+    interface Criteria <<Interface>> {
+        + filter(List<Mail>) : List<Mail>
     }
     class CriteriaFactory <<Factory>> {
-        + getCriteria(String criteriaName, Object value) : Criteria
+        + create(String name, String value) : Criteria
     }
     class CriteriaSubject implements Criteria
     class CriteriaSender implements Criteria
@@ -217,6 +269,8 @@ package "Filters (Criteria Pattern)" {
     class CriteriaDay implements Criteria
     class CriteriaMonth implements Criteria
     class CriteriaYear implements Criteria
+    class CriteriaHour implements Criteria
+    class CriteriaMinute implements Criteria
     class CriteriaHasAttachment implements Criteria
 }
 
@@ -234,7 +288,8 @@ MailService --> FolderRepo : Uses
 MailService --> MailMapperImpl : Uses
 MailService ..> SortWorker : Uses
 MailService ..> CriteriaFactory : Uses
-MailService ..> ActionFactory : Uses
+MailService --> ActionFactory : Uses
+MailService --> FilterRuleRepo : Uses
 
 ContactService --> ContactRepo : Uses
 ContactService ..> ContactSortWorker : Uses
@@ -257,5 +312,6 @@ ContactSortWorker o-- ContactSortingStrategy : Has
 
 FilterRule --> ActionFactory : Uses
 
-@enduml
+SecurityConfig --> JWTFilter : Configures
 
+@enduml
