@@ -39,14 +39,16 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
+  /* Changed from hidden to auto to allow scrolling */
 }
 
 .right-pane-wrapper> :not(router-outlet) {
   flex: 1;
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow: auto;
+  /* Changed from hidden to auto to allow scrolling */
 }
 
 /* Toolbar Styles */
@@ -73,13 +75,16 @@
   padding: 0 1.25rem;
   height: 100%;
 }
+
 /* NEW: Standardized Toolbar Button (Refresh, Next, Prev) */
 .toolbar-btn {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
-  padding: 6px 10px; /* Consistent padding */
-  height: 32px;      /* Fixed height for alignment */
+  padding: 6px 10px;
+  /* Consistent padding */
+  height: 32px;
+  /* Fixed height for alignment */
   cursor: pointer;
   color: #64748b;
   display: flex;
@@ -103,6 +108,7 @@
   width: 16px;
   height: 16px;
 }
+
 .sort-label {
   font-size: 0.75rem;
   font-weight: 700;
