@@ -34,9 +34,6 @@ public class SecurityConfig {
         this.jwtFilter = jwtFilter;
     }
 
-
-// ... inside SecurityConfig class
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

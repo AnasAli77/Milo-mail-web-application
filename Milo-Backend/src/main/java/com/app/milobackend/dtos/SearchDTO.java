@@ -9,5 +9,4 @@ import java.util.List;
 public class SearchDTO {
     private String word;
     private List<String> criteria;
-
 }
