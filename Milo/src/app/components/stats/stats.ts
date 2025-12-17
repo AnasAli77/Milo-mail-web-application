@@ -76,11 +76,11 @@ export class StatsComponent implements OnInit {
 
     getPriorityColor(priority: number): string {
         switch (priority) {
-            case 1: return '#94a3b8'; // gray
-            case 2: return '#22c55e'; // green
-            case 3: return '#3b82f6'; // blue
-            case 4: return '#f59e0b'; // amber
-            case 5: return '#ef4444'; // red
+            case 1: return '#94a3b8'; 
+            case 2: return '#22c55e'; 
+            case 3: return '#3b82f6'; 
+            case 4: return '#f59e0b'; 
+            case 5: return '#ef4444'; 
             default: return '#94a3b8';
         }
     }

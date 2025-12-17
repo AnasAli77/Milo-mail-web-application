@@ -15,7 +15,7 @@
   --color-blue-accent: #2563eb;
   /* Update Font Family to use Inter as primary */
   --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: 'Poppins', var(--font-family); /* Optional: Use Poppins for headings */
+  --font-heading: 'Poppins', var(--font-family); 
 }
 
 * {

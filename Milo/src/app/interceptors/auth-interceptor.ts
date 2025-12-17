@@ -1,8 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // 1. Retrieve the token from sessionStorage
-  // Make sure 'token' matches the key you used in your login component
+
   const myToken = sessionStorage.getItem('auth_token'); 
 
   // 2. If token exists, clone the request and add the header

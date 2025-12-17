@@ -34,7 +34,6 @@
 /* Wrapper for Description and Button */
 .content-overlay {
   position: absolute;
-  /* MOVED UP: Increased from 10% to 18% */
   bottom: 18%;
   width: 90%;
   display: flex;
@@ -53,7 +52,6 @@
   font-family: 'Inter', sans-serif;
   text-align: left;
   max-width: 60%;
-  /* MOVED UP: Added margin-bottom to lift the text */
   margin-bottom: 15px;
 }
 
@@ -61,18 +59,12 @@
 .cta-button {
   width: 214px;
   height: 73px;
-  /* background: #D9D9D9; */
-  /* Glass effect */
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
   background: rgba(255, 255, 255, 0.1);
   border-radius: 93px;
   border: none;
   cursor: pointer;
-
-  /* MOVED LEFT: Added margin-right to push away from edge */
   margin-right: 8%;
-
-  /* MOVED UP: Added margin-bottom to lift slightly */
   margin-bottom: 30px;
 
   /* Text Styling */

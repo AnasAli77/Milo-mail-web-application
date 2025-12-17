@@ -40,8 +40,8 @@ export class Header implements OnInit{
   ngOnInit() {
     // Setup the subscription for live search
     this.searchDebouncer.pipe(
-      debounceTime(300),        // Wait 300ms after user stops typing
-      distinctUntilChanged()    // Only search if the text is different from last time
+      debounceTime(300),        
+      distinctUntilChanged()    
     ).subscribe((term) => {
       if (term.trim()) {
         this.emailService.performSearch(term);

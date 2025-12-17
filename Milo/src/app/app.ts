@@ -2,7 +2,6 @@ import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-// If you have a union type or enum for views:
 type ViewState = 'login' | 'signup' | 'main';
 
 @Component({

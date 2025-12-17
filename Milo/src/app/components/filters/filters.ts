@@ -17,13 +17,11 @@ export class FiltersComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   // Data Sources
-  filters = computed(() => this.filterService.getFilters()()); // Access signal value via execution
+  filters = computed(() => this.filterService.getFilters()()); 
 
   // Filter out system folders for "Move To" action
   filteredFolders = computed(() => {
     const all = this.filterService.getFolders()();
-    // User wants ONLY: Inbox, Trash, and Custom Folders.
-    // Exclude: Sent, Drafts, Starred, Spam, Important
     const excluded = ['sent', 'drafts', 'starred', 'spam', 'important'];
     return all.filter(f => !excluded.includes(f.toLowerCase()));
   });
@@ -117,7 +115,7 @@ export class FiltersComponent implements OnInit {
       actionType: actType,
       actionTarget: actTarget
     });
-    this.filterForm.disable(); // Read-only mode for now as per design pattern (view details)
+    this.filterForm.disable();
   }
 
   clearFilter() {

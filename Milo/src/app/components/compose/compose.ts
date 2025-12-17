@@ -28,8 +28,6 @@ export class Compose implements OnInit {
   subject: string = '';
   message: string = '';
   priority: number = 3;
-
-  // Array to store attached files (each attachment holds its own file if it's new)
   attachments: Attachment[] = [];
 
   private emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$/;
@@ -43,22 +41,17 @@ export class Compose implements OnInit {
     private router: Router,
   ) { }
 
-  // Load draft data if we are editing one
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       if (params['to']) {
         const emailString = params['to'] as string;
-        // Split by comma if multiple emails are passed
         const emailArray = emailString.split(',').map(e => e.trim());
-
-        // Map to ReceiverInput objects
         this.receivers = emailArray.map(email => ({ email }));
       }
     });
 
     const draft = this.emailService.draftToEdit();
     if (draft) {
-      // Populate receivers
       if (draft.receiverEmails && draft.receiverEmails.length > 0) {
         this.receivers = draft.receiverEmails.map(email => ({ email }));
       }
@@ -68,8 +61,6 @@ export class Compose implements OnInit {
       this.priority = draft.priority || 3;
     }
   }
-
-  // Helper to get text label for UI
   getPriorityLabel(): string {
     switch (Number(this.priority)) {
       case 1: return 'Very Low';
@@ -113,16 +104,6 @@ export class Compose implements OnInit {
   removeAttachment(index: number) {
     this.attachments.splice(index, 1);
   }
-  // Format file size (e.g., 1.2 MB)
-  // formatFileSize(bytes: number): string {
-  //   if (bytes === 0) return '0 B';
-  //   const k = 1024;
-  //   const sizes = ['B', 'KB', 'MB', 'GB'];
-  //   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  //   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  // }
-
-  // ------------------------
 
   addReceiver() {
     this.receivers = [...this.receivers, { email: '' }];
@@ -139,7 +120,6 @@ export class Compose implements OnInit {
   }
 
   get isFormValid(): boolean {
-    // Subject, body (message), and receivers are all required
     if (!this.subject || this.subject.trim() === '') return false;
     if (!this.message || this.message.trim() === '') return false;
     if (this.receivers.length === 0) return false;
@@ -225,7 +205,6 @@ export class Compose implements OnInit {
 
         this.emailService.draftToEdit.set(null);
 
-        // this.discard();
       });
     }
   }

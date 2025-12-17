@@ -1,10 +1,4 @@
-// export interface FilterRule {
-//   id?: number,
-//   criteria: Map<String, String>, // e.g., "subject" : "boss", "sender", "madara@gmail.com"
 
-//   actionType: String,    // e.g., "MOVE", "STAR", "READ"
-//   actionTarget?: String,  // e.g., Folder ID (for move), or null
-// }
 
 export interface FilterRule {
   id?: number;

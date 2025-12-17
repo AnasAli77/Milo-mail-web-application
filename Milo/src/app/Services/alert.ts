@@ -6,12 +6,12 @@ import Swal from 'sweetalert2';
 })
 export class Alert {
   // --- DARK THEME COLORS ---
-  private readonly darkBackground = '#1f2937'; // Slate-800
-  private readonly darkText = '#f9fafb';       // Gray-50
-  private readonly confirmBtnColor = '#3b82f6'; // Blue-500 (Lighter blue for dark mode)
-  private readonly cancelBtnColor = '#ef4444';  // Red-500
+  private readonly darkBackground = '#1f2937'; 
+  private readonly darkText = '#f9fafb';       
+  private readonly confirmBtnColor = '#3b82f6'; 
+  private readonly cancelBtnColor = '#ef4444';  
 
-  // --- CONFIGURATION: TOAST MIXIN (Dark) ---
+  
   private Toast = Swal.mixin({
     toast: true,
     position: 'top',
@@ -26,14 +26,14 @@ export class Alert {
     }
   });
 
-  // --- LOGIN ALERTS ---
+  
 
   loginSuccess() {
     this.Toast.fire({
       icon: 'success',
       title: 'Login Successful',
       text: 'Welcome back!',
-      iconColor: '#4ade80' // Green-400 (Light green for dark bg)
+      iconColor: '#4ade80' 
     });
   }
 

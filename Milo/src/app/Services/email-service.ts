@@ -53,11 +53,10 @@ export class EmailService implements OnInit {
   }
 
   ngOnInit() {
-    // NOTE: ngOnInit is NOT called on services, only on components/directives
-    // Folder loading moved to constructor
+  
   }
 
-  // Now handles pagination for Search and Filter as well
+  
   loadEmailsForFolder(folder: string, page: number = 0) {
     this.currentSortBy.set('');
 
@@ -168,9 +167,7 @@ export class EmailService implements OnInit {
     });
   }
 
-  // --- EMAIL ACTIONS ---
 
-  // Used by EmailList to get data (now just returns signal, triggering is separate)
   filterEmails(folder: string) {
     // We assume loadEmailsForFolder(folder) is called by the component when route changes
     return this.emailsSignal();
@@ -202,11 +199,8 @@ export class EmailService implements OnInit {
     const emailsInFolder = this.filterEmails(folder);
     const currentIndex = emailsInFolder.findIndex(e => e.id === currentId);
 
-    // If current email isn't in the list, we can't determine next/prev
     if (currentIndex === -1) return null;
 
-    // Next = Down the list (Index + 1)
-    // Prev = Up the list (Index - 1)
     const adjacentIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
 
     if (adjacentIndex >= 0 && adjacentIndex < emailsInFolder.length) {
@@ -249,7 +243,6 @@ export class EmailService implements OnInit {
     });
   }
 
-  // --- Helper methods that might need adjustment ---
   editDraft(email: Email) {
     this.draftToEdit.set(email);
     this.router.navigate(['/layout/drafts/compose']);

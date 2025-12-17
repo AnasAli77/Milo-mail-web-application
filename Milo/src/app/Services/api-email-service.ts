@@ -25,9 +25,6 @@ export class ApiEmailService {
 
   sendEmail(email: Email, files: File[]): Observable<Email> {
     const formData  = new FormData();
-
-    // Strip the 'file' property from attachments before JSON serialization
-    // (File objects can't be serialized to JSON, they're sent separately via FormData)
     const emailToSend = {
       ...email,
       attachments: (email.attachments || []).map(att => ({

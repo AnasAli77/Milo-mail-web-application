@@ -31,7 +31,7 @@ export class SignUpComponent {
 
       confirmPassword: ['', [Validators.required]],
     },
-      { validators: [this.passwordsMatchValidator] } // group-level validator
+      { validators: [this.passwordsMatchValidator] } 
     );
   }
 
@@ -87,8 +87,8 @@ export class SignUpComponent {
         if (err.status === 0) {
           msg = 'Unable to connect to the server. Please check if the backend is running.';
         }
-        // Case 2: Email already exists (Assuming 409 Conflict or checking error message)
-        // Adjust status code based on actual backend implementation if needed (often 409 or 400 for duplicate)
+        // Case 2: Email already exists 
+        // Adjust status code based on actual backend implementation if needed 
         else if (err.status === 409 || (err.error && typeof err.error === 'string' && err.error.toLowerCase().includes('exist'))) {
           msg = 'This email is already registered. Please login or use a different email.';
         }
