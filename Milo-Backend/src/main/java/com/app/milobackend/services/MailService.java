@@ -119,9 +119,9 @@ public class MailService {
     @Transactional
     @CacheEvict(value = "mails", allEntries = true)
     public void saveMail(MailDTO mailDTO, List<MultipartFile> files) throws RuntimeException, IOException {
-        System.out.println("=== Starting saveMail ===");
+        System.err.println("=== Starting saveMail ===");
         String currentEmail = getCurrentUserEmail();
-        System.out.println("Current user email: " + currentEmail);
+        System.err.println("Current user email: " + currentEmail);
 
         ClientUser sender = userRepo.findByEmail(currentEmail);
         if (sender == null) {
@@ -134,9 +134,9 @@ public class MailService {
         Mail senderMail = new Mail(mappedMail);
         senderMail.setFolder(mappedMail.getFolder());
 
-        System.out.println("Mail entity created, folder: "
+        System.err.println("Mail entity created, folder: "
                 + (senderMail.getFolder() != null ? senderMail.getFolder().getName() : "NULL"));
-        System.out.println(
+        System.err.println(
                 "Attachments count: " + (senderMail.getAttachments() != null ? senderMail.getAttachments().size() : 0));
 
         senderMail.setSender(sender);
@@ -144,7 +144,11 @@ public class MailService {
 
         // The folder is already set by the mapper based on mailDTO.getFolder()
         // (e.g., "sent" for sending, "drafts" for saving draft)
-        senderMail.setId(null);
+//        senderMail.setId(null);
+        if (mappedMail.getId() == 0)
+            senderMail.setId(null);
+        else
+            senderMail.setId(mappedMail.getId());
 
         System.out.println("About to save sender mail...");
         Mail savedMail = mailRepo.save(senderMail);

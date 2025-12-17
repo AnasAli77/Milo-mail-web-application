@@ -203,6 +203,9 @@ export class Compose implements OnInit {
 
       this.emailService.sendEmail(emailData, () => {
         this.discard(); // NOT CLOSE BECAUSE CLOSE REDIRECT EMAIL TO DRAFTS
+        this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
+        this.emailService.loadFolders();
+        this.emailService.selectedEmail.set(null);
       });
     }
   }
