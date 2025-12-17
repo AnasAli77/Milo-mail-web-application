@@ -86,7 +86,7 @@ public class Mail {
         this.body = source.getBody();
         this.priority = source.getPriority();
         this.sender = source.getSender(); // Shallow copy is fine for User
-        this.sentAt = LocalDateTime.now();
+        this.sentAt = source.getSentAt();
         this.read = source.isRead();
         this.starred = false;
         this.hasAttachment = source.isHasAttachment();

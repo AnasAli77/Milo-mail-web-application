@@ -217,7 +217,11 @@ export class Compose implements OnInit {
         this.emailService.loadFolders();
 
         this.emailService.selectedEmail.set(null);
-        this.router.navigate(['/layout/drafts']);
+        if (this.router.url.includes('/drafts')) {
+          this.router.navigate(['/layout/drafts']);
+        } else {
+          this.location.back();
+        }
 
         this.emailService.draftToEdit.set(null);
 

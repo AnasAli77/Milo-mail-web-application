@@ -144,7 +144,6 @@ public class MailService {
 
         // The folder is already set by the mapper based on mailDTO.getFolder()
         // (e.g., "sent" for sending, "drafts" for saving draft)
-//        senderMail.setId(null);
         if (mappedMail.getId() == 0)
             senderMail.setId(null);
         else
@@ -394,10 +393,24 @@ public class MailService {
             System.out.println("mail to toggle star: not found for id=" + mailId);
             return;
         }
-        System.out.println("mail to toggle star (before): " + mail);
-        mail.setStarred(!mail.isStarred());
-        mailRepo.save(mail);
-        System.out.println("mail to toggle star (after): " + mail);
+
+        String userEmail = getCurrentUserEmail();
+        boolean newStarredState = !mail.isStarred();
+
+        // Find all related copies for this user (for syncing star status on self-sends)
+        List<Mail> relatedCopies = mailRepo.findRelatedCopiesForUser(
+                mail.getSubject(),
+                mail.getBody(),
+                mail.getSentAt(),
+                mail.getSender().getEmail(),
+                userEmail);
+
+        // Sync starred status across all copies
+        System.out.println("Syncing star status to " + relatedCopies.size() + " related copies");
+        for (Mail copy : relatedCopies) {
+            copy.setStarred(newStarredState);
+            mailRepo.save(copy);
+        }
     }
 
     @Transactional
