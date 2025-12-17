@@ -112,6 +112,16 @@
   outline: none;
 }
 
+.action-pill.compose {
+  color: #1a73e8;
+  border-color: transparent;
+  background-color: #e8f0fe;
+}
+
+.action-pill.compose:hover {
+  background-color: #d2e3fc;
+}
+
 /* List Area */
 .contacts-scroll-area {
   flex: 1;
