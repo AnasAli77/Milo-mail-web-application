@@ -13,8 +13,6 @@ import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-
-//@CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/attachment")
 public class AttachmentController {

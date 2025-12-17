@@ -1,0 +1,84 @@
+@startuml
+title Authentication Flow
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor User
+participant "Angular Frontend" as Frontend
+participant "AuthInterceptor" as Interceptor
+participant "JWTFilter" as JWTFilter
+participant "SecurityFilterChain" as Chain
+participant "AuthController" as AuthCtrl
+participant "AuthService" as AuthSvc
+participant "JWTService" as JWTSvc
+database "PostgreSQL" as DB
+
+== Login Flow ==
+
+User -> Frontend : Enter credentials
+activate Frontend
+
+Frontend -> AuthCtrl : POST /auth/login
+activate AuthCtrl
+
+AuthCtrl -> AuthSvc : verify(userDTO)
+activate AuthSvc
+
+AuthSvc -> DB : findByEmail(email)
+activate DB
+DB --> AuthSvc : ClientUser
+deactivate DB
+
+AuthSvc -> AuthSvc : Check password hash
+
+AuthSvc -> JWTSvc : generateToken(email)
+activate JWTSvc
+JWTSvc --> AuthSvc : JWT Token
+deactivate JWTSvc
+
+AuthSvc --> AuthCtrl : UserDTO with token
+deactivate AuthSvc
+
+AuthCtrl --> Frontend : { token, email, name }
+deactivate AuthCtrl
+
+Frontend -> Frontend : Store token in sessionStorage
+Frontend --> User : Redirect to Inbox
+deactivate Frontend
+
+== Authenticated Request Flow ==
+
+User -> Frontend : View Inbox
+activate Frontend
+
+note over Frontend: **Interceptor Pattern**\nAuthInterceptor adds Bearer token
+
+Frontend -> Interceptor : HTTP Request
+activate Interceptor
+Interceptor -> Interceptor : Attach token to header
+Interceptor -> JWTFilter : GET /mail/all (with Bearer token)
+deactivate Interceptor
+activate JWTFilter
+
+note over JWTFilter: **Chain of Responsibility**\nPart of Spring Security filter chain
+
+JWTFilter -> JWTFilter : Extract token from header
+JWTFilter -> JWTSvc : extractEmail(token)
+JWTFilter -> JWTSvc : validateToken(token, userDetails)
+
+alt Token Valid
+    JWTFilter -> Chain : filterChain.doFilter()
+    note right: Passes to next filter\nin the chain
+    Chain --> JWTFilter : Response
+    JWTFilter --> Frontend : 200 OK with data
+else Token Invalid/Expired
+    JWTFilter --> Frontend : 401 Unauthorized
+end
+
+deactivate JWTFilter
+
+Frontend --> User : Display emails
+deactivate Frontend
+
+@enduml

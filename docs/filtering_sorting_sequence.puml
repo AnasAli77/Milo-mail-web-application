@@ -1,0 +1,82 @@
+@startuml
+title Email Filtering & Sorting Workflow
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor User
+participant "Angular Frontend" as Frontend
+participant "Caffeine Cache" as Cache
+participant "MailController" as Controller
+participant "MailService" as Service
+participant "CriteriaFactory" as CFactory
+participant "Criteria" as Filter
+participant "SortWorker" as Worker
+participant "MailSortingStrategy" as Strategy
+database "PostgreSQL" as DB
+
+User -> Frontend : Apply Filter & Sort
+activate Frontend
+
+Frontend -> Controller : GET /mails/filter
+activate Controller
+
+Controller -> Service : Filter(filterDTO, page, size)
+activate Service
+
+note over Service: Check cache first
+
+Service -> Cache : get(cacheKey)
+activate Cache
+alt Cache Hit
+    Cache --> Service : Cached Result
+else Cache Miss
+    Cache --> Service : null
+    
+    Service -> DB : findByFolderAndUser()
+    activate DB
+    DB --> Service : List<Mail> rawMails
+    deactivate DB
+    
+    note over Service: **Criteria Pattern**\nCreate filter based on criteria type
+    
+    Service -> CFactory : create("subject", "work")
+    activate CFactory
+    CFactory --> Service : CriteriaSubject
+    deactivate CFactory
+    
+    Service -> Filter : filter(rawMails)
+    activate Filter
+    Filter --> Service : filteredMails
+    deactivate Filter
+    
+    note over Service: **Strategy Pattern**\nSwitch sorting algorithm at runtime
+    
+    Service -> Worker : setStrategy(SortByDate)
+    activate Worker
+    Worker --> Service
+    deactivate Worker
+    
+    Service -> Worker : sort(filteredMails)
+    activate Worker
+    Worker -> Strategy : SortingMails(filteredMails)
+    activate Strategy
+    Strategy --> Worker : sortedMails
+    deactivate Strategy
+    Worker --> Service : sortedMails
+    deactivate Worker
+    
+    Service -> Cache : put(cacheKey, result)
+end
+deactivate Cache
+
+Service --> Controller : Page<MailDTO>
+deactivate Service
+
+Controller --> Frontend : JSON Response
+deactivate Controller
+
+Frontend -> User : Display Filtered & Sorted Mails
+deactivate Frontend
+
+@enduml

@@ -33,8 +33,6 @@ public class ClientUser {
     @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt =  LocalDateTime.now(ZoneId.of("Africa/Cairo"));
 
-   // --- Relationships ---
-
     // Mails sent by this user
     @OneToMany(mappedBy = "sender")
     @JsonIgnore // Prevent infinite recursion

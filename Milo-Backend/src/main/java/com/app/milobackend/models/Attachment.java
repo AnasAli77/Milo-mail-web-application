@@ -20,13 +20,10 @@ public class Attachment{
 
     private String name;
     private String type;
-    private Long size; // File size in bytes - stored to avoid lazy-loading content just for size
-
-//    @Column(name = "data", columnDefinition="BYTEA")
-//    private byte[] data;
+    private Long size;
 
     // cascade = ALL: Saving this Attachment automatically saves the Content
-    // fetch = LAZY: Loading this Attachment DOES NOT load the Content (Speed!)
+    // fetch = LAZY: Loading this Attachment DOES NOT load the Content
     // optional = false: Every attachment must have content
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "content_id", nullable = false, unique = true)

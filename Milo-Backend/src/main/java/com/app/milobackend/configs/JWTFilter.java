@@ -47,7 +47,7 @@ public class JWTFilter extends OncePerRequestFilter {
                 email = jwtService.extractEmail(token);
 //                System.out.println("Email extracted from token: " + email);
             } catch (Exception ex) {
-                // log invalid token and continue filterChain (do not let it throw raw to filter)
+                // log invalid token and continue filterChain
                 System.err.println("Failed to extract email from token: " + ex.getMessage());
             }
         }

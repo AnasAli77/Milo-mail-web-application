@@ -97,6 +97,16 @@ package "Security (Chain of Responsibility)" {
     }
 }
 
+package "Cache (Caffeine)" {
+    class CacheConfig <<Configuration>> {
+        + cacheManager(): CacheManager
+    }
+    class CaffeineCacheManager {
+        + getCache(String): Cache
+    }
+    note right of CacheConfig: Local in-memory cache\nfor storing Java objects\nwithout serialization
+}
+
 package "Mappers (Mapper Pattern)" {
     interface MailMapper <<Interface>> {
         + toDto(Mail) : MailDTO
@@ -150,7 +160,11 @@ package "Repositories (Repository Pattern)" {
 }
 
 package "Models (Builder & Prototype Pattern)" {
-    class Mail <<Builder>> <<Prototype>> {
+    interface Prototype<T> <<Interface>> {
+        + clone(): T
+    }
+    
+    class Mail <<Builder>> implements Prototype {
         - Long id
         - String subject
         - String body
@@ -160,8 +174,8 @@ package "Models (Builder & Prototype Pattern)" {
         - boolean hasAttachment
         - int priority
         + static MailBuilder builder()
-        + Mail(Mail source)
-        + Mail(Mail source, ClientUser receiver)
+        + clone(): Mail
+        + cloneWithReceiver(ClientUser): Mail
         + update(Mail source)
     }
     class Attachment {

@@ -129,9 +129,10 @@ public class MailService {
         }
         System.out.println("Sender found: " + sender.getName());
 
-        // Step 1: Create the sender's copy (goes to their sent/drafts folder)
+        // Step 1: Create the sender's copy (goes to their sent/drafts folder) using
+        // Prototype pattern
         Mail mappedMail = mailMapper.toEntity(mailDTO, files);
-        Mail senderMail = new Mail(mappedMail);
+        Mail senderMail = mappedMail.clone();
         senderMail.setFolder(mappedMail.getFolder());
 
         System.err.println("Mail entity created, folder: "
@@ -167,8 +168,8 @@ public class MailService {
                     throw new RuntimeException("Receiver not found: " + receiverEmail);
                 }
 
-                // Create a copy for this receiver using the copy constructor
-                Mail receiverMail = new Mail(senderMail, receiver);
+                // Create a copy for this receiver using the Prototype pattern
+                Mail receiverMail = senderMail.cloneWithReceiver(receiver);
                 receiverMail.setRead(false); // New mail is unread for receiver
 
                 // Load filter rules for this RECEIVER (not sender!)

@@ -1,0 +1,103 @@
+@startuml
+title Send Mail Workflow with Filter Rules
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor Sender
+participant "Angular Frontend" as Frontend
+participant "MailController" as Controller
+participant "MailService" as Service
+participant "Mail" as MailEntity
+participant "FilterRuleRepo" as RuleRepo
+participant "FilterRule" as Rule
+participant "ActionFactory" as AFactory
+participant "FilterRuleAction" as Action
+participant "FolderRepo" as FolderRepo
+database "PostgreSQL" as DB
+
+Sender -> Frontend : Click "Send"
+activate Frontend
+
+note over Frontend: **Frontend Validation**\n- Subject not empty\n- Body not empty\n- At least one valid receiver
+
+Frontend -> Controller : POST /mail/add
+activate Controller
+
+Controller -> Service : saveMail(mailDTO, files)
+activate Service
+
+note over Service: **Step 1: Create sender's copy**
+
+Service -> MailEntity : clone()
+activate MailEntity
+note right: **Prototype Pattern**\nDeep copy mail with attachments
+MailEntity --> Service : senderMail (clone)
+deactivate MailEntity
+
+Service -> DB : save(senderMail)
+activate DB
+DB --> Service : savedMail
+deactivate DB
+
+note over Service: **Step 2: Process each receiver**
+
+loop For each receiver email
+    Service -> MailEntity : cloneWithReceiver(receiver)
+    activate MailEntity
+    note right: **Prototype Pattern**\nClone + set receiver
+    MailEntity --> Service : receiverMail
+    deactivate MailEntity
+    
+    Service -> RuleRepo : findByUserEmail(receiverEmail)
+    activate RuleRepo
+    RuleRepo --> Service : List<FilterRule>
+    deactivate RuleRepo
+
+    loop For each FilterRule
+        Service -> Rule : check(mail)
+        activate Rule
+        note right: Iterates criteriaTypesValues\nusing **Criteria Pattern**
+        Rule --> Service : boolean matches
+        deactivate Rule
+        
+        alt If rule matches
+            Service -> Rule : apply(mail, actionFactory)
+            activate Rule
+            
+            Rule -> AFactory : getAction(actionType)
+            activate AFactory
+            note right: **Factory Pattern**
+            AFactory --> Rule : FilterRuleAction
+            deactivate AFactory
+            
+            Rule -> Action : execute(mail, targetValue)
+            activate Action
+            note right: **Command Pattern**\n- MoveToAction\n- StarAction\n- MarkAsReadAction
+            Action -> FolderRepo : findByNameAndUserEmail()
+            Action --> Rule
+            deactivate Action
+            
+            Rule --> Service
+            deactivate Rule
+        end
+    end
+    
+    alt If no folder set
+        Service -> FolderRepo : findByNameAndUserEmail("inbox", email)
+        Service -> Service : mail.setFolder(inbox)
+    end
+    
+    Service -> DB : save(receiverMail)
+end
+
+Service --> Controller : success
+deactivate Service
+
+Controller --> Frontend : 200 OK
+deactivate Controller
+
+Frontend --> Sender : "Email Sent Successfully"
+deactivate Frontend
+
+@enduml

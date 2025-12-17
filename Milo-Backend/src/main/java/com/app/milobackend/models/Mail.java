@@ -13,14 +13,14 @@ import java.util.List;
 import java.util.Set;
 
 @ToString
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @Entity
 @Table(name = "mails")
-public class Mail {
-//    @Transient
+public class Mail implements Prototype<Mail> {
     private LocalDateTime trashedAt;
 
     @Id
@@ -38,13 +38,6 @@ public class Mail {
     @ToString.Exclude
     private ClientUser sender;
 
-//     2. RECEIVERS: List of users, linked via their 'email'
-//    @ManyToMany(fetch = FetchType.LAZY)
-//    @JoinTable(
-//            name = "mail_receivers", // Name of the hidden join table
-//            joinColumns = @JoinColumn(name = "mail_id"), // Key from Mail side
-//            inverseJoinColumns = @JoinColumn(name = "receiver_email", referencedColumnName = "email") // Key from User side
-//    )
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id", referencedColumnName = "email")
     @ToString.Exclude
@@ -54,90 +47,78 @@ public class Mail {
     private String body;
 
     @Builder.Default
-    private LocalDateTime sentAt =  LocalDateTime.now(ZoneId.of("Africa/Cairo"));
-    private int priority; //from 1to 4 (map it in frontEnd)
+    private LocalDateTime sentAt = LocalDateTime.now(ZoneId.of("Africa/Cairo"));
+    private int priority;
 
     // Many Mails can belong to one Folder.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id")
-    @JsonBackReference // When serializing Mail, the full Folder object will be omitted (breaking the loop with Folder's @JsonManagedReference)
+    @JsonBackReference
     @ToString.Exclude
     private Folder folder;
 
     // One Mail has many Attachments.
     @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // Attachments for this mail WILL be serialized
+    @JsonManagedReference
     @Builder.Default
     @ToString.Exclude
     private Set<Attachment> attachments = new HashSet<>();
 
-//    // Transient field to store IDs of existing attachments that should be preserved
-//    // Used when updating a draft - not persisted to database
-//    @Transient
-//    @Builder.Default
-//    private Set<Long> existingAttachmentIds = new HashSet<>();
-
-    // Copy Constructor
-    public Mail(Mail source) {
-        // never copy the ID nor the receiver
-
-        this.id = null; // Reset ID
-        this.subject = source.getSubject();
-        this.body = source.getBody();
-        this.priority = source.getPriority();
-        this.sender = source.getSender(); // Shallow copy is fine for User
-        this.sentAt = source.getSentAt();
-        this.read = source.isRead();
-        this.starred = false;
-        this.hasAttachment = source.isHasAttachment();
+    @Override
+    public Mail clone() {
+        Mail clonedMail = new Mail();
+        clonedMail.setId(null); // Reset ID for new entity
+        clonedMail.setSubject(this.subject);
+        clonedMail.setBody(this.body);
+        clonedMail.setPriority(this.priority);
+        clonedMail.setSender(this.sender); // Shallow copy is fine
+        clonedMail.setSentAt(this.sentAt);
+        clonedMail.setRead(this.read);
+        clonedMail.setStarred(false); // Reset starred for new copy
+        clonedMail.setHasAttachment(this.hasAttachment);
+        clonedMail.setActive(this.active);
 
         // Deep Copy Attachments
-        this.attachments = new HashSet<>();
-        if (source.getAttachments() != null) {
-            for (Attachment att : source.getAttachments()) {
+        clonedMail.setAttachments(new HashSet<>());
+        if (this.attachments != null) {
+            for (Attachment att : this.attachments) {
                 Attachment newAtt = new Attachment();
                 newAtt.setName(att.getName());
                 newAtt.setType(att.getType());
                 newAtt.setSize(att.getSize());
 
-                // IMPORTANT: Point to the same heavy content ID or Path
-                // If using the Split Table approach:
-                if(att.getContent() != null) {
-                    // Create new content wrapper pointing to same bytes?
-                    // Or simpler: Just duplicate the bytes for now (easiest logic)
-                    // Ideally, you'd share the blob, but let's deep copy for safety first.
+                if (att.getContent() != null) {
                     newAtt.setContent(new AttachmentContent(att.getContent().getData()));
                     newAtt.getContent().setAttachment(newAtt);
                 }
-                this.addAttachment(newAtt);
-                newAtt.setMail(this);
+                clonedMail.addAttachment(newAtt);
+                newAtt.setMail(clonedMail);
             }
         }
+
+        return clonedMail;
     }
 
-    // Copy Constructor with specific receiver (for Queue-based multi-recipient sending)
-    public Mail(Mail source, ClientUser receiver) {
-        this(source); // Call the base copy constructor
-        this.receiver = receiver;
+    public Mail cloneWithReceiver(ClientUser receiver) {
+        Mail clonedMail = this.clone();
+        clonedMail.setReceiver(receiver);
+        return clonedMail;
     }
 
     public void update(Mail source) {
         this.subject = source.getSubject();
         this.body = source.getBody();
         this.priority = source.getPriority();
-        this.sender = source.getSender(); // Shallow copy is fine for User
+        this.sender = source.getSender();
         this.sentAt = LocalDateTime.now();
         this.read = source.isRead();
         this.starred = source.isStarred();
         this.hasAttachment = source.isHasAttachment();
 
-        // Deep Copy Attachments
-//        this.attachments = new HashSet<>();
         this.attachments.clear();
         if (source.getAttachments() != null && !source.getAttachments().isEmpty()) {
             List<Attachment> newAttachments = new ArrayList<>(source.getAttachments());
             for (Attachment att : newAttachments) {
-//
                 this.addAttachment(att);
                 att.setMail(this);
             }
@@ -145,14 +126,17 @@ public class Mail {
     }
 
     public void addAttachment(Attachment a) {
-        if (a == null) return;
+        if (a == null)
+            return;
         a.setMail(this);
         attachments.add(a);
     }
 
     public void removeAttachment(Attachment a) {
-        if (a == null) return;
+        if (a == null)
+            return;
         attachments.remove(a);
-        if (a.getMail() == this) a.setMail(null);
+        if (a.getMail() == this)
+            a.setMail(null);
     }
 }

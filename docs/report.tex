@@ -28,20 +28,27 @@
 }
 
 \title{Milo Mail System Project Report}
-\author{Team Milo}
-\date{\today}
+\author{
+    Team Milo \\
+    \vspace{0.3cm}
+    Mostafa Fathy Ali Amer (23010849) \\
+    Youssef Ashraf Mohamed Soliman (23010977) \\
+    Anas Ali Mohamed Ahmed (23010300) \\
+    Bigad Elsayed Ramadan Omar (23010327)
+}
+\date{}
 
 \begin{document}
 
 \maketitle
 
 \section{Introduction}
-This report documents the design and implementation of the Milo Mail System, a scalable web-based email application. The system is built using \textbf{Spring Boot (Java 21/25)} for the backend and \textbf{Angular 19} for the frontend, using a \textbf{PostgreSQL} database for persistence. The application conforms to Object-Oriented Programming principles and utilizes several GoF design patterns to ensure maintainability and extensibility.
+This report covers the design and implementation of the Milo Mail System, which is a web-based email application we built for our Programming 2 course. We used \textbf{Spring Boot with JDK 21} for the backend and \textbf{Angular 20} for the frontend, along with a \textbf{PostgreSQL} database to store everything. We tried to follow Object-Oriented Programming principles and used several GoF design patterns to keep the code clean and easy to extend.
 
 \section{Steps to Run the Code}
 \subsection{Prerequisites}
 \begin{itemize}
-    \item Java Development Kit (JDK) 21 or 25
+    \item Java Development Kit (JDK) 21
     \item Maven
     \item Node.js (v18+) and npm
     \item Angular CLI
@@ -135,9 +142,14 @@ This encapsulates object creation logic, simplifying the Service layer.
 \textbf{Implementation:} Annotated with \texttt{@Builder} (Lombok) in the \texttt{Mail} class. This provides a fluent API for object construction (\texttt{Mail.builder().subject(...).build()}), making the code more readable and reducing constructor complexity.
 
 \subsubsection{Prototype Pattern (Creational)}
-\textbf{Usage:} Used for deep-copying drafts when they are sent.
+\textbf{Usage:} We use this pattern to deep-copy mails when sending them to multiple receivers or when sending a draft.
 \newline
-\textbf{Implementation:} The \texttt{Mail} class includes a Copy Constructor (\texttt{public Mail(Mail source)}) that creates a deep copy of the mail and its attachments, ensuring that the new ``Sent'' mail is a distinct entity from the original ``Draft''.
+\textbf{Implementation:}
+\begin{itemize}
+    \item \textbf{Interface:} \texttt{Prototype\textless T\textgreater} defines the \texttt{clone()} method.
+    \item \textbf{Concrete Prototype:} \texttt{Mail} implements \texttt{Prototype\textless Mail\textgreater} with \texttt{clone()} and \texttt{cloneWithReceiver(ClientUser)} methods.
+    \item The \texttt{clone()} method creates a deep copy of the mail including all attachments, ensuring each receiver gets their own independent copy.
+\end{itemize}
 
 \subsubsection{Command Pattern (Behavioral)}
 \textbf{Usage:} Used for executing filter rule actions on incoming emails.
@@ -193,12 +205,14 @@ This encapsulates object creation logic, simplifying the Service layer.
 
 \section{Design Decisions}
 \begin{enumerate}
-    \item \textbf{Framework Choice:} Spring Boot was chosen for its robust dependency injection and ease of REST API creation, enabling a clean Microservices-ready architecture.
-    \item \textbf{Database:} PostgreSQL was selected for its reliability and advanced SQL features, running on port 5432.
-    \item \textbf{Handling Concurrency:} To prevent issues where a user edits a draft while it is being autosaved, we implemented specific backend logic to always treat sent mails as new entities (via Prototype pattern), avoiding Optimistic Locking exceptions.
-    \item \textbf{Asynchronous UI:} The Frontend uses Angular Signals and Observables to handle asynchronous file uploads (for large attachments), providing a non-blocking UI with a global loading overlay for better user experience.
-    \item \textbf{Filter Rule Architecture:} Filter rules are applied on the receiver side when mail is being delivered, not on the sender side. This ensures each user's custom filters are applied to their incoming mail independently.
-    \item \textbf{Defensive Null Handling:} All Criteria classes implement null-safe checks to prevent NPE during filter evaluation, with try-catch wrapper in mail delivery to ensure filter errors don't break mail sending.
+    \item \textbf{Framework Choice:} We went with Spring Boot because it makes building REST APIs really easy and has great dependency injection. It also means we could scale this to microservices later if needed.
+    \item \textbf{Database:} We picked PostgreSQL since it's reliable and has advanced SQL features. It runs on port 5432.
+    \item \textbf{Caching with Caffeine:} We noticed that loading mails was getting slow, especially when users had lots of emails. To fix this, we added a caching layer using Caffeine. We chose Caffeine because it's a local cache that can store Java objects directly without needing to serialize them, which is really convenient.
+    \item \textbf{Handling Concurrency:} To avoid issues where a user edits a draft while it's being autosaved, we made the backend always treat sent mails as brand new entities using the Prototype pattern. This prevents those annoying Optimistic Locking exceptions.
+    \item \textbf{Asynchronous UI:} The frontend uses Angular Signals and Observables for handling large file uploads asynchronously. We also added a global loading overlay so users can see when something is still loading.
+    \item \textbf{Filter Rule Architecture:} Filter rules get applied on the receiver's side when mail is delivered, not the sender's side. This way each user's filters work independently on their own incoming mail.
+    \item \textbf{Defensive Null Handling:} All our Criteria classes check for null values to prevent NullPointerExceptions during filtering. We also wrapped the filter logic in try-catch so even if a filter crashes, the email still gets delivered.
+    \item \textbf{Synchronized Star Status for Self-Sent Emails:} When you send an email to yourself, you end up with two copies (one in Sent, one in Inbox). We made it so starring either copy automatically stars both. Also, the Starred folder only shows one copy to avoid duplicates.
 \end{enumerate}
 
 \section{Assumptions}

@@ -28,8 +28,8 @@ public class FilterRule {
     @ElementCollection
     private Map<String, String> criteriaTypesValues = new HashMap<>();
 
-    private String actionType; // e.g., "MOVE", "STAR", "READ"
-    private String actionTarget; // e.g., Folder ID (for move), or null
+    private String actionType;
+    private String actionTarget;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -45,7 +45,6 @@ public class FilterRule {
     }
 
     public boolean check(Mail mail) {
-        // Map<String, String> criteriaMap = request.getKeys();
         List<Mail> mailList = new ArrayList<>(List.of(mail));
 
         for (Map.Entry<String, String> entry : criteriaTypesValues.entrySet()) {
