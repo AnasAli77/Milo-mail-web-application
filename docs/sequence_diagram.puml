@@ -1,4 +1,8 @@
 @startuml
+title Milo Mail System - Sequence Diagrams
+
+== Email Filtering & Sorting Workflow ==
+
 actor User
 participant "Angular App (Frontend)" as Frontend
 participant "MailController" as Controller
@@ -59,4 +63,79 @@ deactivate Controller
 
 Frontend -> User : Display Mails
 deactivate Frontend
+
+== Filter Rule Application Workflow (Command Pattern) ==
+
+actor Sender
+participant "Angular App (Frontend)" as Frontend2
+participant "MailController" as Controller2
+participant "MailService" as Service2
+participant "FilterRuleRepo" as RuleRepo
+participant "FilterRule" as Rule
+participant "ActionFactory" as AFactory
+participant "FilterRuleAction" as Action
+database "PostgreSQL" as DB2
+
+Sender -> Frontend2 : Send Email
+activate Frontend2
+
+Frontend2 -> Controller2 : POST /mail/send
+activate Controller2
+
+Controller2 -> Service2 : saveMail(mailDTO, files)
+activate Service2
+
+Service2 -> DB2 : save(mail)
+activate DB2
+DB2 --> Service2 : savedMail
+deactivate DB2
+
+note over Service2: For each receiver...
+
+Service2 -> RuleRepo : findByUserEmail(receiverEmail)
+activate RuleRepo
+RuleRepo --> Service2 : List<FilterRule>
+deactivate RuleRepo
+
+loop For each FilterRule
+    Service2 -> Rule : check(mail)
+    activate Rule
+    Rule --> Service2 : boolean matches
+    deactivate Rule
+    
+    alt If rule matches
+        Service2 -> Rule : apply(mail, actionFactory)
+        activate Rule
+        
+        Rule -> AFactory : getAction(actionType)
+        activate AFactory
+        AFactory --> Rule : FilterRuleAction (e.g., MoveToAction)
+        deactivate AFactory
+        
+        Rule -> Action : execute(mail, targetValue)
+        activate Action
+        note right of Action: Performs action:\n- Move to folder\n- Star email\n- Mark as read
+        Action --> Rule
+        deactivate Action
+        
+        Rule --> Service2
+        deactivate Rule
+    end
+end
+
+Service2 -> DB2 : save(mail)
+activate DB2
+DB2 --> Service2 : updatedMail
+deactivate DB2
+
+Service2 --> Controller2 : success
+deactivate Service2
+
+Controller2 --> Frontend2 : 200 OK
+deactivate Controller2
+
+Frontend2 --> Sender : Email Sent
+deactivate Frontend2
+
 @enduml
+

@@ -7,6 +7,7 @@ import com.app.milobackend.repositories.FilterRuleRepo;
 import com.app.milobackend.repositories.UserRepo;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class FilterRuleService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value="filterRules", key="#root.target.getCurrentUserEmail()")
+    @Cacheable(value = "filterRules", key = "#root.target.getCurrentUserEmail()")
     public List<FilterRuleDTO> getFilters() {
         String userEmail = getCurrentUserEmail();
         List<FilterRule> filterRules = filterRuleRepo.findByUserEmail(userEmail);
@@ -43,13 +44,19 @@ public class FilterRuleService {
     }
 
     @Transactional
-    @CacheEvict(value="filterRules", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "filterRules", allEntries = true),
+            @CacheEvict(value = "filterRuleEntities", allEntries = true)
+    })
     public void deleteFilter(Long filterId) {
         filterRuleRepo.deleteFilterRuleByIdANDUser(filterId, getCurrentUserEmail());
     }
 
     @Transactional
-    @CacheEvict(value="filterRules", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "filterRules", allEntries = true),
+            @CacheEvict(value = "filterRuleEntities", allEntries = true)
+    })
     public void addFilter(FilterRuleDTO dto) {
         String userEmail = getCurrentUserEmail();
         ClientUser user = userRepo.findByEmail(userEmail);

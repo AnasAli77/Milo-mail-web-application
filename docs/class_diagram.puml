@@ -15,6 +15,24 @@ package "Controllers (Facade Pattern)" {
         + getContacts(String sort)
         + addContact(Contact)
     }
+    class AuthController {
+        + register(UserDTO)
+        + login(UserDTO)
+    }
+    class FolderController {
+        + getAllFolders()
+        + createFolder(String)
+        + deleteFolder(String)
+        + updateFolder(String, String)
+    }
+    class AttachmentController {
+        + downloadAttachment(Long)
+    }
+    class FilterRuleController {
+        + getFilterRules()
+        + addFilterRule(FilterRuleDTO)
+        + deleteFilterRule(Long)
+    }
 }
 
 package "Services (Singleton Pattern)" {
@@ -31,6 +49,30 @@ package "Services (Singleton Pattern)" {
     class ContactService {
         + getContacts()
         + addContact(Contact)
+    }
+    class AuthService {
+        + register(ClientUser)
+        + verify(ClientUser)
+        + exists(String)
+    }
+    class FolderService {
+        + getFolderNames()
+        + createFolder(String)
+        + removeFolder(String)
+        + renameFolder(String, String)
+    }
+    class AttachmentService {
+        + getAttachmentData(Long)
+        + convertDTOsToAttachments(List, List)
+    }
+    class JWTService {
+        + generateToken(String)
+        + validateToken(String)
+    }
+    class FilterRuleService {
+        + getFilters()
+        + addFilter(FilterRuleDTO)
+        + deleteFilter(Long)
     }
 }
 
@@ -49,6 +91,16 @@ package "Data Transfer Objects" {
         + String senderEmail
         + List<String> receiverEmails
     }
+    class UserDTO {
+        + String name
+        + String email
+        + String token
+    }
+    class FilterRuleDTO {
+        + Map<String, String> criteriaTypesValues
+        + String actionType
+        + String actionTarget
+    }
 }
 
 package "Repositories (Repository Pattern)" {
@@ -56,6 +108,8 @@ package "Repositories (Repository Pattern)" {
     interface ContactRepo <<Interface>>
     interface UserRepo <<Interface>>
     interface FolderRepo <<Interface>>
+    interface AttachmentRepo <<Interface>>
+    interface FilterRuleRepo <<Interface>>
 }
 
 package "Models (Builder & Prototype Pattern)" {
@@ -92,11 +146,32 @@ package "Models (Builder & Prototype Pattern)" {
         - Long id
         - String name
     }
+    class FilterRule {
+        - Long id
+        - Map<String, String> criteriaTypesValues
+        - String actionType
+        - String actionTarget
+        + check(Mail): boolean
+        + apply(Mail, ActionFactory)
+    }
 
     Mail "1" *-- "*" Attachment : contains
     Mail "*" -- "1" ClientUser : sender
     Mail "*" -- "1" Folder : belongs to
     ClientUser "1" *-- "*" Contact : has
+    ClientUser "1" *-- "*" FilterRule : owns
+}
+
+package "Commands (Command Pattern)" {
+    interface FilterRuleAction <<Interface>> {
+        + execute(Mail, String)
+    }
+    class ActionFactory <<Factory>> {
+        + getAction(String): FilterRuleAction
+    }
+    class MoveToAction implements FilterRuleAction
+    class StarAction implements FilterRuleAction
+    class MarkAsReadAction implements FilterRuleAction
 }
 
 package "Strategies (Strategy Pattern)" {
@@ -113,6 +188,8 @@ package "Strategies (Strategy Pattern)" {
     class SortByPriority implements MailSortingStrategy
     class SortBySender implements MailSortingStrategy
     class SortByBody implements MailSortingStrategy
+    class SortByReceiver implements MailSortingStrategy
+    class SortByAttachment implements MailSortingStrategy
 
     class ContactSortWorker {
         - ContactSortingStrategy strategy
@@ -136,11 +213,20 @@ package "Filters (Criteria Pattern)" {
     class CriteriaSender implements Criteria
     class CriteriaPriority implements Criteria
     class CriteriaBody implements Criteria
+    class CriteriaReceiver implements Criteria
+    class CriteriaDay implements Criteria
+    class CriteriaMonth implements Criteria
+    class CriteriaYear implements Criteria
+    class CriteriaHasAttachment implements Criteria
 }
 
 ' Relationships
 MailController --> MailService : Delegates
 ContactController --> ContactService : Delegates
+AuthController --> AuthService : Delegates
+FolderController --> FolderService : Delegates
+AttachmentController --> AttachmentService : Delegates
+FilterRuleController --> FilterRuleService : Delegates
 
 MailService --> MailRepo : Uses
 MailService --> UserRepo : Uses
@@ -148,15 +234,28 @@ MailService --> FolderRepo : Uses
 MailService --> MailMapperImpl : Uses
 MailService ..> SortWorker : Uses
 MailService ..> CriteriaFactory : Uses
+MailService ..> ActionFactory : Uses
 
 ContactService --> ContactRepo : Uses
 ContactService ..> ContactSortWorker : Uses
+
+AuthService --> UserRepo : Uses
+AuthService --> JWTService : Uses
+AuthService --> FolderService : Uses
+
+FolderService --> FolderRepo : Uses
+AttachmentService --> AttachmentRepo : Uses
+FilterRuleService --> FilterRuleRepo : Uses
 
 MailMapperImpl ..> MailDTO : Creates
 MailMapperImpl ..> Mail : Maps to
 
 CriteriaFactory ..> Criteria : Creates
+ActionFactory ..> FilterRuleAction : Creates
 SortWorker o-- MailSortingStrategy : Has
 ContactSortWorker o-- ContactSortingStrategy : Has
 
+FilterRule --> ActionFactory : Uses
+
 @enduml
+

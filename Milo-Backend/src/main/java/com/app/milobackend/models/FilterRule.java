@@ -6,10 +6,7 @@ import com.app.milobackend.dtos.FilterRuleDTO;
 import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +18,7 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class FilterRule {
 
     @Id
@@ -35,6 +33,7 @@ public class FilterRule {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     private ClientUser user; // Link to the user who created the rule
 
     public FilterRule(FilterRuleDTO dto, ClientUser user) {
@@ -75,6 +74,7 @@ public class FilterRule {
     public void apply(Mail mail, ActionFactory actionFactory) {
         FilterRuleAction action = actionFactory.getAction(this.actionType);
         if (action != null) {
+            System.err.println("Action: " + this.actionType);
             action.execute(mail, this.actionTarget);
         }
     }

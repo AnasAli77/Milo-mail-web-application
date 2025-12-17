@@ -14,9 +14,8 @@ import java.util.List;
 
 public interface FilterRuleRepo extends JpaRepository<FilterRule, Long> {
 
-
     @Transactional(readOnly = true)
-    @Cacheable(value="filterRules", key="#email")
+    @Cacheable(value = "filterRuleEntities", key = "#email")
     List<FilterRule> findByUserEmail(String email);
 
     @Modifying

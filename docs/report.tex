@@ -135,6 +135,18 @@ This encapsulates object creation logic, simplifying the Service layer.
 \newline
 \textbf{Implementation:} The \texttt{Mail} class includes a Copy Constructor (\texttt{public Mail(Mail source)}) that creates a deep copy of the mail and its attachments, ensuring that the new "Sent" mail is a distinct entity from the original "Draft".
 
+\subsection{Command Pattern (Behavioral)}
+\textbf{Usage:} Used for executing filter rule actions on incoming emails.
+\newline
+\textbf{Implementation:}
+\begin{itemize}
+    \item \textbf{Command Interface:} \texttt{FilterRuleAction} defines the \texttt{execute(Mail, String)} method.
+    \item \textbf{Concrete Commands:} \texttt{MoveToAction}, \texttt{StarAction}, \texttt{MarkAsReadAction}.
+    \item \textbf{Invoker:} \texttt{FilterRule} checks criteria and invokes actions.
+    \item \textbf{Factory:} \texttt{ActionFactory} creates the appropriate action based on action type.
+\end{itemize}
+This pattern decouples the action execution from the filter rule logic, making it easy to add new actions without modifying existing code.
+
 \section{Design Decisions}
 \begin{enumerate}
     \item \textbf{Framework Choice:} Spring Boot was chosen for its robust dependency injection and ease of REST API creation, enabling a clean Microservices-ready architecture.
@@ -167,5 +179,31 @@ The Compose window allows sending emails with priority and attachments.
     \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Compose Window Screenshot] \vspace{2cm}}}
     \caption{Compose Email Modal}
 \end{figure}
+
+\subsection{Filter Rules}
+Users can create custom filter rules to automatically organize incoming emails. Filter rules allow users to define criteria (sender, subject, body, priority, date, attachments) and actions (move to folder, star, mark as read) that are applied when emails matching the criteria are received.
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Filter Rules Screenshot] \vspace{2cm}}}
+    \caption{Filter Rules Management}
+\end{figure}
+
+\textbf{Available Criteria:}
+\begin{itemize}
+    \item From (sender email)
+    \item To (recipient email)
+    \item Subject contains
+    \item Body contains keywords
+    \item Priority level
+    \item Date
+    \item Has attachments
+\end{itemize}
+
+\textbf{Available Actions:}
+\begin{itemize}
+    \item Move to folder (Inbox, Trash, or custom folders)
+    \item Star the email
+    \item Mark as read
+\end{itemize}
 
 \end{document}
