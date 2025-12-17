@@ -1,0 +1,162 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 50
+
+title Milo Mail System - Architecture & Design Patterns
+
+package "Controllers (Facade Pattern)" {
+    class MailController {
+        + getMails(String filter, String val)
+        + sendMail(MultipartFile[], String mailDTO)
+    }
+    class ContactController {
+        + getContacts(String sort)
+        + addContact(Contact)
+    }
+}
+
+package "Services (Singleton Pattern)" {
+    class MailService {
+        + GetAllMails()
+        + saveMail(MailDTO, MultipartFile[])
+        + updateMail(MailDTO, MultipartFile[])
+        + deleteMail(Long id) 
+    }
+    class TrashCleanupService {
+        + cleanOldMails()
+        + deleteOldMails()
+    }
+    class ContactService {
+        + getContacts()
+        + addContact(Contact)
+    }
+}
+
+package "Mappers (Architectural Pattern)" {
+    class MailMapperImpl {
+        + toDto(Mail) : MailDTO
+        + toEntity(MailDTO) : Mail
+    }
+}
+
+package "Data Transfer Objects" {
+    class MailDTO {
+        + String subject
+        + String body
+        + int priority
+        + String senderEmail
+        + List<String> receiverEmails
+    }
+}
+
+package "Repositories (Repository Pattern)" {
+    interface MailRepo <<Interface>>
+    interface ContactRepo <<Interface>>
+    interface UserRepo <<Interface>>
+    interface FolderRepo <<Interface>>
+}
+
+package "Models (Builder & Prototype Pattern)" {
+    class Mail {
+        - Long id
+        - String subject
+        - String body
+        - LocalDateTime sentAt
+        - boolean read
+        - boolean active
+        - boolean starred
+        - boolean hasAttachment
+        - int priority
+        + static MailBuilder builder()
+        + Mail(Mail source)
+        + update(Mail source)
+    }
+    class Attachment {
+        - Long id
+        - String name
+        - String type
+        - long size
+    }
+    class Contact {
+        - Long id
+        - String name
+    }
+    class ClientUser {
+        - Long id
+        - String name
+        - String email
+    }
+    class Folder {
+        - Long id
+        - String name
+    }
+
+    Mail "1" *-- "*" Attachment : contains
+    Mail "*" -- "1" ClientUser : sender
+    Mail "*" -- "1" Folder : belongs to
+    ClientUser "1" *-- "*" Contact : has
+}
+
+package "Strategies (Strategy Pattern)" {
+    class SortWorker {
+        - MailSortingStrategy strategy
+        + setStrategy(MailSortingStrategy)
+        + sort(List<Mail>) : List<Mail>
+    }
+    interface MailSortingStrategy {
+        + SortingMails(List<Mail>) : List<Mail>
+    }
+    class SortByDate implements MailSortingStrategy
+    class SortBySubject implements MailSortingStrategy
+    class SortByPriority implements MailSortingStrategy
+    class SortBySender implements MailSortingStrategy
+    class SortByBody implements MailSortingStrategy
+
+    class ContactSortWorker {
+        - ContactSortingStrategy strategy
+        + sort(List<Contact>)
+    }
+    interface ContactSortingStrategy {
+        + sort(List<Contact>)
+    }
+    class ContactSortByName implements ContactSortingStrategy
+    class ContactSortByEmails implements ContactSortingStrategy
+}
+
+package "Filters (Criteria Pattern)" {
+    interface Criteria {
+        + meetCriteria(List<Mail>) : List<Mail>
+    }
+    class CriteriaFactory <<Factory>> {
+        + getCriteria(String criteriaName, Object value) : Criteria
+    }
+    class CriteriaSubject implements Criteria
+    class CriteriaSender implements Criteria
+    class CriteriaPriority implements Criteria
+    class CriteriaBody implements Criteria
+}
+
+' Relationships
+MailController --> MailService : Delegates
+ContactController --> ContactService : Delegates
+
+MailService --> MailRepo : Uses
+MailService --> UserRepo : Uses
+MailService --> FolderRepo : Uses
+MailService --> MailMapperImpl : Uses
+MailService ..> SortWorker : Uses
+MailService ..> CriteriaFactory : Uses
+
+ContactService --> ContactRepo : Uses
+ContactService ..> ContactSortWorker : Uses
+
+MailMapperImpl ..> MailDTO : Creates
+MailMapperImpl ..> Mail : Maps to
+
+CriteriaFactory ..> Criteria : Creates
+SortWorker o-- MailSortingStrategy : Has
+ContactSortWorker o-- ContactSortingStrategy : Has
+
+@enduml

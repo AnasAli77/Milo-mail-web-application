@@ -1,0 +1,171 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{float}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Milo Mail System Project Report}
+\author{Team Milo}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This report documents the design and implementation of the Milo Mail System, a scalable web-based email application. The system is built using \textbf{Spring Boot (Java 21/25)} for the backend and \textbf{Angular} for the frontend, using a \textbf{PostgreSQL} database for persistence. The application conforms to Object-Oriented Programming principles and utilizes several GoF design patterns to ensure maintainability and extensibility.
+
+\section{Steps to Run the Code}
+\subsection{Prerequisites}
+\begin{itemize}
+    \item Java Development Kit (JDK) 21 or 25
+    \item Maven
+    \item Node.js (v18+) and npm
+    \item Angular CLI
+    \item PostgreSQL Database (running on default port 5432)
+\end{itemize}
+
+\subsection{Database Setup}
+\begin{enumerate}
+    \item Ensure PostgreSQL is running on port \texttt{5432}.
+    \item Create a database named \texttt{dilo}.
+    \item Update credentials in \texttt{Milo-Backend/src/main/resources/application.properties} if they differ from:
+    \begin{verbatim}
+    spring.datasource.username=postgres
+    spring.datasource.password=12345678
+    \end{verbatim}
+\end{enumerate}
+
+\subsection{Backend Setup}
+\begin{enumerate}
+    \item Navigate to the \texttt{Milo-Backend} directory.
+    \item Run the following command to start the server:
+    \begin{verbatim}
+    mvn spring-boot:run
+    \end{verbatim}
+    \item The backend API will start at \texttt{http://localhost:8080}.
+\end{enumerate}
+
+\subsection{Frontend Setup}
+\begin{enumerate}
+    \item Navigate to the \texttt{Milo} directory.
+    \item Install dependencies:
+    \begin{verbatim}
+    npm install
+    \end{verbatim}
+    \item Start the development server:
+    \begin{verbatim}
+    ng serve
+    \end{verbatim}
+    \item Access the application in your browser at \texttt{http://localhost:4200}.
+\end{enumerate}
+
+\section{UML Diagrams}
+\subsection{Class Diagram}
+The Class Diagram illustrates the structural relationship between the core entities (\texttt{Mail}, \texttt{Attachment}, \texttt{User}) and the behavioral patterns (\texttt{Strategy} hierarchy for sorting, \texttt{Criteria} hierarchy for filtering).
+
+\textit{(Please insert the generated class\_diagram.puml visualization here)}
+
+\subsection{Sequence Diagram}
+The Sequence Diagram depicts the workflow of a user filtering and sorting emails. It shows the interaction flow from the Frontend to the Controller, Service, Filter Factory, and Sorting Worker.
+
+\textit{(Please insert the generated sequence\_diagram.puml visualization here)}
+
+\section{Design Patterns Applied}
+
+\subsection{Strategy Pattern (Behavioral)}
+\textbf{Usage:} Used for sorting emails dynamically.
+\newline
+\textbf{Implementation:}
+\begin{itemize}
+    \item \textbf{Context:} \texttt{SortWorker} classes.
+    \item \textbf{Interface:} \texttt{MailSortingStrategy}.
+    \item \textbf{Concrete Strategies:} \texttt{SortByDate}, \texttt{SortBySubject}, \texttt{SortByPriority}, etc.
+\end{itemize}
+This allows the sorting algorithm to be switched at runtime without modifying the client code in the Service.
+
+\subsection{Criteria / Filter Pattern (Structural)}
+\textbf{Usage:} Used to filter emails based on multiple conditions (Sender, Subject, Date, etc.).
+\newline
+\textbf{Implementation:}
+\begin{itemize}
+    \item \textbf{Interface:} \texttt{Criteria} (defines \texttt{meetCriteria()}).
+    \item \textbf{Concrete Criteria:} \texttt{CriteriaSender}, \texttt{CriteriaSubject}, etc.
+\end{itemize}
+This pattern decouples the filtering logic from the Mail entity and the Service.
+
+\subsection{Factory Pattern (Creational)}
+\textbf{Usage:} Used to instantiate the correct Filter/Criteria object based on user input.
+\newline
+\textbf{Implementation:}
+\begin{itemize}
+    \item \texttt{CriteriaFactory}: Takes a string (e.g., "subject") and returns a \texttt{CriteriaSubject} instance.
+\end{itemize}
+This encapsulates object creation logic, simplifying the Service layer.
+
+\subsection{Builder Pattern (Creational)}
+\textbf{Usage:} Used for constructing complex \texttt{Mail} objects.
+\newline
+\textbf{Implementation:} annotated with \texttt{@Builder} (Lombok) in the \texttt{Mail} class. This provides a fluent API for object construction (\texttt{Mail.builder().subject(...).build()}), making the code more readable and reducing constructor complexity.
+
+\subsection{Prototype Pattern (Creational)}
+\textbf{Usage:} Used for deep-copying drafts when they are sent.
+\newline
+\textbf{Implementation:} The \texttt{Mail} class includes a Copy Constructor (\texttt{public Mail(Mail source)}) that creates a deep copy of the mail and its attachments, ensuring that the new "Sent" mail is a distinct entity from the original "Draft".
+
+\section{Design Decisions}
+\begin{enumerate}
+    \item \textbf{Framework Choice:} Spring Boot was chosen for its robust dependency injection and ease of REST API creation, enabling a clean Microservices-ready architecture.
+    \item \textbf{Database:} PostgreSQL was selected for its reliability and advanced SQL features, running on port 5432.
+    \item \textbf{Handling Concurrency:} To prevent issues where a user edits a draft while it is being autosaved, we implemented specific backend logic to always treat sent mails as new entities (via Prototype pattern), avoiding Optimistic Locking exceptions.
+    \item \textbf{Asynchronous UI:} The Frontend uses Angular Signals and Observables to handle asynchronous file uploads (for large attachments), providing a non-blocking UI with a global loading overlay for better user experience.
+\end{enumerate}
+
+\section{User Guide}
+\subsection{Registration & Login}
+Users can sign up with a unique email. The system checks against the database and alerts if the email is taken.
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Login/Signup Screenshot] \vspace{2cm}}}
+    \caption{Login Page}
+\end{figure}
+
+\subsection{Inbox & Filtering}
+Users can view their inbox and apply filters (e.g., by Sender or Subject) and sort the results.
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Inbox Screenshot] \vspace{2cm}}}
+    \caption{Inbox with Filtering functionality}
+\end{figure}
+
+\subsection{Composing Emails}
+The Compose window allows sending emails with priority and attachments.
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Compose Window Screenshot] \vspace{2cm}}}
+    \caption{Compose Email Modal}
+\end{figure}
+
+\end{document}

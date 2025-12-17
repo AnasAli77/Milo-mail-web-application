@@ -1,13 +1,12 @@
 import { Component, inject, OnInit, signal, ChangeDetectionStrategy, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, TitleCasePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FilterRule } from '../../models/FilterRule';
 import { FilterService } from '../../Services/filter-service';
 
 @Component({
   selector: 'app-filters',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TitleCasePipe],
   templateUrl: './filters.html',
   styleUrls: ['./filters.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -18,14 +17,21 @@ export class FiltersComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   // Data Sources
-  // filters = computed(() => this.filterService.filters());
-  filters = signal<FilterRule[]>([]);
-  folders = computed(() => this.filterService.folders());
+  filters = computed(() => this.filterService.getFilters()()); // Access signal value via execution
+
+  // Filter out system folders for "Move To" action
+  filteredFolders = computed(() => {
+    const all = this.filterService.getFolders()();
+    // User wants ONLY: Inbox, Trash, and Custom Folders.
+    // Exclude: Sent, Drafts, Starred, Spam, Important
+    const excluded = ['sent', 'drafts', 'starred', 'spam', 'important'];
+    return all.filter(f => !excluded.includes(f.toLowerCase()));
+  });
 
   // UI State
   isSearchFilterOpen = signal(false);
 
-  // NEW: Tracks which filter is clicked in the list
+  // Tracks which filter is clicked in the list
   selectedFilter = signal<FilterRule | null>(null);
 
   // Reactive Form
@@ -42,23 +48,16 @@ export class FiltersComponent implements OnInit {
       searchMonth: '',
       searchYear: '',
       searchHasAttachment: false,
-      actionMoveToFolderId: '',
-      actionMarkAsRead: false,
-      actionStar: false
+
+      // Converted to Single Action Selection
+      actionType: 'markasread', // default
+      actionTarget: ''
     });
   }
 
   ngOnInit(): void {
-    this.loadFilters();
-  }
-
-  loadFilters() {
-    this.filters.set([
-      { id: 1, sender: 'boss@company.com', subject: 'Urgent', priority: '5', moveToFolderId: 'Work', star: true, markAsRead: false },
-      { id: 2, sender: 'newsletter@shop.com', body: 'discount 50%', hasAttachment: true, moveToFolderId: 'Promotions', markAsRead: true },
-      { id: 3, sender: 'bank@alert.com', subject: 'Statement', moveToFolderId: 'Finance', star: true },
-      { id: 4, recipient: 'team@dev.com', subject: 'Pull Request', moveToFolderId: 'Work' }
-    ]);
+    // Initial load handled by service constructor, but we can trigger refresh
+    this.filterService.loadFilters();
   }
 
   // 1. ENABLE FORM WHEN CREATING
@@ -68,12 +67,13 @@ export class FiltersComponent implements OnInit {
 
     if (this.isSearchFilterOpen()) {
       this.clearFilter();
-      this.filterForm.enable(); // <--- Allow editing for new filter
+      this.filterForm.enable();
     } else {
       this.clearFilter();
     }
   }
-  // NEW: Handles clicking a row in the list to view/edit
+
+  // Handles clicking a row in the list to view/edit
   selectFilter(filter: FilterRule) {
     // 1. Switch UI State
     this.isSearchFilterOpen.set(false); // Turn off "Create Mode"
@@ -90,6 +90,19 @@ export class FiltersComponent implements OnInit {
       }
     }
 
+    // Determine Action Type for Form
+    let actType = 'markasread';
+    let actTarget = '';
+
+    if (filter.moveToFolderId) {
+      actType = 'move';
+      actTarget = filter.moveToFolderId;
+    } else if (filter.star) {
+      actType = 'star';
+    } else if (filter.markAsRead) {
+      actType = 'markasread';
+    }
+
     // 3. Fill the form with the selected filter's data
     this.filterForm.patchValue({
       searchFrom: filter.sender || '',
@@ -101,15 +114,17 @@ export class FiltersComponent implements OnInit {
       searchMonth: m,
       searchYear: y,
       searchHasAttachment: filter.hasAttachment || false,
-      actionMoveToFolderId: filter.moveToFolderId || '',
-      actionMarkAsRead: filter.markAsRead || false,
-      actionStar: filter.star || false
+      actionType: actType,
+      actionTarget: actTarget
     });
-    this.filterForm.disable();
+    this.filterForm.disable(); // Read-only mode for now as per design pattern (view details)
   }
 
   clearFilter() {
-    this.filterForm.reset();
+    this.filterForm.reset({
+      actionType: 'markasread',
+      searchHasAttachment: false
+    });
   }
 
   onAdvancedSearch() {
@@ -121,7 +136,11 @@ export class FiltersComponent implements OnInit {
       dateStr = `${formValue.searchYear}-${formValue.searchMonth}-${formValue.searchDay}`;
     }
 
-    // 2. Build Object
+    // 2. Map Form Action -> Object Flags
+    const actType = formValue.actionType; // 'move', 'star', 'markasread'
+    const actTarget = formValue.actionTarget;
+
+    // 3. Build Object
     const newFilter: FilterRule = {
       sender: formValue.searchFrom,
       recipient: formValue.searchTo,
@@ -130,22 +149,24 @@ export class FiltersComponent implements OnInit {
       priority: formValue.searchPriority,
       date: dateStr,
       hasAttachment: formValue.searchHasAttachment,
-      moveToFolderId: formValue.actionMoveToFolderId,
-      markAsRead: formValue.actionMarkAsRead,
-      star: formValue.actionStar
+
+      // Set appropriate flag based on single selection
+      moveToFolderId: actType === 'move' ? actTarget : '',
+      star: actType === 'star',
+      markAsRead: actType === 'markasread'
     };
 
-    // 3. Call Service
+    // 4. Call Service
     this.filterService.addFilter(newFilter);
-    this.loadFilters();
     this.toggleCreateForm();
     this.clearFilter();
   }
 
+
   deleteFilter(id: number) {
     if (confirm('Are you sure you want to delete this filter?')) {
       this.filterService.deleteFilter(id);
-      this.loadFilters();
+      this.selectedFilter.set(null); // Clear selection after delete
     }
   }
 }

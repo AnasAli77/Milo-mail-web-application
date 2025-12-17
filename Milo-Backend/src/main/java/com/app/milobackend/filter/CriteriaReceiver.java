@@ -8,8 +8,9 @@ import java.util.List;
 
 public class CriteriaReceiver implements Criteria {
     private final String word;
+
     public CriteriaReceiver(String word) {
-        this.word = word.toLowerCase();
+        this.word = word != null ? word.toLowerCase() : "";
     }
 
     @Override
@@ -17,10 +18,18 @@ public class CriteriaReceiver implements Criteria {
         List<Mail> mailsFiltered = new ArrayList<>();
         for (Mail mail : mails) {
             ClientUser receiver = mail.getReceiver();
-            if (receiver != null && receiver.getEmail().toLowerCase().contains(this.word)) {
-                mailsFiltered.add(mail);
-            }
-            if(receiver != null && receiver.getName().toLowerCase().contains(this.word)){
+            if (receiver == null)
+                continue;
+
+            String receiverEmail = receiver.getEmail();
+            String receiverName = receiver.getName();
+
+            boolean matchesEmail = receiverEmail != null &&
+                    receiverEmail.toLowerCase().contains(this.word);
+            boolean matchesName = receiverName != null &&
+                    receiverName.toLowerCase().contains(this.word);
+
+            if (matchesEmail || matchesName) {
                 mailsFiltered.add(mail);
             }
         }

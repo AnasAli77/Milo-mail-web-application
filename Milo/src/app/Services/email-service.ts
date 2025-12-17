@@ -48,10 +48,13 @@ export class EmailService implements OnInit {
   readonly pageSize = 9;
 
   constructor() {
+    // Load folders on service initialization
+    this.loadFolders();
   }
 
   ngOnInit() {
-    this.loadFolders();
+    // NOTE: ngOnInit is NOT called on services, only on components/directives
+    // Folder loading moved to constructor
   }
 
   // Now handles pagination for Search and Filter as well

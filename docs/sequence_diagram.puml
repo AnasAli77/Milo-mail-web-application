@@ -1,0 +1,62 @@
+@startuml
+actor User
+participant "Angular App (Frontend)" as Frontend
+participant "MailController" as Controller
+participant "MailService" as Service
+participant "CriteriaFactory" as CFactory
+participant "Criteria" as Filter
+participant "SortWorker" as Worker
+participant "MailSortingStrategy" as Strategy
+database "PostgreSQL" as DB
+
+User -> Frontend : Click "Filter by Subject"
+activate Frontend
+
+Frontend -> Controller : GET /mails?filter=subject&val=work
+activate Controller
+
+Controller -> Service : getMails(params)
+activate Service
+
+Service -> DB : findAll()
+activate DB
+DB --> Service : List<Mail> rawMails
+deactivate DB
+
+alt Filtering
+    Service -> CFactory : getCriteria("subject", "work")
+    activate CFactory
+    CFactory --> Service : CriteriaSubject
+    deactivate CFactory
+    
+    Service -> Filter : meetCriteria(rawMails)
+    activate Filter
+    Filter --> Service : filteredMails
+    deactivate Filter
+end
+
+alt Sorting
+    Service -> Worker : setStrategy(new SortByDate())
+    activate Worker
+    Worker --> Service
+    deactivate Worker
+    
+    Service -> Worker : sort(filteredMails)
+    activate Worker
+    Worker -> Strategy : SortingMails(filteredMails)
+    activate Strategy
+    Strategy --> Worker : sortedMails
+    deactivate Strategy
+    Worker --> Service : sortedMails
+    deactivate Worker
+end
+
+Service --> Controller : sortedMails
+deactivate Service
+
+Controller --> Frontend : JSON(sortedMails)
+deactivate Controller
+
+Frontend -> User : Display Mails
+deactivate Frontend
+@enduml

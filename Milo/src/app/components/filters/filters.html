@@ -1,137 +1,158 @@
 <div class="filters-wrapper">
 
-  <div class="filters-sidebar">
+  <!-- LEFT SIDEBAR: List of Filters -->
+  <div class="filters-sidebar custom-scrollbar">
     <div class="sidebar-header">
       <h2>Filters</h2>
-      <button class="add-btn" (click)="toggleCreateForm()" title="Create New Filter">
-        <span>+</span>
+      <button class="add-btn" (click)="toggleCreateForm()" title="Create new filter">
+        +
       </button>
     </div>
 
-    <div class="sidebar-list">
+    <div class="sidebar-list custom-scrollbar">
       @if (filters().length === 0) {
-      <div class="empty-list-msg">No filters yet.</div>
+      <div class="empty-list-msg">
+        <p>No filters created yet</p>
+      </div>
       }
-      @else {
+
       @for (filter of filters(); track filter.id) {
-      <div class="list-item" [class.active]="selectedFilter() === filter" (click)="selectFilter(filter)">
+      <div class="list-item" [class.active]="selectedFilter()?.id === filter.id" (click)="selectFilter(filter)">
 
         <div class="item-content">
           <div class="item-title">
-            @if(filter.sender) { From: {{filter.sender}} }
-            @else if(filter.subject) { Subject: {{filter.subject}} }
-            @else { Complex Filter }
+            {{ filter.subject || filter.sender || 'Custom Rule' }}
           </div>
           <div class="item-details">
-            @if(filter.moveToFolderId) { <span>Move to {{filter.moveToFolderId}}</span> }
-            @if(filter.star) { <span>Starred</span> }
+            @if (filter.moveToFolderId) { <span class="badge move">→ {{ filter.moveToFolderId }}</span> }
+            @if (filter.star) { <span class="badge star">★ Star</span> }
+            @if (filter.markAsRead) { <span class="badge read">✓ Read</span> }
           </div>
         </div>
 
-        <button class="delete-icon" (click)="$event.stopPropagation(); deleteFilter(filter.id ?? 0)">
-          <i class="fa fa-trash"></i>
+        <button class="delete-icon" (click)="deleteFilter(filter.id!); $event.stopPropagation()">
+          ✕
         </button>
       </div>
-      }
       }
     </div>
   </div>
 
+  <!-- RIGHT CONTENT: Create/Edit Form -->
   <div class="filters-content">
 
     @if (!isSearchFilterOpen() && !selectedFilter()) {
     <div class="content-empty-state">
-      <i class="fa fa-filter huge-icon"></i>
       <h3>Select a filter or create a new one</h3>
+      <p class="hint-text">Click the + button to get started</p>
     </div>
-    }
+    } @else {
+    <div class="form-scroll-wrapper custom-scrollbar">
 
-    @if (isSearchFilterOpen() || selectedFilter()) {
-    <div class="form-scroll-wrapper">
-      <div class="form-header-row">
-        <h2>{{ selectedFilter() ? 'Edit Filter' : 'New Filter' }}</h2>
-        <button class="close-text-btn" (click)="clearFilter()">Close</button>
-      </div>
+      <form [formGroup]="filterForm" (ngSubmit)="onAdvancedSearch()" class="clean-form">
 
-      <form [formGroup]="filterForm" class="clean-form">
+        <div class="form-header-row">
+          <h2>{{ isSearchFilterOpen() ? 'Create Filter' : 'Filter Details' }}</h2>
+          @if (isSearchFilterOpen()) {
+          <button type="button" class="close-text-btn" (click)="toggleCreateForm()">✕</button>
+          }
+        </div>
 
+        <div class="section-label">Match Criteria</div>
+
+        <!-- FROM -->
         <div class="form-group">
           <label>From</label>
-          <input type="text" formControlName="searchFrom" placeholder="Sender">
-        </div>
-        <div class="form-group">
-          <label>To</label>
-          <input type="text" formControlName="searchTo" placeholder="Recipient">
-        </div>
-        <div class="form-group">
-          <label>Subject</label>
-          <input type="text" formControlName="searchSubject" placeholder="Subject">
-        </div>
-        <div class="form-group">
-          <label>Has words</label>
-          <input type="text" formControlName="searchQuery" placeholder="Words">
+          <input type="text" formControlName="searchFrom" placeholder="sender@example.com">
         </div>
 
+        <!-- TO -->
+        <div class="form-group">
+          <label>To</label>
+          <input type="text" formControlName="searchTo" placeholder="recipient@example.com">
+        </div>
+
+        <!-- SUBJECT -->
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" formControlName="searchSubject" placeholder="Contains text...">
+        </div>
+
+        <!-- BODY -->
+        <div class="form-group">
+          <label>Body</label>
+          <input type="text" formControlName="searchQuery" placeholder="Message contains...">
+        </div>
+
+        <!-- PRIORITY -->
         <div class="form-group">
           <label>Priority</label>
           <select formControlName="searchPriority">
-            <option value="">Any</option>
-            <option value="5">Extreme</option>
-            <option value="4">High</option>
-            <option value="3">Normal</option>
-            <option value="2">Low</option>
+            <option value="">Any Priority</option>
             <option value="1">Very Low</option>
+            <option value="2">Low</option>
+            <option value="3">Normal</option>
+            <option value="4">High</option>
+            <option value="5">Extreme</option>
           </select>
         </div>
 
+        <!-- DATE -->
         <div class="form-group">
           <label>Date</label>
           <div class="date-row-inputs">
-            <input type="text" formControlName="searchDay" placeholder="DD" maxlength="2">
+            <input type="text" class="year" formControlName="searchYear" placeholder="YYYY" maxlength="4">
+            <span class="date-sep">-</span>
             <input type="text" formControlName="searchMonth" placeholder="MM" maxlength="2">
-            <input type="text" formControlName="searchYear" placeholder="YYYY" maxlength="4" class="year">
+            <span class="date-sep">-</span>
+            <input type="text" formControlName="searchDay" placeholder="DD" maxlength="2">
           </div>
         </div>
 
-        <div class="form-group check-group">
-          <div class="spacer"></div> <input type="checkbox" id="hasAttach" formControlName="searchHasAttachment">
-          <label for="hasAttach" class="check-label">Has attachment</label>
+        <!-- ATTACHMENT -->
+        <div class="form-group checkbox-group">
+          <label></label>
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="chkAtt" formControlName="searchHasAttachment">
+            <label class="check-label" for="chkAtt">Has attachment</label>
+          </div>
         </div>
 
-        <div class="section-divider">Actions</div>
+        <div class="section-label">Action to Perform</div>
 
+        <!-- ACTION TYPE DROPDOWN -->
         <div class="form-group">
-          <label>Move to</label>
-          <select formControlName="actionMoveToFolderId">
-            <option value="">Choose folder...</option>
-            @for (f of folders(); track $index) {
-            <option [value]="f">{{ f }}</option>
-            }
+          <label>Action</label>
+          <select formControlName="actionType">
+            <option value="markasread">Mark as read</option>
+            <option value="star">Star it</option>
+            <option value="move">Move to folder</option>
           </select>
         </div>
 
-        <div class="form-group check-group">
-          <div class="spacer"></div>
-          <div class="checks-inline">
-            <div>
-              <input type="checkbox" id="actStar" formControlName="actionStar">
-              <label for="actStar" class="check-label">Star it</label>
-            </div>
-            <div>
-              <input type="checkbox" id="actRead" formControlName="actionMarkAsRead">
-              <label for="actRead" class="check-label">Mark as read</label>
-            </div>
-          </div>
+        <!-- CONDITIONAL FOLDER DROPDOWN -->
+        @if (filterForm.get('actionType')?.value === 'move') {
+        <div class="form-group">
+          <label>Folder</label>
+          <select formControlName="actionTarget">
+            <option value="">Select destination...</option>
+            @for (f of filteredFolders(); track $index) {
+            <option [value]="f">{{ f | titlecase }}</option>
+            }
+          </select>
         </div>
+        }
 
+        <!-- FOOTER ACTIONS - Fixed at bottom -->
         <div class="form-actions-row">
-          @if (isSearchFilterOpen()) {
-          <button type="button" class="btn-cancel" (click)="clearFilter()">Cancel</button>
-          <button type="button" class="btn-save" (click)="onAdvancedSearch()">Create Filter</button>
-          }
           @if (selectedFilter()) {
-          <button type="button" class="btn-delete-text" (click)="deleteFilter(selectedFilter()?.id || 0)">Delete
-            Filter</button>
+          <button type="button" class="btn-delete" (click)="deleteFilter(selectedFilter()?.id!)">
+            Delete
+          </button>
+          }
+
+          @if (isSearchFilterOpen()) {
+          <button type="submit" class="btn-save">Create Filter</button>
           }
         </div>
 

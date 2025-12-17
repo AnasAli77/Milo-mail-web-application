@@ -1,5 +1,6 @@
 package com.app.milobackend.services;
 
+import com.app.milobackend.commands.ActionFactory;
 import com.app.milobackend.dtos.FilterDTO;
 import com.app.milobackend.dtos.SearchDTO;
 import com.app.milobackend.dtos.MailDTO;
@@ -7,10 +8,7 @@ import com.app.milobackend.filter.Criteria;
 import com.app.milobackend.filter.CriteriaFactory;
 import com.app.milobackend.mappers.MailMapperImpl;
 import com.app.milobackend.models.*;
-import com.app.milobackend.repositories.AttachmentRepository;
-import com.app.milobackend.repositories.FolderRepo;
-import com.app.milobackend.repositories.MailRepo;
-import com.app.milobackend.repositories.UserRepo;
+import com.app.milobackend.repositories.*;
 import com.app.milobackend.strategies.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -36,12 +34,6 @@ public class MailService {
     private MailRepo mailRepo;
 
     @Autowired
-    private AttachmentRepository attachmentRepo;
-
-    @Autowired
-    private AttachmentService attachmentService;
-
-    @Autowired
     private UserRepo userRepo;
 
     @Autowired
@@ -51,8 +43,14 @@ public class MailService {
     private MailMapperImpl mailMapper;
 
     @Autowired
+    private FilterRuleRepo filterRuleRepo;
+
+    @Autowired
     @Lazy
     private MailService self;
+
+    @Autowired
+    private ActionFactory actionFactory;
 
     public String getCurrentUserEmail() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -170,11 +168,33 @@ public class MailService {
                 Mail receiverMail = new Mail(senderMail, receiver);
                 receiverMail.setRead(false); // New mail is unread for receiver
 
-                // Add to receiver's inbox folder
-                Folder receiverInbox = folderRepo.findByNameAndUserEmail("inbox", receiver.getEmail());
-                if (receiverInbox != null) {
-                    receiverInbox.addMail(receiverMail);
-                    receiverMail.setFolder(receiverInbox);
+                // Load filter rules for this RECEIVER (not sender!)
+                List<FilterRule> filterRules = filterRuleRepo.findByUserEmail(receiverEmail);
+
+                // Apply matching filter rules - wrapped in try-catch to prevent filter bugs
+                // from breaking mail send
+                try {
+                    for (FilterRule rule : filterRules) {
+                        if (rule.check(receiverMail)) {
+                            rule.apply(receiverMail, actionFactory);
+                            System.out.println("Filter rule " + rule.getId() + " matched and applied");
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error applying filter rules: " + e.getMessage());
+                    e.printStackTrace();
+                    // Continue without filtering - don't fail mail delivery
+                }
+
+                // Always ensure mail has a folder - default to inbox if not set by filter
+                // action
+                if (receiverMail.getFolder() == null) {
+                    Folder receiverInbox = folderRepo.findByNameAndUserEmail("inbox", receiver.getEmail());
+                    if (receiverInbox != null) {
+                        receiverInbox.addMail(receiverMail);
+                        receiverMail.setFolder(receiverInbox);
+                    }
                 }
 
                 receiver.addReceivedMail(receiverMail);

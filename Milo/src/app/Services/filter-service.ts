@@ -28,10 +28,12 @@ export class FilterService {
   }
 
   // Load from Backend
-  private loadFilters() {
+  public loadFilters() {
     this.api.getRules().subscribe({
-      next: (data) => {
-        this.filters.set(data);
+      next: (data: any[]) => {
+        // Map Backend DTOs -> Frontend Models
+        const mappedFilters = data.map(dto => this.mapFromDto(dto));
+        this.filters.set(mappedFilters);
       },
       error: (err) => console.error('Error loading filters:', err)
     });
@@ -39,9 +41,11 @@ export class FilterService {
 
   // Add to Backend -> Update Signal
   addFilter(rule: FilterRule) {
-    this.api.addRule(rule).subscribe({
-      next: (savedRule) => {
-        this.filters.update(list => [...list, savedRule]);
+    const dto = this.mapToDto(rule);
+    this.api.addRule(dto).subscribe({
+      next: () => {
+        // Reload all to get IDs and consistent state
+        this.loadFilters();
       },
       error: (err) => console.error('Error adding filter:', err)
     });
@@ -55,5 +59,79 @@ export class FilterService {
       },
       error: (err) => console.error('Error deleting filter:', err)
     });
+  }
+
+  // --- MAPPING LOGIC ---
+
+  private mapToDto(rule: FilterRule): any {
+    const criteriaTypesValues: { [key: string]: string } = {};
+
+    // Map Criteria
+    if (rule.sender) criteriaTypesValues['sender'] = rule.sender;
+    if (rule.recipient) criteriaTypesValues['receiver'] = rule.recipient; // Backend uses 'receiver' usually
+    if (rule.subject) criteriaTypesValues['subject'] = rule.subject;
+    if (rule.body) criteriaTypesValues['body'] = rule.body;
+    if (rule.priority) criteriaTypesValues['priority'] = rule.priority;
+
+    // Split Date (YYYY-MM-DD) -> Year, Month, Day
+    if (rule.date) {
+      const parts = rule.date.split('-');
+      if (parts.length === 3) {
+        criteriaTypesValues['year'] = parts[0];
+        criteriaTypesValues['month'] = parts[1];
+        criteriaTypesValues['day'] = parts[2];
+      }
+    }
+
+    if (rule.hasAttachment) criteriaTypesValues['hasAttachment'] = 'true';
+
+    // Map Action (Priority: Move > Star > Read)
+    // Backend ActionFactory expects lowercase: "move", "star", "markasread"
+    let actionType = 'markasread'; // Default safe fallback
+    let actionTarget = '';
+
+    if (rule.moveToFolderId) {
+      actionType = 'move';
+      actionTarget = rule.moveToFolderId;
+    } else if (rule.star) {
+      actionType = 'star';
+    } else if (rule.markAsRead) {
+      actionType = 'markasread';
+    }
+
+    return {
+      criteriaTypesValues,
+      actionType,
+      actionTarget
+    };
+  }
+
+  private mapFromDto(dto: any): FilterRule {
+    const criteria = dto.criteriaTypesValues || {};
+    const actionType = dto.actionType;
+    const actionTarget = dto.actionTarget;
+
+    // Reconstruct Date
+    let dateStr = '';
+    if (criteria['year'] && criteria['month'] && criteria['day']) {
+      dateStr = `${criteria['year']}-${criteria['month']}-${criteria['day']}`;
+    }
+
+    const rule: FilterRule = {
+      id: dto.id,
+      sender: criteria['sender'] || '',
+      recipient: criteria['receiver'] || '',
+      subject: criteria['subject'] || '',
+      body: criteria['body'] || '',
+      priority: criteria['priority'] || '',
+      date: dateStr,
+      hasAttachment: criteria['hasAttachment'] === 'true',
+
+      // Map Actions back
+      moveToFolderId: actionType === 'move' ? actionTarget : '',
+      star: actionType === 'star',
+      markAsRead: actionType === 'markasread'
+    };
+    return rule;
   }
 }
