@@ -40,6 +40,7 @@ export class Compose implements OnInit {
     private fileService: FileToBase64Service,
     private apiemailservice: ApiEmailService,
     private route: ActivatedRoute,
+    private router: Router,
   ) { }
 
   // Load draft data if we are editing one
@@ -164,7 +165,8 @@ export class Compose implements OnInit {
 
       console.log("emailData from draft:")
       console.log(emailData)
-
+      this.emailService.selectedEmail.set(null);
+      this.router.navigate(['/layout/drafts']);
       this.emailService.saveDraft(emailData, () => {
         this.emailService.loadEmailsForFolder(this.emailService.currentFolder());
         this.emailService.loadFolders();
@@ -204,7 +206,8 @@ export class Compose implements OnInit {
         priority: this.priority
       };
 
-
+      this.emailService.selectedEmail.set(null);
+      this.router.navigate(['/layout/drafts']);
 
 
       this.emailService.sendEmail(emailData, () => {
