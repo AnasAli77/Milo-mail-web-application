@@ -73,7 +73,36 @@
   padding: 0 1.25rem;
   height: 100%;
 }
+/* NEW: Standardized Toolbar Button (Refresh, Next, Prev) */
+.toolbar-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 6px 10px; /* Consistent padding */
+  height: 32px;      /* Fixed height for alignment */
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
 
+.toolbar-btn:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-btn svg {
+  width: 16px;
+  height: 16px;
+}
 .sort-label {
   font-size: 0.75rem;
   font-weight: 700;

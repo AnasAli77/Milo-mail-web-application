@@ -1,24 +1,26 @@
-import {Injectable, signal} from '@angular/core';
-import {FilterRule} from '../models/FilterRule';
-import {ApiFilterService} from './api-filter-service';
+import { Injectable, inject } from '@angular/core';
+import { signal, computed } from '@angular/core';
+import { FilterRule } from '../models/FilterRule';
+import { ApiFilterService } from './api-filter-service';
+import { EmailService } from './email-service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FilterService {
-  private filters = signal<FilterRule[]>([]);
+  private api = inject(ApiFilterService);
+  private emailService = inject(EmailService);
 
-  // Keep folders local or fetch from FolderService if you have one.
-  // For now, keeping the list here so the dropdown works.
-  private folders = signal<string[]>(['Work', 'Personal', 'Finance', 'Travel', 'University']);
+  public filters = signal<FilterRule[]>([]);
+  public folders = computed(() => this.emailService.folders());
 
-  constructor(private api: ApiFilterService) {
+  constructor() {
     this.loadFilters();
   }
 
   // Expose signals to the component
   getFilters() {
-    return this.filters;
+    return this.filters.asReadonly();
   }
 
   getFolders() {
@@ -26,7 +28,7 @@ export class FilterService {
   }
 
   // Load from Backend
-  loadFilters() {
+  private loadFilters() {
     this.api.getRules().subscribe({
       next: (data) => {
         this.filters.set(data);
@@ -39,7 +41,6 @@ export class FilterService {
   addFilter(rule: FilterRule) {
     this.api.addRule(rule).subscribe({
       next: (savedRule) => {
-        // Add the rule returned from server (which includes the real DB ID) to the signal
         this.filters.update(list => [...list, savedRule]);
       },
       error: (err) => console.error('Error adding filter:', err)
@@ -50,7 +51,6 @@ export class FilterService {
   deleteFilter(id: number) {
     this.api.deleteRule(id).subscribe({
       next: () => {
-        // Remove from local list upon success
         this.filters.update(list => list.filter(f => f.id !== id));
       },
       error: (err) => console.error('Error deleting filter:', err)
