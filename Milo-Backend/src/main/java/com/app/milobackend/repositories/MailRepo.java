@@ -76,8 +76,6 @@ public interface MailRepo extends JpaRepository<Mail, Long> {
         @Query("DELETE FROM Mail m WHERE LOWER(m.folder.name) = 'trash' AND m.trashedAt < :cutoffDate")
         int deleteExpiredTrashMails(@Param("cutoffDate") LocalDateTime cutoffDate);
 
-        // ===== STATS QUERIES =====
-
         // Count emails sent by user since a date (for "sent this week")
         // Only count sender's copy (receiver IS NULL) to avoid counting duplicates
         @Query("SELECT COUNT(m) FROM Mail m WHERE m.sender.email = :email AND m.receiver IS NULL AND m.folder.name != 'drafts' AND m.sentAt > :since")

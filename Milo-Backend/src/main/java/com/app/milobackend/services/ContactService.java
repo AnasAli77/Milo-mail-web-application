@@ -35,7 +35,7 @@ public class ContactService {
         if (authentication != null) {
             return authentication.getName();
         }
-        return null; // Or throw an exception
+        return null;
     }
 
     public Contact storeContact(Contact contact) {

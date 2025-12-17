@@ -31,7 +31,7 @@ public class FilterRuleService {
         if (authentication != null) {
             return authentication.getName();
         }
-        return null; // Or throw an exception
+        return null;
     }
 
     @Transactional(readOnly = true)

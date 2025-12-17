@@ -20,7 +20,6 @@ public class TrashCleanupService {
     private int retentionMinutes;
 
     // Run this task every 10000ms (10 seconds)
-    // You can change 'fixedRate' if you want it to run less often
     @Scheduled(fixedRate = 10000)
     @CacheEvict(value = "mails", allEntries = true) // Clear cache so deleted mails disappear from UI
     public void cleanupTrash() {

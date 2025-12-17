@@ -22,13 +22,6 @@ public class JWTService {
 
     private final String secretKey = System.getenv("JWT_SECRET");
 
-    //    public JWTService() throws NoSuchAlgorithmException {
-//        KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
-//        SecretKey sk = keyGen.generateKey();
-//        secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
-//        System.out.println("secretKey: " + secretKey);
-//    }
-
     public String generateToken(String email){
         Map<String,Object> claims = new HashMap<>();
         return Jwts.builder()
@@ -46,14 +39,14 @@ public class JWTService {
         if (secretKey == null || secretKey.isBlank()) {
             throw new IllegalStateException("JWT_SECRET environment variable is not set");
         }
-        // expect JWT_SECRET to be base64. If you prefer raw text, change this accordingly.
+        // expect JWT_SECRET to be base64.
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
 
     public String extractEmail(String token) {
-        // extract the username from jwt token
+        // extract the email from jwt token
         return extractClaim(token, Claims::getSubject);
     }
 

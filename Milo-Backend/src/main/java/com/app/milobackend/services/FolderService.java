@@ -24,7 +24,7 @@ public class FolderService {
         if (authentication != null) {
             return authentication.getName();
         }
-        return null; // Or throw an exception
+        return null;
     }
 
     public String[] getFolderNames() {
@@ -37,35 +37,30 @@ public class FolderService {
     }
 
     public Folder createFolder(String folderName) {
-        // Optional: Check if folder exists for this specific user first
-        // if (folderRepo.findByNameAndUser(folderName, user) != null) return ...
         String userEmail = getCurrentUserEmail();
+        int counter = 0;
+        String addedName = "";
+        while (folderRepo.findByNameAndUserEmail(folderName + addedName, userEmail) != null) {
+            counter++;
+            addedName = " (" + counter + ")";
+        }
+
+        String uniqueName = folderName + addedName;
         ClientUser user = userRepo.findByEmail(userEmail);
         Folder folder = new Folder();
-        folder.setName(folderName);
-        folder.setUser(user); // Critical: Link folder to user
+        folder.setName(uniqueName);
+        folder.setUser(user);
         user.addFolder(folder);
         return folderRepo.save(folder);
     }
 
-
+    // used to create the 4 default folders for the user
     public void createFolderWithUser(String folderName, ClientUser user) {
-        // Optional: Check if folder exists for this specific user first
-        // if (folderRepo.findByNameAndUser(folderName, user) != null) return ...
         Folder folder = new Folder();
         folder.setName(folderName);
         folder.setUser(user); // Critical: Link folder to user
         user.addFolder(folder);
         folderRepo.save(folder);
-    }
-
-    public boolean exists(Folder f) {
-        String email = getCurrentUserEmail();
-        if (email == null) {
-            throw new RuntimeException("User not authenticated");
-        }
-        Folder folder = folderRepo.findByNameAndUserEmail(f.getName(),email);
-        return (folder != null);
     }
 
     public void removeFolder(String name) {

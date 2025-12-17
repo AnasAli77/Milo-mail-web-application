@@ -31,7 +31,6 @@ public class AttachmentService {
     private AttachmentContentRepo contentRepo;
 
     @Transactional(readOnly = true)
-//    @Cacheable(value = "attachment", key = "#id")
     public Attachment getAttachmentData(Long id) throws RuntimeException {
         Attachment attachment = attachmentRepo.findById(id).orElse(null);
         if (attachment == null) {

@@ -15,7 +15,7 @@
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
-        // The actual binary data
+        // The binary data
         @Column(name = "data", columnDefinition="BYTEA")
         private byte[] data;
 

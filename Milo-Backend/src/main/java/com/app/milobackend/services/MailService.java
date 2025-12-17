@@ -57,14 +57,14 @@ public class MailService {
         if (authentication != null) {
             return authentication.getName();
         }
-        return null; // Or throw an exception
+        return null;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void init() {
         System.out.println("Warming up cache...");
         try {
-            self.GetAllMails(); // This triggers the DB fetch and stores it in Redis/Memory
+            self.GetAllMails(); // This triggers the DB fetch and stores it in Caffeine/Memory
         } catch (Exception e) {
             System.err.println("Database not ready yet, skipping cache warm-up.");
             System.err.println(e.getMessage());
@@ -77,7 +77,7 @@ public class MailService {
     @Transactional(readOnly = true)
     @Cacheable(value = "mails", key = "'all_mails'")
     public void GetAllMails() {
-        System.out.println("Fetching from Database..."); // You will only see this once!
+        System.out.println("Fetching from Database...");
         List<Mail> mails = mailRepo.findAllWithDetails();
 
         for (Mail m : mails) {
@@ -100,7 +100,6 @@ public class MailService {
     public void updateMail(MailDTO mailDTO, List<MultipartFile> files) throws IOException {
         if (mailDTO.getId() == null) {
             throw new RuntimeException("Cannot update incomingMail without ID");
-            // this.saveMail(mailDTO);
         }
 
         System.out.println("Updating incomingMail...");
@@ -129,7 +128,7 @@ public class MailService {
         }
         System.out.println("Sender found: " + sender.getName());
 
-        // Step 1: Create the sender's copy (goes to their sent/drafts folder) using
+        // Create the sender's copy (goes to their sent/drafts folder) using
         // Prototype pattern
         Mail mappedMail = mailMapper.toEntity(mailDTO, files);
         Mail senderMail = mappedMail.clone();
@@ -154,8 +153,7 @@ public class MailService {
         Mail savedMail = mailRepo.save(senderMail);
         System.out.println("Sender mail saved with ID: " + savedMail.getId());
 
-        // Step 2: Process the queue of receivers - each gets their own copy in their
-        // inbox
+        // Process the queue of receivers - each gets their own copy in their inbox
         // Only create receiver copies if this is NOT a draft (folder != "drafts")
         if (!"drafts".equalsIgnoreCase(mailDTO.getFolder())) {
             Queue<String> receiverQueue = mailDTO.getReceiverEmails();
@@ -188,11 +186,9 @@ public class MailService {
                 } catch (Exception e) {
                     System.err.println("Error applying filter rules: " + e.getMessage());
                     e.printStackTrace();
-                    // Continue without filtering - don't fail mail delivery
                 }
 
-                // Always ensure mail has a folder - default to inbox if not set by filter
-                // action
+                // Always ensure mail has a folder - default to inbox if not set by filter action
                 if (receiverMail.getFolder() == null) {
                     Folder receiverInbox = folderRepo.findByNameAndUserEmail("inbox", receiver.getEmail());
                     if (receiverInbox != null) {
@@ -218,7 +214,6 @@ public class MailService {
         }
 
         Page<Mail> mailPage;
-        // Logic breakdown based on your requirements:
         if ("starred".equalsIgnoreCase(folderName)) {
             // check both the Mail sender field and receivers + starred
             mailPage = mailRepo.findStarredMailsForUser(userEmail, pageable);
@@ -425,24 +420,24 @@ public class MailService {
     }
 
     private <T> Page<T> convertListToPage(List<T> list, int pageNumber, int pageSize) {
-        // 1. Create Pageable
+        // Create Pageable
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
-        // 2. Calculate Start Item
+        // Calculate Start Item
         int start = (int) pageable.getOffset();
 
-        // 3. Calculate End Item (Handle out of bounds)
+        // Calculate End Item (Handle out of bounds)
         int end = Math.min((start + pageable.getPageSize()), list.size());
 
-        // 4. Handle "Page is empty" case
+        // Handle "Page is empty" case
         if (start > list.size()) {
             return new PageImpl<>(new ArrayList<>(), pageable, list.size());
         }
 
-        // 5. Create Sublist
+        // Create Sublist
         List<T> content = list.subList(start, end);
 
-        // 6. Return Page
+        // Return Page
         return new PageImpl<>(content, pageable, list.size());
     }
 }

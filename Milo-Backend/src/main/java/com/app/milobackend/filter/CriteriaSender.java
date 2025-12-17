@@ -16,7 +16,6 @@ public class CriteriaSender implements Criteria {
     public List<Mail> filter(List<Mail> mails) {
         List<Mail> mailsFiltered = new ArrayList<>();
         for (Mail mail : mails) {
-            // Null safety checks
             if (mail.getSender() == null)
                 continue;
 

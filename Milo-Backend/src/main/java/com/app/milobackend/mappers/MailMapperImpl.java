@@ -46,7 +46,7 @@ public class MailMapperImpl implements MailMapper {
         if (authentication != null) {
             return authentication.getName();
         }
-        return null; // Or throw an exception
+        return null;
     }
 
     @Override
@@ -71,30 +71,16 @@ public class MailMapperImpl implements MailMapper {
 
         Mail mail = mailBuilder.build();
 
-        // Handle attachments:
-        // 1. Collect IDs of existing attachments that should be kept
-//        Set<Long> existingAttachmentIds = new HashSet<>();
-//        if (mailDTO.getAttachments() != null) {
-//            for (var attachmentDTO : mailDTO.getAttachments()) {
-//                if (attachmentDTO.getId() != null) {
-//                    existingAttachmentIds.add(attachmentDTO.getId());
-//                }
-//            }
-//        }
-        // Store these IDs for MailService to use when preserving attachments
-//        mail.setExistingAttachmentIds(existingAttachmentIds);
-
-        // 2. Convert new Files to Attachment Entities
-        System.err.println("####################################################################################");
+//        System.err.println("####################################################################################");
         if (!(files == null || files.isEmpty()) || !(mailDTO.getAttachments() == null || mailDTO.getAttachments().isEmpty())) {
             List<Attachment> attachments = attachmentService.convertDTOsToAttachments(mailDTO.getAttachments(), files);
             for (Attachment attachment : attachments) {
-                System.err.println("Attachment printed: " + attachment.toString());
+//                System.err.println("Attachment printed: " + attachment.toString());
                 attachment.setMail(mail);
                 mail.addAttachment(attachment);
             }
         }
-        System.err.println("####################################################################################");
+//        System.err.println("####################################################################################");
 
         String folderName = mailDTO.getFolder();
         String email = getCurrentUserEmail();
@@ -123,7 +109,6 @@ public class MailMapperImpl implements MailMapper {
     public MailDTO toDTO(Mail entity) {
         if (entity == null) return null;
 
-        // Build the receiver emails queue first
         Queue<String> receiverEmailsQueue = new LinkedList<>();
         if (entity.getReceiver() != null) {
             receiverEmailsQueue.add(entity.getReceiver().getEmail());

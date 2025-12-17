@@ -96,10 +96,23 @@ The Class Diagram illustrates the structural relationship between the core entit
 
 \textit{(Please insert the generated class\_diagram.puml visualization here)}
 
-\subsection{Sequence Diagram}
-The Sequence Diagram depicts the workflow of a user filtering and sorting emails. It shows the interaction flow from the Frontend to the Controller, Service, Filter Factory, and Sorting Worker.
+\subsection{Sequence Diagrams}
+We created three sequence diagrams to show different workflows in our system:
 
-\textit{(Please insert the generated sequence\_diagram.puml visualization here)}
+\subsubsection{Email Filtering \& Sorting}
+This diagram shows how users can filter and sort their emails. It demonstrates the Strategy and Criteria patterns, along with the Caffeine caching mechanism.
+
+\textit{(Please insert the generated filtering\_sorting\_sequence.puml visualization here)}
+
+\subsubsection{Send Mail Workflow}
+This diagram shows what happens when a user sends an email. It demonstrates the Prototype pattern for cloning mails and the Command pattern for applying filter rules on the receiver side.
+
+\textit{(Please insert the generated send\_mail\_sequence.puml visualization here)}
+
+\subsubsection{Authentication Flow}
+This diagram shows the login process and how JWT tokens are handled. It demonstrates the Chain of Responsibility pattern in Spring Security and the Interceptor pattern on the frontend.
+
+\textit{(Please insert the generated auth\_sequence.puml visualization here)}
 
 \section{Design Patterns Applied}
 
@@ -165,7 +178,7 @@ This encapsulates object creation logic, simplifying the Service layer.
 \subsubsection{Facade Pattern (Structural)}
 \textbf{Usage:} Used to provide a simplified interface to complex subsystems.
 \newline
-\textbf{Implementation:} \texttt{MailService} acts as a facade, coordinating multiple repositories (\texttt{MailRepo}, \texttt{UserRepo}, \texttt{FolderRepo}), mappers, and the \texttt{ActionFactory} to provide high-level operations like \texttt{saveMail()}, \texttt{Search()}, and \texttt{Filter()}.
+\textbf{Implementation:} \texttt{MailController} and \texttt{MailService} act as facades. The controller exposes simple REST endpoints to the frontend, while the service coordinates multiple repositories, mappers, and factories internally. This hides the complexity of the backend from the client.
 
 \subsubsection{Singleton Pattern (Creational)}
 \textbf{Usage:} Ensures a class has only one instance.
@@ -211,7 +224,6 @@ This encapsulates object creation logic, simplifying the Service layer.
     \item \textbf{Handling Concurrency:} To avoid issues where a user edits a draft while it's being autosaved, we made the backend always treat sent mails as brand new entities using the Prototype pattern. This prevents those annoying Optimistic Locking exceptions.
     \item \textbf{Asynchronous UI:} The frontend uses Angular Signals and Observables for handling large file uploads asynchronously. We also added a global loading overlay so users can see when something is still loading.
     \item \textbf{Filter Rule Architecture:} Filter rules get applied on the receiver's side when mail is delivered, not the sender's side. This way each user's filters work independently on their own incoming mail.
-    \item \textbf{Defensive Null Handling:} All our Criteria classes check for null values to prevent NullPointerExceptions during filtering. We also wrapped the filter logic in try-catch so even if a filter crashes, the email still gets delivered.
     \item \textbf{Synchronized Star Status for Self-Sent Emails:} When you send an email to yourself, you end up with two copies (one in Sent, one in Inbox). We made it so starring either copy automatically stars both. Also, the Starred folder only shows one copy to avoid duplicates.
 \end{enumerate}
 
@@ -228,39 +240,65 @@ This encapsulates object creation logic, simplifying the Service layer.
 \end{enumerate}
 
 \section{User Guide}
-\subsection{Registration \& Login}
-Users can sign up with a unique email. The system checks against the database and alerts if the email is taken.
+
+\subsection{Registration}
+New users can create an account by providing their name, email, and password. The system validates that the email is unique and follows the correct format.
+
 \begin{figure}[H]
     \centering
-    \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Login/Signup Screenshot] \vspace{2cm}}}
-    \caption{Login Page}
+    \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Signup Screenshot] \vspace{2cm}}}
+    \caption{User Registration Page}
 \end{figure}
 
-\subsection{Inbox \& Filtering}
-Users can view their inbox and apply filters (e.g., by Sender or Subject) and sort the results.
+\subsection{Login}
+Registered users can log in with their email and password. Upon successful authentication, a JWT token is generated and stored for subsequent requests.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Login Screenshot] \vspace{2cm}}}
+    \caption{User Login Page}
+\end{figure}
+
+\subsection{Inbox \& Email Management}
+The inbox displays all received emails with information like sender, subject, date, and priority. Users can:
+\begin{itemize}
+    \item Filter emails by various criteria
+    \item Sort emails by date, subject, sender, or priority
+    \item Star important emails
+    \item Move emails to different folders
+\end{itemize}
+
 \begin{figure}[H]
     \centering
     \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Inbox Screenshot] \vspace{2cm}}}
-    \caption{Inbox with Filtering functionality}
+    \caption{Inbox View with Email List}
 \end{figure}
 
 \subsection{Composing Emails}
-The Compose window allows sending emails with priority and attachments. Subject, body, and receivers are mandatory fields.
+The compose window allows users to create and send emails. Features include:
+\begin{itemize}
+    \item Multiple recipients support
+    \item Priority levels (1-5)
+    \item File attachments
+    \item Auto-save as draft
+\end{itemize}
+
 \begin{figure}[H]
     \centering
     \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Compose Window Screenshot] \vspace{2cm}}}
-    \caption{Compose Email Modal}
+    \caption{Email Compose Window}
 \end{figure}
 
 \subsection{Filter Rules}
-Users can create custom filter rules to automatically organize incoming emails. Filter rules allow users to define criteria (sender, subject, body, priority, date, attachments) and actions (move to folder, star, mark as read) that are applied when emails matching the criteria are received.
+Users can create custom filter rules to automatically organize incoming emails based on criteria and actions.
+
 \begin{figure}[H]
     \centering
     \fbox{\parbox{10cm}{\centering \vspace{2cm} [Insert Filter Rules Screenshot] \vspace{2cm}}}
     \caption{Filter Rules Management}
 \end{figure}
 
-\textbf{Available Criteria:}
+\noindent\textbf{Available Criteria:}
 \begin{itemize}
     \item From (sender email/name)
     \item To (recipient email)
@@ -271,7 +309,7 @@ Users can create custom filter rules to automatically organize incoming emails. 
     \item Has attachments
 \end{itemize}
 
-\textbf{Available Actions:}
+\noindent\textbf{Available Actions:}
 \begin{itemize}
     \item Move to folder (Inbox, Trash, or custom folders)
     \item Star the email
