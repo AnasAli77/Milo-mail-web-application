@@ -150,7 +150,7 @@ export class Contacts implements OnInit {
   onCompose(contact: Contact) {
     if (contact && contact.emails && contact.emails.length > 0) {
       const emails = contact.emails.join(',');
-      this.router.navigate(['/layout/inbox/compose'], { queryParams: { to: emails } });
+      this.router.navigate(['/layout/inbox/compose'], { queryParams: { to : emails } });
     }
   }
 }

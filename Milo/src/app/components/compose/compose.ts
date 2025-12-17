@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import {ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import { Location } from '@angular/common';
 import { EmailService } from '../../Services/email-service';
 import { Attachment } from '../../models/attachment';
@@ -23,7 +23,7 @@ interface ReceiverInput {
   templateUrl: './compose.html',
   styleUrl: './compose.css',
 })
-export class Compose {
+export class Compose implements OnInit {
   receivers: ReceiverInput[] = [{ email: '' }];
   subject: string = '';
   message: string = '';
@@ -39,10 +39,22 @@ export class Compose {
     public emailService: EmailService,
     private fileService: FileToBase64Service,
     private apiemailservice: ApiEmailService,
+    private route: ActivatedRoute,
   ) { }
 
   // Load draft data if we are editing one
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['to']) {
+        const emailString = params['to'] as string;
+        // Split by comma if multiple emails are passed
+        const emailArray = emailString.split(',').map(e => e.trim());
+
+        // Map to ReceiverInput objects
+        this.receivers = emailArray.map(email => ({ email }));
+      }
+    });
+
     const draft = this.emailService.draftToEdit();
     if (draft) {
       // Populate receivers
