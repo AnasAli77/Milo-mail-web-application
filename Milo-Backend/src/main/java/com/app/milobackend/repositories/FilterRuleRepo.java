@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FilterRuleRepo extends JpaRepository<FilterRule, Long> {
 
@@ -20,10 +21,13 @@ public interface FilterRuleRepo extends JpaRepository<FilterRule, Long> {
     List<FilterRule> findByUserEmail(String email);
 
     @Modifying
-    @Query("DELETE FROM FilterRule f WHERE f.id = :filterId AND f.user.email = :userEmail")
+    @Query("DELETE FROM FilterRule f WHERE f.id = :filterId")
     @Caching(evict = {
             @CacheEvict(value = "filterRules", allEntries = true),
             @CacheEvict(value = "filterRuleEntities", allEntries = true)
     })
-    void deleteFilterRuleByIdANDUser(@Param("filterId") Long id, @Param("userEmail") String email);
+    void deleteFilterRuleById(@Param("filterId") Long id);
+
+    @Transactional(readOnly = true)
+    Optional<FilterRule> findByIdAndUserEmail(Long id, String email);
 }

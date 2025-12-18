@@ -49,7 +49,16 @@ public class FilterRuleService {
             @CacheEvict(value = "filterRuleEntities", allEntries = true)
     })
     public void deleteFilter(Long filterId) {
-        filterRuleRepo.deleteFilterRuleByIdANDUser(filterId, getCurrentUserEmail());
+        String userEmail = getCurrentUserEmail();
+
+        // Verify ownership before deletion
+        var filterRule = filterRuleRepo.findByIdAndUserEmail(filterId, userEmail);
+        if (filterRule.isEmpty()) {
+            throw new RuntimeException("Filter not found or access denied");
+        }
+
+        // Now delete it
+        filterRuleRepo.deleteFilterRuleById(filterId);
     }
 
     @Transactional
