@@ -1,84 +1,100 @@
 @startuml
-title Authentication Flow
-
+' A4 Portrait - Clean Beautiful Theme
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam roundCorner 8
+skinparam shadowing false
 skinparam sequenceMessageAlign center
-skinparam responseMessageBelowArrow true
+skinparam participantPadding 10
+scale max 700 width
 
-actor User
-participant "Angular Frontend" as Frontend
-participant "AuthInterceptor" as Interceptor
-participant "JWTFilter" as JWTFilter
-participant "SecurityFilterChain" as Chain
-participant "AuthController" as AuthCtrl
-participant "AuthService" as AuthSvc
-participant "JWTService" as JWTSvc
-database "PostgreSQL" as DB
+skinparam participant {
+    BackgroundColor #F8F9FA
+    BorderColor #6C757D
+}
 
-== Login Flow ==
+skinparam note {
+    BackgroundColor #FFF9C4
+    BorderColor #FBC02D
+    FontSize 9
+}
 
-User -> Frontend : Enter credentials
-activate Frontend
+title <size:14><b>Authentication Flow</b></size>
 
-Frontend -> AuthCtrl : POST /auth/login
-activate AuthCtrl
+actor User #E3F2FD
+participant "Frontend" as FE #E8F5E9
+participant "Interceptor" as INT #FFF3E0
+participant "Filter" as JF #FFF3E0
+participant "Controller" as AC #E3F2FD
+participant "Service" as AS #E3F2FD
+participant "JWT" as JS #E3F2FD
+participant "SecurityChain" as Chain #FFF3E0
+database "DB" as DB #FCE4EC
 
-AuthCtrl -> AuthSvc : verify(userDTO)
-activate AuthSvc
+== Login ==
 
-AuthSvc -> DB : findByEmail(email)
-activate DB
-DB --> AuthSvc : ClientUser
+User -> FE : Credentials
+activate FE #E8F5E9
+
+FE -> AC : POST /login
+activate AC #E3F2FD
+
+AC -> AS : verify()
+activate AS #E3F2FD
+
+AS -> DB : findUser()
+activate DB #FCE4EC
+DB --> AS : User
 deactivate DB
 
-AuthSvc -> AuthSvc : Check password hash
+AS -> JS : generateToken()
+activate JS #E3F2FD
+JS --> AS : token
+deactivate JS
 
-AuthSvc -> JWTSvc : generateToken(email)
-activate JWTSvc
-JWTSvc --> AuthSvc : JWT Token
-deactivate JWTSvc
+AS --> AC : User + Token
+deactivate AS
 
-AuthSvc --> AuthCtrl : UserDTO with token
-deactivate AuthSvc
+AC --> FE : Response
+deactivate AC
 
-AuthCtrl --> Frontend : { token, email, name }
-deactivate AuthCtrl
+FE -> FE : Save Token
+FE --> User : Redirect
+deactivate FE
 
-Frontend -> Frontend : Store token in sessionStorage
-Frontend --> User : Redirect to Inbox
-deactivate Frontend
+== Authenticated Request ==
 
-== Authenticated Request Flow ==
+User -> FE : View Inbox
+activate FE #E8F5E9
 
-User -> Frontend : View Inbox
-activate Frontend
+note right of INT #FFF3E0: **Interceptor**
+FE -> INT : Request
+activate INT #FFF3E0
+INT -> INT : Add Token
+INT -> JF : GET /inbox
+deactivate INT
+activate JF #FFF3E0
 
-note over Frontend: **Interceptor Pattern**\nAuthInterceptor adds Bearer token
+note right of JF #FFF3E0: **Chain of Resp.**
+JF -> JS : validate()
+activate JS #E3F2FD
+JS --> JF : valid
+deactivate JS
 
-Frontend -> Interceptor : HTTP Request
-activate Interceptor
-Interceptor -> Interceptor : Attach token to header
-Interceptor -> JWTFilter : GET /mail/all (with Bearer token)
-deactivate Interceptor
-activate JWTFilter
-
-note over JWTFilter: **Chain of Responsibility**\nPart of Spring Security filter chain
-
-JWTFilter -> JWTFilter : Extract token from header
-JWTFilter -> JWTSvc : extractEmail(token)
-JWTFilter -> JWTSvc : validateToken(token, userDetails)
-
-alt Token Valid
-    JWTFilter -> Chain : filterChain.doFilter()
-    note right: Passes to next filter\nin the chain
-    Chain --> JWTFilter : Response
-    JWTFilter --> Frontend : 200 OK with data
-else Token Invalid/Expired
-    JWTFilter --> Frontend : 401 Unauthorized
+alt Valid
+    JF -> Chain : doFilter()
+    activate Chain #FFF3E0
+    Chain --> JF : Response
+    deactivate Chain
+    JF -> FE : 200 OK
+else Invalid
+    JF -> FE : 401 Unauthorized
 end
 
-deactivate JWTFilter
-
-Frontend --> User : Display emails
-deactivate Frontend
+deactivate JF
+FE --> User : Display
+deactivate FE
 
 @enduml

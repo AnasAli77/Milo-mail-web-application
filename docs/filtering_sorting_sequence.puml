@@ -1,66 +1,95 @@
 @startuml
-title Email Filtering & Sorting Workflow
-
+' A4 Portrait - Clean Beautiful Theme
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam roundCorner 8
+skinparam shadowing false
 skinparam sequenceMessageAlign center
-skinparam responseMessageBelowArrow true
+scale max 750 width
 
-actor User
-participant "Angular Frontend" as Frontend
-participant "Caffeine Cache" as Cache
-participant "MailController" as Controller
-participant "MailService" as Service
-participant "CriteriaFactory" as CFactory
-participant "Criteria" as Filter
-participant "SortWorker" as Worker
-participant "MailSortingStrategy" as Strategy
-database "PostgreSQL" as DB
+skinparam participant {
+    BackgroundColor #F8F9FA
+    BorderColor #6C757D
+}
+
+skinparam note {
+    BackgroundColor #FFF9C4
+    BorderColor #FBC02D
+    FontSize 9
+}
+
+title <size:14><b>Email Filtering & Sorting Workflow</b></size>
+
+actor User #E3F2FD
+participant "Angular Frontend" as Frontend #E8F5E9
+participant "Caffeine Cache" as Cache #FFFDE7
+participant "MailController" as Controller #E3F2FD
+participant "MailService" as Service #E3F2FD
+participant "CriteriaFactory" as CFactory #F3E5F5
+participant "Criteria" as Filter #F3E5F5
+participant "SortWorker" as Worker #E1F5FE
+participant "MailSortingStrategy" as Strategy #E1F5FE
+database "PostgreSQL" as DB #FCE4EC
 
 User -> Frontend : Apply Filter & Sort
-activate Frontend
+activate Frontend #E8F5E9
 
 Frontend -> Controller : GET /mails/filter
-activate Controller
+activate Controller #E3F2FD
 
 Controller -> Service : Filter(filterDTO, page, size)
-activate Service
+activate Service #E3F2FD
 
-note over Service: Check cache first
+note over Service #FFFDE7
+Check cache first
+end note
 
 Service -> Cache : get(cacheKey)
-activate Cache
+activate Cache #FFFDE7
+
 alt Cache Hit
     Cache --> Service : Cached Result
 else Cache Miss
     Cache --> Service : null
     
     Service -> DB : findByFolderAndUser()
-    activate DB
+    activate DB #FCE4EC
     DB --> Service : List<Mail> rawMails
     deactivate DB
     
-    note over Service: **Criteria Pattern**\nCreate filter based on criteria type
+    note right of Service #F3E5F5
+    **Criteria Pattern**
+    Create filter based on
+    criteria type dynamically
+    end note
     
     Service -> CFactory : create("subject", "work")
-    activate CFactory
+    activate CFactory #F3E5F5
     CFactory --> Service : CriteriaSubject
     deactivate CFactory
     
     Service -> Filter : filter(rawMails)
-    activate Filter
+    activate Filter #F3E5F5
     Filter --> Service : filteredMails
     deactivate Filter
     
-    note over Service: **Strategy Pattern**\nSwitch sorting algorithm at runtime
+    note right of Service #E1F5FE
+    **Strategy Pattern**
+    Switch sorting algorithm
+    at runtime
+    end note
     
     Service -> Worker : setStrategy(SortByDate)
-    activate Worker
+    activate Worker #E1F5FE
     Worker --> Service
     deactivate Worker
     
     Service -> Worker : sort(filteredMails)
-    activate Worker
+    activate Worker #E1F5FE
     Worker -> Strategy : SortingMails(filteredMails)
-    activate Strategy
+    activate Strategy #E1F5FE
     Strategy --> Worker : sortedMails
     deactivate Strategy
     Worker --> Service : sortedMails
@@ -76,7 +105,7 @@ deactivate Service
 Controller --> Frontend : JSON Response
 deactivate Controller
 
-Frontend -> User : Display Filtered & Sorted Mails
+Frontend --> User : Display Filtered & Sorted Mails
 deactivate Frontend
 
 @enduml

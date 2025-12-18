@@ -1,91 +1,113 @@
 @startuml
+' A4 Portrait - Clean Beautiful Theme with Full Details
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam classFontSize 10
+skinparam classAttributeFontSize 9
+skinparam packageFontSize 11
+skinparam packageFontStyle bold
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
-skinparam nodesep 50
-skinparam ranksep 50
+skinparam nodesep 20
+skinparam ranksep 25
+skinparam roundCorner 8
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam wrapWidth 150
+scale max 750 width
 
-title Milo Mail System - Architecture & Design Patterns
+skinparam class {
+    BackgroundColor #F8F9FA
+    BorderColor #6C757D
+    ArrowColor #495057
+}
 
-package "Controllers" {
+skinparam package {
+    BackgroundColor #E9ECEF
+    BorderColor #ADB5BD
+}
+
+title <size:14><b>Milo Mail System - Design Patterns Architecture</b></size>
+
+' ========== CONTROLLERS ==========
+package "Controllers" #E3F2FD {
     class MailController <<Facade>> {
-        + getMails(String filter, String val)
-        + sendMail(MultipartFile[], String mailDTO)
-        + getSortedMails(String sortBy, String folder)
-        + moveMails(List<Long>, String folder)
+        + getMails(filter, val): Page<MailDTO>
+        + sendMail(files[], mailDTO): ResponseEntity
+        + getSortedMails(sortBy, folder): Page<MailDTO>
+        + moveMails(ids, folder): void
+        + deleteMail(id): void
     }
     class ContactController {
-        + getContacts(String sort)
-        + addContact(Contact)
-        + deleteContact(Long)
+        + getContacts(sort): List<Contact>
+        + addContact(contact): Contact
+        + deleteContact(id): void
     }
     class AuthController {
-        + register(UserDTO)
-        + login(UserDTO)
+        + register(userDTO): ResponseEntity
+        + login(userDTO): ResponseEntity
     }
     class FolderController {
-        + getAllFolders()
-        + createFolder(String)
-        + deleteFolder(String)
-        + updateFolder(String, String)
+        + getAllFolders(): List<String>
+        + createFolder(name): Folder
+        + deleteFolder(name): void
+        + renameFolder(old, new): void
     }
     class AttachmentController {
-        + downloadAttachment(Long)
+        + downloadAttachment(id): byte[]
     }
     class FilterRuleController {
-        + getFilterRules()
-        + addFilterRule(FilterRuleDTO)
-        + deleteFilterRule(Long)
+        + getFilterRules(): List<FilterRule>
+        + addFilterRule(dto): FilterRule
+        + deleteFilterRule(id): void
     }
 }
 
-package "Services (Singleton Pattern)" {
-    class MailService <<Facade>> <<Singleton>> {
-        + GetAllMails()
-        + saveMail(MailDTO, MultipartFile[])
-        + updateMail(MailDTO, MultipartFile[])
-        + deleteMail(Long id)
-        + getMailsByFolder(String, int, int)
-        + getSortedMails(String, String, int, int)
-        + Search(SearchDTO, int, int)
-        + Filter(FilterDTO, int, int)
+' ========== SERVICES ==========
+package "Services (Singleton)" #E8F5E9 {
+    class MailService <<Facade>> {
+        + GetAllMails(): void
+        + saveMail(dto, files): void
+        + updateMail(dto, files): void
+        + deleteMail(id): void
+        + getMailsByFolder(folder, page, size): Page
+        + getSortedMails(sortBy, folder, page, size): Page
+        + Search(dto, page, size): Page
+        + Filter(dto, page, size): Page
     }
-    class TrashCleanupService <<Singleton>> {
-        + cleanOldMails()
-        + deleteOldMails()
+    class ContactService {
+        + getContacts(): List<Contact>
+        + addContact(contact): Contact
+        + getSortedContacts(sortBy): List
     }
-    class ContactService <<Singleton>> {
-        + getContacts()
-        + addContact(Contact)
-        + getSortedContacts(String)
+    class AuthService {
+        + register(user): void
+        + verify(user): UserDTO
+        + exists(email): boolean
     }
-    class AuthService <<Singleton>> {
-        + register(ClientUser)
-        + verify(ClientUser)
-        + exists(String)
+    class FolderService {
+        + getFolderNames(): String[]
+        + createFolder(name): Folder
+        + removeFolder(name): void
+        + renameFolder(old, new): void
     }
-    class FolderService <<Singleton>> {
-        + getFolderNames()
-        + createFolder(String)
-        + removeFolder(String)
-        + renameFolder(String, String)
+    class JWTService {
+        + generateToken(email): String
+        + validateToken(token, user): boolean
+        + extractEmail(token): String
     }
-    class AttachmentService <<Singleton>> {
-        + getAttachmentData(Long)
-        + convertDTOsToAttachments(List, List)
+    class FilterRuleService {
+        + getFilters(): List<FilterRule>
+        + addFilter(dto): FilterRule
+        + deleteFilter(id): void
     }
-    class JWTService <<Singleton>> {
-        + generateToken(String)
-        + validateToken(String, UserDetails)
-        + extractEmail(String)
-    }
-    class FilterRuleService <<Singleton>> {
-        + getFilters()
-        + addFilter(FilterRuleDTO)
-        + deleteFilter(Long)
+    class TrashCleanupService {
+        + cleanOldMails(): void
     }
 }
 
-package "Security (Chain of Responsibility)" {
+' ========== SECURITY ==========
+package "Security (Chain of Responsibility)" #FFF3E0 {
     abstract class OncePerRequestFilter {
         + doFilterInternal(req, res, chain)
     }
@@ -93,187 +115,175 @@ package "Security (Chain of Responsibility)" {
         + doFilterInternal(req, res, chain)
     }
     class SecurityConfig {
-        + filterChain(HttpSecurity)
+        + filterChain(http): SecurityFilterChain
     }
 }
 
-package "Cache (Caffeine)" {
+' ========== CACHE ==========
+package "Cache (Caffeine)" #FFFDE7 {
     class CacheConfig <<Configuration>> {
         + cacheManager(): CacheManager
     }
-    class CaffeineCacheManager {
-        + getCache(String): Cache
-    }
-    note right of CacheConfig: Local in-memory cache\nfor storing Java objects\nwithout serialization
 }
 
-package "Mappers (Mapper Pattern)" {
-    interface MailMapper <<Interface>> {
-        + toDto(Mail) : MailDTO
-        + toEntity(MailDTO, List<MultipartFile>) : Mail
+' ========== MAPPERS ==========
+package "Mappers" #F5F5F5 {
+    interface MailMapper {
+        + toDto(Mail): MailDTO
+        + toEntity(MailDTO, files): Mail
     }
     class MailMapperImpl implements MailMapper
     
-    interface AttachmentMapper <<Interface>> {
-        + toDto(Attachment) : AttachmentDTO
-        + toEntity(AttachmentDTO) : Attachment
+    interface AttachmentMapper {
+        + toDto(Attachment): AttachmentDTO
+        + toEntity(AttachmentDTO): Attachment
     }
     class AttachmentMapperImpl implements AttachmentMapper
 }
 
-package "Data Transfer Objects" {
+' ========== DTOs ==========
+package "Data Transfer Objects" #ECEFF1 {
     class MailDTO {
-        + String subject
-        + String body
-        + int priority
-        + String senderEmail
-        + Queue<String> receiverEmails
-        + List<AttachmentDTO> attachments
+        + subject: String
+        + body: String
+        + priority: int
+        + senderEmail: String
+        + receiverEmails: Queue<String>
+        + attachments: List<AttachmentDTO>
     }
     class UserDTO {
-        + String name
-        + String email
-        + String token
+        + name: String
+        + email: String
+        + token: String
     }
     class FilterRuleDTO {
-        + Map<String, String> criteriaTypesValues
-        + String actionType
-        + String actionTarget
-    }
-    class FilterDTO {
-        + String folder
-        + Map<String, String> keys
-    }
-    class SearchDTO {
-        + String folder
-        + String word
+        + criteriaTypesValues: Map
+        + actionType: String
+        + actionTarget: String
     }
 }
 
-package "Repositories (Repository Pattern)" {
-    interface MailRepo <<Interface>>
-    interface ContactRepo <<Interface>>
-    interface UserRepo <<Interface>>
-    interface FolderRepo <<Interface>>
-    interface AttachmentRepo <<Interface>>
-    interface FilterRuleRepo <<Interface>>
+' ========== REPOSITORIES ==========
+package "Repositories" #F5F5F5 {
+    interface MailRepo
+    interface UserRepo
+    interface FolderRepo
+    interface ContactRepo
+    interface FilterRuleRepo
+    interface AttachmentRepo
 }
 
-package "Models (Builder & Prototype Pattern)" {
-    interface Prototype<T> <<Interface>> {
+' ========== MODELS ==========
+package "Models (Builder & Prototype)" #FCE4EC {
+    interface "Prototype<T>" as Prototype {
         + clone(): T
     }
     
     class Mail <<Builder>> implements Prototype {
-        - Long id
-        - String subject
-        - String body
-        - LocalDateTime sentAt
-        - boolean read
-        - boolean starred
-        - boolean hasAttachment
-        - int priority
-        + static MailBuilder builder()
+        - id: Long
+        - subject: String
+        - body: String
+        - sentAt: LocalDateTime
+        - read: boolean
+        - starred: boolean
+        - hasAttachment: boolean
+        - priority: int
+        --
+        + builder(): MailBuilder
         + clone(): Mail
-        + cloneWithReceiver(ClientUser): Mail
-        + update(Mail source)
+        + cloneWithReceiver(user): Mail
+        + update(source): void
     }
     class Attachment {
-        - Long id
-        - String name
-        - String type
-        - long size
+        - id: Long
+        - name: String
+        - type: String
+        - size: long
     }
     class AttachmentContent {
-        - byte[] data
+        - data: byte[]
     }
     class Contact {
-        - Long id
-        - String name
-        - List<String> emails
+        - id: Long
+        - name: String
+        - emails: List<String>
     }
     class ClientUser {
-        - Long id
-        - String name
-        - String email
-        - String password
+        - id: Long
+        - name: String
+        - email: String
+        - password: String
     }
     class Folder {
-        - Long id
-        - String name
+        - id: Long
+        - name: String
     }
     class FilterRule {
-        - Long id
-        - Map<String, String> criteriaTypesValues
-        - String actionType
-        - String actionTarget
-        + check(Mail): boolean
-        + apply(Mail, ActionFactory)
+        - id: Long
+        - criteriaTypesValues: Map
+        - actionType: String
+        - actionTarget: String
+        --
+        + check(mail): boolean
+        + apply(mail, factory): void
     }
 
-    Mail "1" *-- "*" Attachment : contains
-    Attachment "1" -- "1" AttachmentContent : has content
+    Mail "1" *-- "*" Attachment
+    Attachment "1" -- "1" AttachmentContent
     Mail "*" -- "1" ClientUser : sender
-    Mail "*" -- "1" ClientUser : receiver
-    Mail "*" -- "1" Folder : belongs to
-    ClientUser "1" *-- "*" Contact : has contacts
-    ClientUser "1" *-- "*" FilterRule : owns rules
-    ClientUser "1" *-- "*" Folder : has folders
+    Mail "*" -- "1" Folder
+    ClientUser "1" *-- "*" Contact
+    ClientUser "1" *-- "*" FilterRule
+    ClientUser "1" *-- "*" Folder
 }
 
-package "Commands (Command Pattern)" {
-    interface FilterRuleAction <<Interface>> {
-        + execute(Mail, String)
+' ========== COMMAND PATTERN ==========
+package "Commands (Command Pattern)" #FFFDE7 {
+    interface FilterRuleAction {
+        + execute(mail, target): void
     }
-    class ActionFactory <<Factory>> <<Singleton>> {
-        - Map<String, FilterRuleAction> actionMap
-        + getAction(String): FilterRuleAction
+    class ActionFactory <<Factory>> {
+        - actionMap: Map
+        + getAction(type): FilterRuleAction
     }
     class MoveToAction implements FilterRuleAction {
-        + execute(Mail, String)
+        + execute(mail, folder): void
     }
     class StarAction implements FilterRuleAction {
-        + execute(Mail, String)
+        + execute(mail, target): void
     }
     class MarkAsReadAction implements FilterRuleAction {
-        + execute(Mail, String)
+        + execute(mail, target): void
     }
 }
 
-package "Strategies (Strategy Pattern)" {
+' ========== STRATEGY PATTERN ==========
+package "Strategies (Strategy Pattern)" #E1F5FE {
     class SortWorker {
-        - MailSortingStrategy strategy
-        + setStrategy(MailSortingStrategy)
-        + sort(List<Mail>) : List<Mail>
+        - strategy: MailSortingStrategy
+        + setStrategy(strategy): void
+        + sort(mails): List<Mail>
     }
-    interface MailSortingStrategy <<Interface>> {
-        + SortingMails(List<Mail>) : List<Mail>
+    interface MailSortingStrategy {
+        + SortingMails(mails): List<Mail>
     }
     class SortByDate implements MailSortingStrategy
     class SortBySubject implements MailSortingStrategy
     class SortByPriority implements MailSortingStrategy
     class SortBySender implements MailSortingStrategy
-    class SortByBody implements MailSortingStrategy
     class SortByReceiver implements MailSortingStrategy
     class SortByAttachment implements MailSortingStrategy
 
-    class ContactSortWorker {
-        - ContactSortingStrategy strategy
-        + sort(List<Contact>)
-    }
-    interface ContactSortingStrategy <<Interface>> {
-        + sort(List<Contact>)
-    }
-    class ContactSortByName implements ContactSortingStrategy
-    class ContactSortByEmails implements ContactSortingStrategy
+    SortWorker o-- MailSortingStrategy
 }
 
-package "Filters (Criteria Pattern)" {
-    interface Criteria <<Interface>> {
-        + filter(List<Mail>) : List<Mail>
+' ========== CRITERIA PATTERN ==========
+package "Filters (Criteria Pattern)" #F3E5F5 {
+    interface Criteria {
+        + filter(mails): List<Mail>
     }
     class CriteriaFactory <<Factory>> {
-        + create(String name, String value) : Criteria
+        + create(name, value): Criteria
     }
     class CriteriaSubject implements Criteria
     class CriteriaSender implements Criteria
@@ -283,49 +293,28 @@ package "Filters (Criteria Pattern)" {
     class CriteriaDay implements Criteria
     class CriteriaMonth implements Criteria
     class CriteriaYear implements Criteria
-    class CriteriaHour implements Criteria
-    class CriteriaMinute implements Criteria
     class CriteriaHasAttachment implements Criteria
 }
 
-' Relationships
-MailController --> MailService : Delegates
-ContactController --> ContactService : Delegates
-AuthController --> AuthService : Delegates
-FolderController --> FolderService : Delegates
-AttachmentController --> AttachmentService : Delegates
-FilterRuleController --> FilterRuleService : Delegates
+' ========== KEY RELATIONSHIPS ==========
+MailController --> MailService
+ContactController --> ContactService
+AuthController --> AuthService
+FolderController --> FolderService
+FilterRuleController --> FilterRuleService
 
-MailService --> MailRepo : Uses
-MailService --> UserRepo : Uses
-MailService --> FolderRepo : Uses
-MailService --> MailMapperImpl : Uses
-MailService ..> SortWorker : Uses
-MailService ..> CriteriaFactory : Uses
-MailService --> ActionFactory : Uses
-MailService --> FilterRuleRepo : Uses
+MailService --> MailRepo
+MailService --> MailMapperImpl
+MailService ..> SortWorker
+MailService ..> CriteriaFactory
+MailService --> ActionFactory
 
-ContactService --> ContactRepo : Uses
-ContactService ..> ContactSortWorker : Uses
+AuthService --> JWTService
+AuthService --> UserRepo
 
-AuthService --> UserRepo : Uses
-AuthService --> JWTService : Uses
-AuthService --> FolderService : Uses
-
-FolderService --> FolderRepo : Uses
-AttachmentService --> AttachmentRepo : Uses
-FilterRuleService --> FilterRuleRepo : Uses
-
-MailMapperImpl ..> MailDTO : Creates
-MailMapperImpl ..> Mail : Maps to
-
-CriteriaFactory ..> Criteria : Creates
-ActionFactory ..> FilterRuleAction : Creates
-SortWorker o-- MailSortingStrategy : Has
-ContactSortWorker o-- ContactSortingStrategy : Has
-
-FilterRule --> ActionFactory : Uses
-
-SecurityConfig --> JWTFilter : Configures
+FilterRule --> ActionFactory
+SecurityConfig --> JWTFilter
+CriteriaFactory ..> Criteria : creates
+ActionFactory ..> FilterRuleAction : creates
 
 @enduml
