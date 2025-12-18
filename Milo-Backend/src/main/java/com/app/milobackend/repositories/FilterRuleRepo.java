@@ -18,7 +18,6 @@ public interface FilterRuleRepo extends JpaRepository<FilterRule, Long> {
     List<FilterRule> findByUserEmail(String email);
 
     @Modifying
-    @Transactional
     @Query("DELETE FROM FilterRule f WHERE f.id = :filterId AND f.user.email = :userEmail")
     void deleteFilterRuleByIdANDUser(@Param("filterId") Long id, @Param("userEmail") String email);
 }
