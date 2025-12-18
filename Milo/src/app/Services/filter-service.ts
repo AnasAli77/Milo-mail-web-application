@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { signal, computed } from '@angular/core';
+import { Observable } from 'rxjs';
 import { FilterRule } from '../models/FilterRule';
 import { ApiFilterService } from './api-filter-service';
 import { EmailService } from './email-service';
@@ -52,12 +53,22 @@ export class FilterService {
   }
 
   // Delete from Backend -> Update Signal
-  deleteFilter(id: number) {
-    this.api.deleteRule(id).subscribe({
-      next: () => {
-        this.filters.update(list => list.filter(f => f.id !== id));
-      },
-      error: (err) => console.error('Error deleting filter:', err)
+  deleteFilter(id: number): Observable<void> {
+    return new Observable<void>(observer => {
+      this.api.deleteRule(id).subscribe({
+        next: () => {
+          // Use set() with a new array to ensure change detection
+          const currentFilters = this.filters();
+          const updatedFilters = currentFilters.filter(f => f.id !== id);
+          this.filters.set(updatedFilters);
+          observer.next();
+          observer.complete();
+        },
+        error: (err) => {
+          console.error('Error deleting filter:', err);
+          observer.error(err);
+        }
+      });
     });
   }
 

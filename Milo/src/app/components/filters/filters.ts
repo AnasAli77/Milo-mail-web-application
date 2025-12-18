@@ -17,7 +17,7 @@ export class FiltersComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   // Data Sources
-  filters = computed(() => this.filterService.getFilters()()); 
+  filters = computed(() => this.filterService.getFilters()());
 
   // Filter out system folders for "Move To" action
   filteredFolders = computed(() => {
@@ -161,10 +161,18 @@ export class FiltersComponent implements OnInit {
   }
 
 
+
   deleteFilter(id: number) {
     if (confirm('Are you sure you want to delete this filter?')) {
-      this.filterService.deleteFilter(id);
-      this.selectedFilter.set(null); // Clear selection after delete
+      this.filterService.deleteFilter(id).subscribe({
+        next: () => {
+          this.selectedFilter.set(null); // Clear selection after successful delete
+        },
+        error: (err: any) => {
+          console.error('Failed to delete filter:', err);
+          alert('Failed to delete filter. Please try again.');
+        }
+      });
     }
   }
 }
