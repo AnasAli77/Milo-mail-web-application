@@ -2,7 +2,9 @@ package com.app.milobackend.repositories;
 
 import com.app.milobackend.models.Contact;
 import com.app.milobackend.models.FilterRule;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,5 +21,9 @@ public interface FilterRuleRepo extends JpaRepository<FilterRule, Long> {
 
     @Modifying
     @Query("DELETE FROM FilterRule f WHERE f.id = :filterId AND f.user.email = :userEmail")
+    @Caching(evict = {
+            @CacheEvict(value = "filterRules", allEntries = true),
+            @CacheEvict(value = "filterRuleEntities", allEntries = true)
+    })
     void deleteFilterRuleByIdANDUser(@Param("filterId") Long id, @Param("userEmail") String email);
 }
