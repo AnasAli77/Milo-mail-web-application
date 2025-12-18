@@ -20,6 +20,7 @@ export class EmailService implements OnInit {
   private alert = inject(Alert);
 
   isLoading = signal<boolean>(false);
+  invalidEmails = signal<string[]>([]);
 
   readonly systemFolders = ['inbox', 'starred', 'sent', 'drafts', 'trash'];
   // All folders signal
@@ -53,10 +54,10 @@ export class EmailService implements OnInit {
   }
 
   ngOnInit() {
-  
+
   }
 
-  
+
   loadEmailsForFolder(folder: string, page: number = 0) {
     this.currentSortBy.set('');
 
@@ -376,8 +377,19 @@ export class EmailService implements OnInit {
       },
       error: (err) => {
         this.isLoading.set(false);
-        console.log(err);
-        this.alert.emailSendFail();
+        console.log('Send email error:', err);
+
+        const response = err?.error;
+        const invalidEmailList = response?.invalidEmails;
+
+        if (invalidEmailList && invalidEmailList.length > 0) {
+          this.invalidEmails.set(invalidEmailList);
+          const emailsDisplay = invalidEmailList.join(', ');
+          this.alert.error(`Could not send email. The following recipient(s) do not exist: ${emailsDisplay}`);
+        } else {
+          const errorMessage = response?.message || 'Failed to send email. Please try again.';
+          this.alert.error(errorMessage);
+        }
       }
     });
   }

@@ -22,8 +22,11 @@
       <div class="receivers-section">
         <div class="receivers-list">
           <div *ngFor="let receiverItem of receivers; let i = index; trackBy: trackByIndex" class="receiver-row">
-            <input type="email" placeholder="user@domain.com" class="compose-input" [(ngModel)]="receiverItem.email"
-              name="email-{{i}}">
+            <input type="email" placeholder="user@domain.com" class="compose-input"
+              [class.invalid-email]="emailService.invalidEmails().includes(receiverItem.email)"
+              [(ngModel)]="receiverItem.email" (input)="clearInvalidEmailStatus(receiverItem.email)" name="email-{{i}}">
+            <span class="error-indicator" *ngIf="emailService.invalidEmails().includes(receiverItem.email)"
+              title="This email does not exist">!</span>
             <button type="button" *ngIf="receivers.length > 1" (click)="removeReceiver(i)" class="remove-btn">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor">

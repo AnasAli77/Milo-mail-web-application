@@ -128,6 +128,23 @@ public class MailService {
         }
         System.out.println("Sender found: " + sender.getName());
 
+        // Validate ALL receivers before saving anything (only if not a draft)
+        if (!"drafts".equalsIgnoreCase(mailDTO.getFolder())) {
+            Queue<String> receiverEmails = mailDTO.getReceiverEmails();
+            if (receiverEmails != null) {
+                List<String> invalidEmails = new ArrayList<>();
+                for (String email : receiverEmails) {
+                    if (userRepo.findByEmail(email) == null) {
+                        invalidEmails.add(email);
+                    }
+                }
+                if (!invalidEmails.isEmpty()) {
+                    throw new RuntimeException(
+                            "The following email(s) do not exist: " + String.join(", ", invalidEmails));
+                }
+            }
+        }
+
         // Create the sender's copy (goes to their sent/drafts folder) using
         // Prototype pattern
         Mail mappedMail = mailMapper.toEntity(mailDTO, files);
@@ -188,7 +205,8 @@ public class MailService {
                     e.printStackTrace();
                 }
 
-                // Always ensure mail has a folder - default to inbox if not set by filter action
+                // Always ensure mail has a folder - default to inbox if not set by filter
+                // action
                 if (receiverMail.getFolder() == null) {
                     Folder receiverInbox = folderRepo.findByNameAndUserEmail("inbox", receiver.getEmail());
                     if (receiverInbox != null) {

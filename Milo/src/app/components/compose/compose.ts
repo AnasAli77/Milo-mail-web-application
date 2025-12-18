@@ -119,6 +119,13 @@ export class Compose implements OnInit {
     return index;
   }
 
+  clearInvalidEmailStatus(email: string) {
+    const invalidList = this.emailService.invalidEmails();
+    if (invalidList.includes(email)) {
+      this.emailService.invalidEmails.set(invalidList.filter(e => e !== email));
+    }
+  }
+
   get isFormValid(): boolean {
     if (!this.subject || this.subject.trim() === '') return false;
     if (!this.message || this.message.trim() === '') return false;
