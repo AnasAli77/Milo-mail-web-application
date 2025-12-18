@@ -1,6 +1,7 @@
 package com.app.milobackend.repositories;
 
 import com.app.milobackend.models.Mail;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -73,6 +74,7 @@ public interface MailRepo extends JpaRepository<Mail, Long> {
 
         @Modifying
         @Transactional
+        @CacheEvict(value="mails", allEntries = true)
         @Query("DELETE FROM Mail m WHERE LOWER(m.folder.name) = 'trash' AND m.trashedAt < :cutoffDate")
         int deleteExpiredTrashMails(@Param("cutoffDate") LocalDateTime cutoffDate);
 
